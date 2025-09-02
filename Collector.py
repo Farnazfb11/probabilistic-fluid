@@ -28,14 +28,12 @@ class SchemaCollector:
         per_vertex_summary: Dict[object, VertexSummary] = {}
         per_vertex_id: Dict[object, int] = {}
 
-        for node, msgs in mailboxes.items():
-            # start with the node's own types/label so they're present even if it had no edges merged yet
+        for node in G.nodes:
+            msgs = mailboxes.get(node, [])
             merged = VertexSummary(types=set(G.nodes[node].get("types", [])))
             merged.add_instance(G.nodes[node].get("label"))
-
             for m in msgs:
                 merged = self.strategy.merge_messages(merged, m)
-
             per_vertex_summary[node] = merged
             per_vertex_id[node] = merged.get_id()
 
