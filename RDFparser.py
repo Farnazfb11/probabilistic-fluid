@@ -8,7 +8,7 @@ class RDFParser:
             r'(<[^>]+>)\s+'                        # Group 2: Predicate
             r'('
                 r'"[^"\\]*(?:\\.[^"\\]*)*"'       # Literal string 
-                r'(?:@[a-zA-Z\-]+)?'               # could language tag
+                r'(?:@[a-zA-Z0-9\-]+)?'               # could language tag(changed to match possible discrepencies)
                 r'(?:\^\^<[^>]+>)?'                # could datatype 
             r'|<[^>]+>'                           # OR URI object
             r'|_:[^\s]+'                         # OR blank node object
@@ -24,4 +24,3 @@ class RDFParser:
                     yield match.groups()
                 else:
                     print("No match found", line)
-                    break
