@@ -1,3 +1,5 @@
 # Ignore all YYYY-MM-DD folders
 20??-??-??/
+#ignore summary folder
+summaries/
 
