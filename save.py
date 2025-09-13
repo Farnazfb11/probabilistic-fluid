@@ -23,7 +23,7 @@ def _canon_pred2dst(pred2dst: Dict[str, set]) -> Dict[str, list]:
 _STRATEGY_REGISTRY: Dict[str, Type] = {
     "attribute": SEAttributeCollection,
     "class": SEClassCollection,
-    "complex": SEComplexAttributeClassCollection,
+    "attributeclass": SEComplexAttributeClassCollection,
 }
 
 #save summary for a specific graph for a specific strategy 
@@ -31,7 +31,7 @@ _STRATEGY_REGISTRY: Dict[str, Type] = {
 #save a canonical JSON package (schema + payload + edges + membership)
 def save_summary_for_strategy(
     G: nx.MultiDiGraph,
-    strategy: Union[str, Type, object] = "complex",   # can be "attribute" | "class" | "complex" or a Strategy class/instance
+    strategy: Union[str, Type, object] = "attributeclass",  
     out_path: str = "summaries/summary.json",
     *,
     meta: Dict[str, Any] = None,

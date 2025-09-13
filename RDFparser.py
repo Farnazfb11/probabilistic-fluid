@@ -1,9 +1,10 @@
 import re, gzip
 
-class RDFParser:
+class RDFParser: 
     def __init__(self, file_path):
         self.file_path = file_path
         # Permissive N-Quads/N-Triples pattern
+        self.counter_NM = 0
         self.pattern = re.compile(r"""
             ^\s*
             (?P<s>(<[^>]*>|_:[^\s]+))            # subject: IRI or blank node
@@ -40,4 +41,7 @@ class RDFParser:
                     g = m.group('g') if m.group('g') else None
                     yield (s, p, o, g)
                 else:
+                    self.counter_NM += 1
                     print("No match found", line)
+        if self.counter_NM > 0:
+            print(f"[RDFParser]Total non-matching lines: {self.counter_NM}")
