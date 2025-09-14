@@ -35,6 +35,7 @@ def save_summary_for_strategy(
     out_path: str = "summaries/summary.json",
     *,
     meta: Dict[str, Any] = None,
+    include_membership: bool = False,
 ) -> Dict[str, Any]:
 
     # 1) Get strategy instance
@@ -97,16 +98,18 @@ def save_summary_for_strategy(
                 "pred_counts": pred_counts #payload: histogram per predicate
             }
 
-    for node, sid in per_v_id.items():
-        label = G.nodes[node].get("label", node) if node in G.nodes else str(node)
-        membership[str(label)] = int(sid)
-
     pkg = {
         "meta": {"strategy": strategy_name, **(meta or {})},
         "nodes": dict(sorted(nodes.items())),
         "edges": dict(sorted(edges.items())),
-        "membership": dict(sorted(membership.items())),
     }
+
+    if include_membership:
+        membership = {}
+        for node, sid in per_v_id.items():
+            label = G.nodes[node].get("label", node) if node in G.nodes else str(node)
+            membership[str(label)] = int(sid)
+        pkg["membership"] = dict(sorted(membership.items()))
 
     # 5) Save JSON
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)

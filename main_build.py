@@ -86,8 +86,16 @@ def main():
         default="summaries/",
         help="Output file OR directory. If a directory or ends with '/', file will be named <WEEK>_<STRATEGY>.json in that dir."
     )
-    ap.add_argument("--no-load-test", action="store_true", help="Skip reloading the saved summary for a smoke test")
-
+    ap.add_argument(
+        "--include-membership",
+        action="store_true",
+        help="If set, include the (large) node→supernode membership map in the JSON (default: off)."
+    )
+    ap.add_argument(
+        "--load-test",
+        action="store_true",
+        help="If set, reload the saved summary for a smoke test (default: off)."
+    )
     args = ap.parse_args()
 
     # --- Build RDF graph from multiple files ---
@@ -110,17 +118,19 @@ def main():
 
     # --- Save summary automatically ---
     meta = {
-    "datasets": [os.path.basename(p) for p in args.input],
-    "include_literals": args.include_literals,
-    "use_numeric_ids": args.use_numeric_ids,
-    "add_reverse_edges": args.reverse_edges,
-    "limit": args.limit,
+        "datasets": [os.path.basename(p) for p in args.input],
+        "include_literals": args.include_literals,
+        "use_numeric_ids": args.use_numeric_ids,
+        "add_reverse_edges": args.reverse_edges,
+        "limit": args.limit,
+        "include_membership": args.include_membership,  # record how we saved
     }
     pkg = save_summary_for_strategy(
         G,
         strategy=args.strategy,
         out_path=str(out_path),
         meta=meta,
+        include_membership=args.include_membership,
     )
 
     # --- Print quick summary from pkg instead of reloading file ---
@@ -129,13 +139,13 @@ def main():
         f"(supernodes={len(pkg['nodes'])}, superedges={len(pkg['edges'])})"
     )
 
-    # --- Load back as a smoke test ---
-    # if not args.no_load_test:
-    #     loaded = load_summary_package(str(out_path))
-    #     print(
-    #         f"[load-test] Loaded summary: strategy={loaded.get('meta', {}).get('strategy')}, "
-    #         f"supernodes={len(loaded.get('nodes', {}))}, superedges={len(loaded.get('edges', []))}"
-    #     )
+    #--- Load back as a smoke test ---
+    if args.load_test:  
+        loaded = load_summary_package(str(out_path))
+        print(
+            f"[load-test] Loaded summary: strategy={loaded.get('meta', {}).get('strategy')}, "
+            f"supernodes={len(loaded.get('nodes', {}))}, superedges={len(loaded.get('edges', []))}"
+        )
 
 if __name__ == "__main__":
     try:
