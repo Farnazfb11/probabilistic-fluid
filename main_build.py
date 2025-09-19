@@ -20,7 +20,14 @@ def infer_week_tag(input_paths: list[str]) -> str:
     p = Path(input_paths[0])
     return p.parent.name or p.stem
 
-def ensure_out_path(out_arg: str, input_paths: list[str], strategy: str) -> Path:
+def ensure_out_path(
+    out_arg: str,
+    input_paths: list[str],
+    strategy: str,
+    *,
+    only_id: bool = False,
+    include_membership: bool = False,
+) -> Path:
     # Resolve the final output file path.
     week = infer_week_tag(input_paths)
     out = Path(out_arg)
@@ -28,14 +35,23 @@ def ensure_out_path(out_arg: str, input_paths: list[str], strategy: str) -> Path
     # Treat existing directory or trailing slash as a directory target
     is_dir_target = out_arg.endswith(os.sep) or (out.exists() and out.is_dir())
 
+    # Build optional suffixes based on flags
+    suffixes = []
+    if only_id:
+        suffixes.append("onlyid")
+    if include_membership:
+        suffixes.append("membership")
+    suffix_str = f"_{'_'.join(suffixes)}" if suffixes else ""
+
     if is_dir_target:
         out_dir = out if out_arg else Path("summaries")
         out_dir.mkdir(parents=True, exist_ok=True)
-        out = out_dir / f"{week}_{strategy}.json"
+        out = out_dir / f"{week}_{strategy}{suffix_str}.json"
     else:
-        # If a filename was given, make sure the directory exists
+        # If a filename was given, make sure the directory exists; do not alter filename
         out.parent.mkdir(parents=True, exist_ok=True)
     return out
+
 
 def build_graph(paths: list[str], limit: int, include_literals: bool, use_numeric_ids: bool, add_reverse_edges: bool):
     #one graph for multiple files
@@ -92,6 +108,11 @@ def main():
         help="If set, include the (large) node→supernode membership map in the JSON (default: off)."
     )
     ap.add_argument(
+        "--only-id",
+        action="store_true",
+        help="If set, export a lightweight package with only IDs and counts (default: off)."
+    )
+    ap.add_argument(
         "--load-test",
         action="store_true",
         help="If set, reload the saved summary for a smoke test (default: off)."
@@ -113,7 +134,11 @@ def main():
         print("[main] Example edge:", G.nodes[u].get("label"), "--", d.get("predicate"), "-->", G.nodes[v].get("label"))
 
     # --- Resolve output path based on week + strategy ---
-    out_path = ensure_out_path(args.out, args.input, args.strategy)
+    out_path = ensure_out_path(
+    args.out, args.input, args.strategy,
+    only_id=args.only_id,
+    include_membership=args.include_membership,
+    )
     print(f"[main] Saving summary to: {out_path}")
 
     # --- Save summary automatically ---
@@ -124,6 +149,7 @@ def main():
         "add_reverse_edges": args.reverse_edges,
         "limit": args.limit,
         "include_membership": args.include_membership,  # record how we saved
+        "only_id": args.only_id,  # record how we saved
     }
     pkg = save_summary_for_strategy(
         G,
@@ -131,11 +157,13 @@ def main():
         out_path=str(out_path),
         meta=meta,
         include_membership=args.include_membership,
+        only_id=args.only_id,
     )
 
     # --- Print quick summary from pkg instead of reloading file ---
     print(
         f"[summary] Saved summary with strategy={pkg['meta'].get('strategy')} "
+        f"(only_id={pkg['meta'].get('only_id', False)}) "
         f"(supernodes={len(pkg['nodes'])}, superedges={len(pkg['edges'])})"
     )
 
@@ -144,7 +172,8 @@ def main():
         loaded = load_summary_package(str(out_path))
         print(
             f"[load-test] Loaded summary: strategy={loaded.get('meta', {}).get('strategy')}, "
-            f"supernodes={len(loaded.get('nodes', {}))}, superedges={len(loaded.get('edges', []))}"
+            f"only_id={loaded.get('meta', {}).get('only_id')}, "
+            f"supernodes={len(loaded.get('nodes', {}))}, superedges={len(loaded.get('edges', {}))}"
         )
 
 if __name__ == "__main__":

@@ -16,26 +16,26 @@ def _sorted_list(x) -> list:
 def _canon_pred2dst(pred2dst: Dict[str, set]) -> Dict[str, list]:
     # {predicate -> set(dst_types)} into
     # {predicate -> sorted list(dst_types)}, with predicates sorted too.
-    
     return {p: _sorted_list(v) for p, v in sorted(pred2dst.items())}
 
 # Registry of strategy names -> classes
 _STRATEGY_REGISTRY: Dict[str, Type] = {
     "attribute": SEAttributeCollection,
     "class": SEClassCollection,
-    "attributeclass": SEComplexAttributeClassCollection,
+    "attributeclass": SEComplexAttributeClassCollection,  # formerly "complex"
 }
 
-#save summary for a specific graph for a specific strategy 
-#path + metadata
-#save a canonical JSON package (schema + payload + edges + membership)
+# save summary for a specific graph for a specific strategy
+# path + metadata
+# save a canonical JSON package (schema + payload + edges + membership)
 def save_summary_for_strategy(
     G: nx.MultiDiGraph,
-    strategy: Union[str, Type, object] = "attributeclass",  
+    strategy: Union[str, Type, object] = "attributeclass",
     out_path: str = "summaries/summary.json",
     *,
     meta: Dict[str, Any] = None,
     include_membership: bool = False,
+    only_id: bool = False,  # <<< NEW: opt-in lightweight export
 ) -> Dict[str, Any]:
 
     # 1) Get strategy instance
@@ -61,45 +61,65 @@ def save_summary_for_strategy(
     super_counts, super_pred = build_summary_graph(G, groups, by_predicate=True)
 
     # 4) make into JSON-serializable structure
-    
-    nodes, edges, membership = {}, {}, {}
-    for sid, members in groups.items():
-        types, preds, dsp = set(), set(), set()
-        pred2dst: Dict[str, set] = {}
-        for n in members:
-            vs = per_v_summary.get(n)
-            if not vs:
-                continue
-            types |= set(vs.types)
-            preds |= set(vs.neighbors.keys())
-            dsp |= set(vs.payload)
-            for p, dsts in vs.neighbor_dst_types.items():
-                pred2dst.setdefault(p, set()).update(dsts)
-        nodes[str(sid)] = {
-            "sid": int(sid),
-            "vcp": len(members),                          # payload: vertex count
-            "dsp": _sorted_list(dsp),                     # payload: data sources
-            "types": _sorted_list(types),                 # schema: rdf:types
-            "predicates": _sorted_list(preds),            # schema: property set
-            "pred_to_dst_types": _canon_pred2dst(pred2dst) # schema: predicate→dst types
-        }
+    nodes: Dict[str, Any] = {}
+    edges: Dict[str, Any] = {}
 
-    for su, dsts in super_counts.items():
-        for sv, total in dsts.items():
-            pred_counts = {
-                p: int(c) for p, c in sorted(
-                    super_pred.get(su, {}).get(sv, {}).items()
-                )
-            }
-            edges[f"{su}->{sv}"] = {
-                "src": int(su),
-                "dst": int(sv),
-                "count": int(total),       #payload: rolled edge count
-                "pred_counts": pred_counts #payload: histogram per predicate
+    if not only_id:
+        # new ony_id
+        # Full (default) export: schema + payload
+        for sid, members in groups.items():
+            types, preds, dsp = set(), set(), set()
+            pred2dst: Dict[str, set] = {}
+            for n in members:
+                vs = per_v_summary.get(n)
+                if not vs:
+                    continue
+                types |= set(vs.types)
+                preds |= set(vs.neighbors.keys())
+                dsp |= set(vs.payload)
+                for p, dsts in vs.neighbor_dst_types.items():
+                    pred2dst.setdefault(p, set()).update(dsts)
+            nodes[str(sid)] = {
+                "sid": int(sid),
+                "vcp": len(members),                           # payload: vertex count
+                "dsp": _sorted_list(dsp),                      # payload: data sources
+                "types": _sorted_list(types),                  # schema: rdf:types
+                "predicates": _sorted_list(preds),             # schema: property set
+                "pred_to_dst_types": _canon_pred2dst(pred2dst) # schema: predicate→dst types
             }
 
+        for su, dsts in super_counts.items():
+            for sv, total in dsts.items():
+                pred_counts = {
+                    p: int(c) for p, c in sorted(
+                        super_pred.get(su, {}).get(sv, {}).items()
+                    )
+                }
+                edges[f"{su}->{sv}"] = {
+                    "src": int(su),
+                    "dst": int(sv),
+                    "count": int(total),        # payload: rolled edge count
+                    "pred_counts": pred_counts  # payload: histogram per predicate
+                }
+    else:
+        # Lightweight export: only IDs + counts
+        for sid, members in groups.items():
+            nodes[str(sid)] = {
+                "sid": int(sid),
+                "vcp": len(members),
+            }
+
+        for su, dsts in super_counts.items():
+            for sv, total in dsts.items():
+                edges[f"{su}->{sv}"] = {
+                    "src": int(su),
+                    "dst": int(sv),
+                    "count": int(total),
+                }
+
+    pkg_meta = {"strategy": strategy_name, "only_id": bool(only_id), **(meta or {})}
     pkg = {
-        "meta": {"strategy": strategy_name, **(meta or {})},
+        "meta": pkg_meta,
         "nodes": dict(sorted(nodes.items())),
         "edges": dict(sorted(edges.items())),
     }
@@ -116,10 +136,10 @@ def save_summary_for_strategy(
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(pkg, f, ensure_ascii=False, indent=2, sort_keys=True)
 
-    print(f"[save] wrote summary ({strategy_name}) → {out_path}")
+    print(f"[save] wrote summary ({strategy_name}, only_id={only_id}) → {out_path}")
     return pkg
 
 def load_summary_package(path: str) -> Dict[str, Any]:
-    #Load a previously saved summary JSON package back into a dict
+    # Load a previously saved summary JSON package back into a dict
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
