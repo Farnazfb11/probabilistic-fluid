@@ -24,7 +24,7 @@ def _eqc_sizes_from_nodes(pkg: Dict[str, Any]) -> Optional[List[int]]:
     return sizes
 
 
-def _eqc_sizes_from_membership(pkg: Dict[str, Any]) -> Optional[List[int]]:
+def _eqc_sizes_from_membership(pkg: Dict[str, Any]) -> Optional[List[int]]: #optional
 
     # Fallback path if `vcp` is absent and include_membership: derive EQC sizes by *inverting*
     # the membership map (label/id → sid) into counts per sid.

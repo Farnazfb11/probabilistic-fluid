@@ -8,11 +8,27 @@ class SEAttributeCollection(SchemaExtraction):
     # record the predicate used on this edge
     # record the graph
     # record the src instance (its label/IRI)
-    # """
-    def send_message(self, G: nx.MultiDiGraph, src, dst, edata: dict) -> VertexSummary:
-        src_types = set(G.nodes[src].get("types", []))
-        vs = VertexSummary(types=src_types)
-        vs.add_instance(G.nodes[src].get("label"))
-        vs.add_neighbor(edata.get("predicate"))
-        vs.add_payload(edata.get("graph"))
+    # CHANGED (new): give the strategy control over per-vertex seeding.
+    # We intentionally DO NOT seed types here, so vertices start with empty type sets.
+    def seed_vertex(self, G: nx.MultiDiGraph, node) -> VertexSummary:
+        vs = VertexSummary()
+        # Instances don’t affect grouping, but are useful payload.
+        vs.add_instance(G.nodes[node].get("label"))
         return vs
+
+    def send_message(self, G: nx.MultiDiGraph, src, dst, edata: dict) -> VertexSummary:
+        # Predicate-only: we only record the outgoing predicate on this edge (and payload graph).
+        vs = VertexSummary()
+
+        pred = edata.get("predicate")
+        if pred is not None:
+            vs.add_neighbor(pred)
+
+        g = edata.get("graph")
+        if g is not None:
+            vs.add_payload(g)
+
+        # IMPORTANT: Do NOT add types (src or dst). Do NOT add dst types per predicate.
+        return vs
+
+    # merge_messages uses default (set/union + count/sum) → OK for predicate-only.

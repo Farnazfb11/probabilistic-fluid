@@ -30,11 +30,16 @@ class SchemaCollector:
 
         for node in G.nodes:
             msgs = mailboxes.get(node, [])
-            merged = VertexSummary(types=set(G.nodes[node].get("types", [])))
-            merged.add_instance(G.nodes[node].get("label"))
+            if hasattr(self.strategy, "seed_vertex"):
+                merged = self.strategy.seed_vertex(G, node)  # CHANGED: new hook
+            else:
+                merged = VertexSummary(types=set(G.nodes[node].get("types", [])))  # original default
+                merged.add_instance(G.nodes[node].get("label"))                    # original default
+
             for m in msgs:
                 merged = self.strategy.merge_messages(merged, m)
-            per_vertex_summary[node] = merged
+
+            per_vertex_summary[node] = merged                      # CHANGED: put result in dict
             per_vertex_id[node] = merged.get_id()
 
         return per_vertex_summary, per_vertex_id
