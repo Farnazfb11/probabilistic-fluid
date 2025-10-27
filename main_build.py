@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from itertools import islice
-from __future__ import annotations  
+
 import argparse
 import os
 import re
