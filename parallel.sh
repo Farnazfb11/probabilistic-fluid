@@ -7,7 +7,7 @@ export BASE="/media/nvme7n1/fbtelki/dyldo_full/data"
 mkdir -p summaries logs
 
 # reduce parallelism a bit to avoid OOM; adjust if stable
-PARALLEL=8
+PARALLEL=6
 
 find "$BASE" -maxdepth 1 -type d -regextype posix-extended -regex '.*/[0-9]{4}-[0-9]{2}-[0-9]{2}$' \
 | sort \
