@@ -27,6 +27,7 @@ def ensure_out_path(
     *,
     only_id: bool = False,
     include_membership: bool = False,
+    include_edges: bool = True,
 ) -> Path:
     # Resolve the final output file path.
     week = infer_week_tag(input_paths)
@@ -41,6 +42,8 @@ def ensure_out_path(
         suffixes.append("onlyid")
     if include_membership:
         suffixes.append("membership")
+    if not include_edges:                 
+        suffixes.append("noedges")
     suffix_str = f"_{'_'.join(suffixes)}" if suffixes else ""
 
     if is_dir_target:
@@ -117,6 +120,11 @@ def main():
         action="store_true",
         help="If set, reload the saved summary for a smoke test (default: off)."
     )
+    ap.add_argument(
+        "--no-edges",                    
+        action="store_true",             
+        help="If set, do NOT include super-edges in the saved summary (default: include).",  # ADDED
+    )
     args = ap.parse_args()
 
     # --- Build RDF graph from multiple files ---
@@ -138,6 +146,7 @@ def main():
     args.out, args.input, args.strategy,
     only_id=args.only_id,
     include_membership=args.include_membership,
+    include_edges=(not args.no_edges),
     )
     print(f"[main] Saving summary to: {out_path}")
 
@@ -150,6 +159,7 @@ def main():
         "limit": args.limit,
         "include_membership": args.include_membership,  # record how we saved
         "only_id": args.only_id,  # record how we saved
+        "include_edges": (not args.no_edges), # record if we saved edges
     }
     pkg = save_summary_for_strategy(
         G,
@@ -158,13 +168,14 @@ def main():
         meta=meta,
         include_membership=args.include_membership,
         only_id=args.only_id,
+        include_edges=(not args.no_edges),
     )
 
     # --- Print quick summary from pkg instead of reloading file ---
     print(
         f"[summary] Saved summary with strategy={pkg['meta'].get('strategy')} "
         f"(only_id={pkg['meta'].get('only_id', False)}) "
-        f"(supernodes={len(pkg['nodes'])}, superedges={len(pkg['edges'])})"
+        f"(supernodes={len(pkg.get('nodes', {}))}, superedges={len(pkg.get('edges', {}))})"  # CHANGED: .get for edges
     )
 
     #--- Load back as a smoke test ---

@@ -35,7 +35,8 @@ def save_summary_for_strategy(
     *,
     meta: Dict[str, Any] = None,
     include_membership: bool = False,
-    only_id: bool = False,  # <<< NEW: opt-in lightweight export
+    only_id: bool = False,               # <<< existing: lightweight export
+    include_edges: bool = True,          # ADDED: toggle for saving edges
 ) -> Dict[str, Any]:
 
     # 1) Get strategy instance
@@ -56,16 +57,14 @@ def save_summary_for_strategy(
     collector = SchemaCollector(strat)
     per_v_summary, per_v_id = collector.collect(G)
 
-    # 3) Group nodes and build superedge counts
+    # 3) Group nodes (supernodes)
     groups = group_by_signature(per_v_id)
-    super_counts, super_pred = build_summary_graph(G, groups, by_predicate=True)
 
     # 4) make into JSON-serializable structure
     nodes: Dict[str, Any] = {}
-    edges: Dict[str, Any] = {}
+    edges: Dict[str, Any] = {}  # may remain empty if include_edges=False
 
     if not only_id:
-        # new ony_id
         # Full (default) export: schema + payload
         for sid, members in groups.items():
             types, preds, dsp = set(), set(), set()
@@ -87,20 +86,6 @@ def save_summary_for_strategy(
                 "predicates": _sorted_list(preds),             # schema: property set
                 "pred_to_dst_types": _canon_pred2dst(pred2dst) # schema: predicate→dst types
             }
-
-        for su, dsts in super_counts.items():
-            for sv, total in dsts.items():
-                pred_counts = {
-                    p: int(c) for p, c in sorted(
-                        super_pred.get(su, {}).get(sv, {}).items()
-                    )
-                }
-                edges[f"{su}->{sv}"] = {
-                    "src": int(su),
-                    "dst": int(sv),
-                    "count": int(total),        # payload: rolled edge count
-                    "pred_counts": pred_counts  # payload: histogram per predicate
-                }
     else:
         # Lightweight export: only IDs + counts
         for sid, members in groups.items():
@@ -109,19 +94,42 @@ def save_summary_for_strategy(
                 "vcp": len(members),
             }
 
+    # 5) Build and include edges only if requested  ---------------------  #
+    if include_edges:  # ADDED: guard the whole edge computation
+        super_counts, super_pred = build_summary_graph(G, groups, by_predicate=True)  # MOVED under guard
         for su, dsts in super_counts.items():
             for sv, total in dsts.items():
-                edges[f"{su}->{sv}"] = {
-                    "src": int(su),
-                    "dst": int(sv),
-                    "count": int(total),
-                }
+                if not only_id:
+                    pred_counts = {
+                        p: int(c) for p, c in sorted(
+                            super_pred.get(su, {}).get(sv, {}).items()
+                        )
+                    }
+                    edges[f"{su}->{sv}"] = {
+                        "src": int(su),
+                        "dst": int(sv),
+                        "count": int(total),        # payload: rolled edge count
+                        "pred_counts": pred_counts  # payload: histogram per predicate
+                    }
+                else:
+                    edges[f"{su}->{sv}"] = {
+                        "src": int(su),
+                        "dst": int(sv),
+                        "count": int(total),
+                    }
+    # ------------------------------------------------------------------- #
 
-    pkg_meta = {"strategy": strategy_name, "only_id": bool(only_id), **(meta or {})}
+    pkg_meta = {
+        "strategy": strategy_name,
+        "only_id": bool(only_id),
+        "include_edges": bool(include_edges),   # ADDED: record edge choice
+        **(meta or {})
+    }
     pkg = {
         "meta": pkg_meta,
         "nodes": dict(sorted(nodes.items())),
-        "edges": dict(sorted(edges.items())),
+        # CHANGED: include 'edges' only if we actually built them (omit when empty)
+        **({"edges": dict(sorted(edges.items()))} if edges else {}), 
     }
 
     if include_membership:
@@ -131,12 +139,12 @@ def save_summary_for_strategy(
             membership[str(label)] = int(sid)
         pkg["membership"] = dict(sorted(membership.items()))
 
-    # 5) Save JSON
+    # 6) Save JSON
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(pkg, f, ensure_ascii=False, indent=2, sort_keys=True)
 
-    print(f"[save] wrote summary ({strategy_name}, only_id={only_id}) → {out_path}")
+    print(f"[save] wrote summary ({strategy_name}, only_id={only_id}, include_edges={include_edges}) → {out_path}")  # CHANGED: log flag
     return pkg
 
 def load_summary_package(path: str) -> Dict[str, Any]:
