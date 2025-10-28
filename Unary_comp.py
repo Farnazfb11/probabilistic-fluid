@@ -77,6 +77,14 @@ def _build_digraph(pkg: Dict[str, Any]) -> nx.DiGraph:
         sid = int(sid_str)
         if sid not in G:
             G.add_node(sid)
+    
+    # synthesize nodes from membership if nodes/edges are missing
+    # component counts and degree stats to behave (zeros) over the correct V.
+    if G.number_of_nodes() == 0 and pkg.get("membership"):
+        uniq_sids = set(int(sid) for sid in pkg["membership"].values())
+        for sid in uniq_sids:
+            if sid not in G:
+                G.add_node(sid)
 
     return G
 
@@ -222,6 +230,12 @@ def connected_components_count(pkg: Dict[str, Any], *, weak: bool = True) -> int
     #     - False          : strongly connected components (respect directions).
     # Re: int: number of components
     G = _build_digraph(pkg)
+
+    # Guard empty graph explicitly
+    # networkx handles this, but return 0 here to be explicit and future-proof.
+    if G.number_of_nodes() == 0:
+        return 0
+    
     if weak:
         # NetworkX function for weak connectivity
         return nx.number_weakly_connected_components(G)
@@ -252,11 +266,15 @@ def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
         "eqc_count": count_equivalence_classes(pkg),
         "avg_eqc_size": average_eqc_size(pkg),
         "std_eqc_size": std_eqc_size(pkg),
+
+        # edge counts are robust via edge_set() even if no 'edges' key is present
         "edge_count_unweighted": len(edge_set(pkg, include_weights=False)),
-        "edge_count_weighted": sum(w for *_, w in edge_set(pkg, include_weights=True)) if pkg.get("edges") else 0,
+        # compute weighted count from edge_set rather than checking pkg['edges']
+        # if the 'edges' key is missing or empty.
+        "edge_count_weighted": sum(w for *_, w in edge_set(pkg, include_weights=True)),
         "avg_out_degree_weighted": average_out_degree(pkg, weighted=True),
         "tmh_weighted": tmh_tendency_to_make_hubs(pkg, weighted=True),
         "components_weak": connected_components_count(pkg, weak=True),
         "components_strong": connected_components_count(pkg, weak=False),
-        "eqc_size_len(to check if it matches eqc_count)": len(sizes),
+        "n_sizes": len(sizes),
     }

@@ -31,6 +31,11 @@ def main():
     # 1) Load the summary using the canonical loader
     pkg = load_summary(path)
 
+    # soft notice when the package is edge-free
+    # Help the user understand why edge-based metrics will be 0.
+    if not pkg.get("edges"):
+        print("[info] No 'edges' section found (edge-free export). Edge-based metrics will be 0.")
+
     # 2) Compute one-shot unary metrics (counts, averages, TMH, components, etc.)
     metrics = summarize_unary_metrics(pkg)
 
