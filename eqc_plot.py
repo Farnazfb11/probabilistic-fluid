@@ -27,6 +27,8 @@ def collect(input_dir: Path) -> List[Dict[str, Any]]:
                 "label": _label(fp),
                 "avg": float(average_eqc_size(pkg)),
                 "std": float(std_eqc_size(pkg, population=False)),
+                "tmh_w": float(tmh_tendency_to_make_hubs(pkg, weighted=True)),
+                "tmh_u": float(tmh_tendency_to_make_hubs(pkg, weighted=False)),
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -53,74 +55,86 @@ def _thin_indices(n: int, max_ticks: int) -> List[int]:
         idx[-1] = n - 1
     return idx
 
-def plot_pdf(rows: List[Dict[str, Any]], out_pdf: Path, title: str, max_xticks: int, tmh_on_secondary_axis: bool = True):
-    if not rows:
-        print("[info] nothing to plot")
-        return
-
+def plot_eqc_sizes(rows: List[Dict[str, Any]], out_pdf: Path, title: str, max_xticks: int):
     labels = [r["label"] for r in rows]
     avgs   = [r["avg"]   for r in rows]
     stds   = [r["std"]   for r in rows]
-    tmhs   = [r["tmh"]   for r in rows]  # CHANGED: series for TMH
-    # WHY: we’ll plot TMH alongside avg/std
 
-    plt.figure(figsize=(12, 6))  # single figure, clean
+    plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    ax.plot(labels, avgs, marker="o", label="Average EQC size")
+    ax.plot(labels, stds, marker="s", label="Std. dev. EQC size")
+    ax.set_title(title)
+    ax.set_xlabel("Snapshot / Summary")
+    ax.set_ylabel("EQC size (count)")
+    ax.legend()
 
-    # Primary axis: EQC size stats
-    ax1 = plt.gca()
-    l1, = ax1.plot(labels, avgs, marker="o", label="Average EQC size")
-    l2, = ax1.plot(labels, stds, marker="s", label="Std. dev. EQC size")
-    ax1.set_xlabel("Snapshot / Summary")
-    ax1.set_ylabel("EQC size (count)")
-    ax1.set_title(title)
-
-    # CHANGED: plot TMH, optionally on a secondary y-axis
-    # WHY: TMH may have a different scale than counts; secondary axis keeps both readable.
-    if tmh_on_secondary_axis:
-        ax2 = ax1.twinx()
-        l3, = ax2.plot(labels, tmhs, marker="^", linestyle="--", label="TMH (hub tendency)")
-        ax2.set_ylabel("TMH")
-        lines = [l1, l2, l3]
-        labels_for_legend = [ln.get_label() for ln in lines]
-        ax1.legend(lines, labels_for_legend, loc="best")
-    else:
-        l3, = ax1.plot(labels, tmhs, marker="^", linestyle="--", label="TMH (hub tendency)")
-        ax1.legend(loc="best")
-
-    # Thin x-ticks if there are too many labels (prevents overlap in PDF)
-    n = len(labels)
-    keep = _thin_indices(n, max_xticks)
+    keep = _thin_indices(len(labels), max_xticks)
     plt.xticks(keep, [labels[i] for i in keep], rotation=60, ha="right")
 
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_pdf, format="pdf")  # vector PDF
-    print(f"[ok] PDF plot: {out_pdf}")
+    plt.savefig(out_pdf, format="pdf")
+    plt.close()
+    print(f"[ok] PDF: {out_pdf}")
+
+def plot_tmh(rows: List[Dict[str, Any]], out_pdf: Path, title: str, key: str, max_xticks: int):
+    """key is 'tmh_w' or 'tmh_u'."""
+    labels = [r["label"] for r in rows]
+    tmh    = [r[key]      for r in rows]
+
+    plt.figure(figsize=(12, 6))
+    ax = plt.gca()
+    ax.plot(labels, tmh, marker="^", linestyle="--", label="TMH (tendency to make hubs)")
+    ax.set_title(title)
+    ax.set_xlabel("Snapshot / Summary")
+    ax.set_ylabel("TMH")
+    ax.legend()
+
+    keep = _thin_indices(len(labels), max_xticks)
+    plt.xticks(keep, [labels[i] for i in keep], rotation=60, ha="right")
+
+    plt.tight_layout()
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_pdf, format="pdf")
+    plt.close()
+    print(f"[ok] PDF: {out_pdf}")
+
 
 def main():
-    ap = argparse.ArgumentParser(description="Plot avg & std of EQC sizes plus TMH to PDF.")
+    ap = argparse.ArgumentParser(description="Create three PDFs: EQC sizes, TMH weighted, TMH unweighted.")
     ap.add_argument("-i", "--input-dir", required=True, help="Directory with summary JSONs (recursive).")
-    ap.add_argument("--out-pdf", default="results/eqc_stats.pdf", help="Output PDF path (vector graphics).")
-    ap.add_argument("--title", default="EQC Size & TMH", help="Plot title.")
-    ap.add_argument("--csv", help="(Optional) also write a CSV with the values.")
-    ap.add_argument("--max-xticks", type=int, default=40, help="Max number of x-axis tick labels (default: 40).")
-    ap.add_argument("--tmh-unweighted", action="store_true",
-                    help="Use unweighted degrees for TMH (default: weighted).")  # CHANGED: CLI switch
-    # WHY: sometimes you might want structural TMH ignoring rolled edge weights
-    ap.add_argument("--tmh-secondary-axis", action="store_true",
-                    help="Plot TMH on a secondary y-axis (default). Use --no-tmh-secondary-axis to disable.")  # CHANGED: hint
-    ap.add_argument("--no-tmh-secondary-axis", dest="tmh_secondary_axis", action="store_false")  # CHANGED: negation flag
-    ap.set_defaults(tmh_secondary_axis=True)  # CHANGED: default True
-
+    ap.add_argument("--out-dir", default="results", help="Output directory for PDFs (default: results).")
+    ap.add_argument("--eqc-pdf", default="eqc_sizes.pdf", help="Filename for EQC sizes PDF.")
+    ap.add_argument("--tmh-weighted-pdf", default="tmh_weighted.pdf", help="Filename for weighted TMH PDF.")
+    ap.add_argument("--tmh-unweighted-pdf", default="tmh_unweighted.pdf", help="Filename for unweighted TMH PDF.")
+    ap.add_argument("--title-eqc", default="EQC Size: Average & Standard Deviation", help="Title for EQC sizes plot.")
+    ap.add_argument("--title-tmh-w", default="TMH (Weighted Degrees)", help="Title for weighted TMH plot.")
+    ap.add_argument("--title-tmh-u", default="TMH (Unweighted Degrees)", help="Title for unweighted TMH plot.")
+    ap.add_argument("--max-xticks", type=int, default=40, help="Max x-axis tick labels (default: 40).")
+    ap.add_argument("--csv", help="(Optional) write a CSV with avg, std, tmh_w, tmh_u.")
+    # optional switches to skip any of the PDFs
+    ap.add_argument("--no-eqc", action="store_true", help="Skip EQC sizes PDF.")
+    ap.add_argument("--no-tmh-weighted", action="store_true", help="Skip weighted TMH PDF.")
+    ap.add_argument("--no-tmh-unweighted", action="store_true", help="Skip unweighted TMH PDF.")
     args = ap.parse_args()
 
-    rows = collect(Path(args.input_dir), tmh_weighted=not args.tmh_unweighted)  # CHANGED: pass weighted flag
+    rows = collect(Path(args.input_dir))
     if not rows:
         print("[info] No summaries found or all failed to parse.")
         return
 
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     maybe_write_csv(rows, Path(args.csv) if args.csv else None)
-    plot_pdf(rows, Path(args.out_pdf), args.title, args.max_xticks, tmh_on_secondary_axis=args.tmh_secondary_axis)
+
+    if not args.no_eqc:
+        plot_eqc_sizes(rows, out_dir / args.eqc_pdf, args.title_eqc, args.max_xticks)
+    if not args.no_tmh_weighted:
+        plot_tmh(rows, out_dir / args.tmh_weighted_pdf, args.title_tmh_w, key="tmh_w", max_xticks=args.max_xticks)
+    if not args.no_tmh_unweighted:
+        plot_tmh(rows, out_dir / args.tmh_unweighted_pdf, args.title_tmh_u, key="tmh_u", max_xticks=args.max_xticks)
 
 if __name__ == "__main__":
     main()
