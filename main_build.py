@@ -10,7 +10,7 @@ from pathlib import Path
 from RDFparser import RDFParser
 from RDFGraphBuilder import RDFGraphBuilder
 from save import save_summary_for_strategy, load_summary_package
-
+#change this
 
 # To get both files or a list and treat them as one
 def infer_week_tag(input_paths: list[str]) -> str:
@@ -98,11 +98,11 @@ def main():
     ap.add_argument("--use-numeric-ids", action="store_true", help="Hash IDs to numeric ints")
     ap.add_argument("--reverse-edges", action="store_true", help="Add reverse edges")
     ap.add_argument(
-        "--strategy", "-s",
-        choices=["attribute", "class", "attributeclass"],
-        default="attributeclass",
-        help="Summary strategy to use"
-    )
+    "--strategy", "-s",
+    choices=["attribute", "class", "attributeclass", "complexattributeclass"],  # CHANGED
+    default="complexattributeclass",
+    help="Summary strategy to use"
+)
     ap.add_argument(
         "--out", "-o",
         default="summaries/",

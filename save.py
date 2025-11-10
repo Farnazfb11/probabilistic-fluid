@@ -2,11 +2,13 @@ import os, json
 from typing import Dict, Any, Union, Type
 import networkx as nx
 
+#change this
 #  project dependencies ===
 from Collector import SchemaCollector
 from AttCollection import SEAttributeCollection
 from ClassCollection import SEClassCollection
 from CompAttClassCollection import SEComplexAttributeClassCollection
+from AttClassCollection import SEAttributeClassCollection
 from Summarizer import group_by_signature, build_summary_graph
 
 def _sorted_list(x) -> list:
@@ -22,7 +24,8 @@ def _canon_pred2dst(pred2dst: Dict[str, set]) -> Dict[str, list]:
 _STRATEGY_REGISTRY: Dict[str, Type] = {
     "attribute": SEAttributeCollection,
     "class": SEClassCollection,
-    "attributeclass": SEComplexAttributeClassCollection,  # formerly "complex"
+    "attributeclass": SEAttributeClassCollection,
+    "complexattributeclass": SEComplexAttributeClassCollection,  # formerly "attributeclass"
 }
 
 # save summary for a specific graph for a specific strategy
