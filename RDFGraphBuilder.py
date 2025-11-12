@@ -5,7 +5,6 @@ from hashing import hash_id
 # Constants for RDF predicates for class signal
 RDF_TYPE = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
 
-
 #constructor with 3 switches 
 class RDFGraphBuilder:
     def __init__(self, include_literals=False, use_numeric_ids=True, add_reverse_edges=False):
@@ -18,6 +17,11 @@ class RDFGraphBuilder:
         self.use_numeric_ids = use_numeric_ids
         self.add_reverse_edges = add_reverse_edges
         self.G = nx.MultiDiGraph()
+
+        # NEW: canonical id (token) used when include_literals == False
+        #      All literal objects will point to this single node.
+        self._CANON_LIT = "__LITERAL__"  # human-readable label
+        self._CANON_LIT_ID = self._node_id(self._CANON_LIT)  # respects numeric-id setting
 
     def _node_id(self, term: str):
         #if numeric id is true hashed int otherwise return the term as is
@@ -40,21 +44,44 @@ class RDFGraphBuilder:
             tset.add(o)  # store the class URI (with <>)
             #print(f"Added type {o} to node {s}")
             return
-        #if we decide include_literals is false this skips literals obj
-        if self._is_literal(o) and not self.include_literals:
-            return
+
+        # CHANGED: do NOT drop literal objects when include_literals == False.
+        #          Instead, collapse ALL literals into a single canonical node.
+        is_lit_obj = self._is_literal(o)
+        if is_lit_obj:
+            if self.include_literals:
+                # keep the concrete literal as its own node
+                oid = self._node_id(o)
+                oid_label = o
+                oid_types = {"Literal"}  # NEW: give literal nodes a 'Literal' type so dstTypes can see it
+            else:
+                # collapse all literals to a single shared node
+                oid = self._CANON_LIT_ID
+                oid_label = self._CANON_LIT
+                oid_types = {"Literal"}
+        else:
+            oid = self._node_id(o)
+            oid_label = o
+            oid_types = None  # non-literal: types handled via rdf:type triples
+
         #adds the predicate and context on each edge
         sid = self._node_id(s)
-        oid = self._node_id(o)
         self.G.add_node(sid, label=s)
-        self.G.add_node(oid, label=o)
+        self.G.add_node(oid, label=oid_label)
+        if oid_types is not None:
+            # NEW: ensure the literal node (concrete or canonical) has a type so SchemEX dstTypes sees 'Literal'
+            tset = self.G.nodes[oid].setdefault("types", set())
+            tset.update(oid_types)
+
         self.G.add_edge(sid, oid, predicate=p, graph=g)
+
         #if reverse edges are enabled, add a reverse edge for non-literal objects
         #graph in both directions
         #but can increase memory usage significantly
         #only adds if the object is not a literal
         #and if add_reverse_edges is true
-        if self.add_reverse_edges and not self._is_literal(o):
+        # CHANGED: use 'is_lit_obj' to avoid adding reverse edges to the canonical literal node.
+        if self.add_reverse_edges and not is_lit_obj:
             self.G.add_edge(oid, sid, predicate=p, graph=g, _reversed=True)
 
     def build(self, triple_iterable):
