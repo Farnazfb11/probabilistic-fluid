@@ -88,18 +88,29 @@ def _build_digraph(pkg: Dict[str, Any]) -> nx.DiGraph:
 
     return G
 
+# NEW: helper for V^E (entity EQCs) per Justin
+def _entity_ids(pkg: Dict[str, Any]) -> Set[int]:
+    """
+    # CHANGED: define entity summary vertices V^E(S) as the keys in pkg['nodes'].
+    # Justin counts metrics over entity EQCs; literal buckets are not part of V^E.
+    """
+    return {int(s) for s in (pkg.get("nodes") or {}).keys()}
 
-def _weighted_out_degrees(G: nx.DiGraph) -> List[int]:
 
-    # Compute the *weighted* out-degree per node: weight: how many RDF triples in this
-    #   out_degree(node, weight="weight") = sum of edge weights leaving `node`.
-    return [int(G.out_degree(n, weight="weight")) for n in G.nodes()]
+def _weighted_out_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
+    """
+    # CHANGED: degrees are computed for sources in V^E only,
+    # but we count edges to ANY target (entity or literal), matching Justin.
+    """
+    return [int(G.out_degree(n, weight="weight")) for n in V_E if n in G]
 
 
-def _unweighted_out_degrees(G: nx.DiGraph) -> List[int]:
+def _unweighted_out_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
+    """
+    # CHANGED: unweighted out-degrees for V^E only.
+    """
+    return [int(G.out_degree(n)) for n in V_E if n in G]
 
-    # How many distinct neighbors does each node point to
-    return [int(G.out_degree(n)) for n in G.nodes()]
 
 # 1) count_equivalence_classes
 def count_equivalence_classes(pkg: Dict[str, Any]) -> int:
@@ -188,16 +199,18 @@ def average_out_degree(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
     # Higher values indicate denser inter-class connectivity.
     # Re: float: average out-degree
     G = _build_digraph(pkg)
-    V = G.number_of_nodes()
-    if V == 0:
+    V_E = _entity_ids(pkg)
+    n = len(V_E)
+    if n == 0:
         return 0.0
 
     if weighted:
-        total = sum(_weighted_out_degrees(G))
+        degs = _weighted_out_degrees_over_entities(G, V_E)
     else:
-        total = sum(_unweighted_out_degrees(G))
+        degs = _unweighted_out_degrees_over_entities(G, V_E)
 
-    return float(total) / float(V)
+    total = sum(degs)
+    return float(total) / float(n) if n else 0.0
 
 # 7) tmh_tendency_to_make_hubs
 def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
@@ -212,7 +225,13 @@ def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> 
     #   - If Σ d_i == 0 (no edges), TMH is defined as 0.0 (no hub tendency).
     # Re: float: TMH value
     G = _build_digraph(pkg)
-    degs = _weighted_out_degrees(G) if weighted else _unweighted_out_degrees(G)
+    V_E = _entity_ids(pkg)
+
+    degs = (
+        _weighted_out_degrees_over_entities(G, V_E)
+        if weighted else
+        _unweighted_out_degrees_over_entities(G, V_E)
+    )
     s1 = sum(degs)
     if s1 == 0:
         return 0.0
@@ -230,18 +249,19 @@ def connected_components_count(pkg: Dict[str, Any], *, weak: bool = True) -> int
     #     - False          : strongly connected components (respect directions).
     # Re: int: number of components
     G = _build_digraph(pkg)
+    V_E = _entity_ids(pkg)
 
-    # Guard empty graph explicitly
-    # networkx handles this, but return 0 here to be explicit and future-proof.
-    if G.number_of_nodes() == 0:
+    if G.number_of_nodes() == 0 or len(V_E) == 0:
         return 0
-    
+
     if weak:
-        # NetworkX function for weak connectivity
-        return nx.number_weakly_connected_components(G)
+        UG = G.to_undirected(as_view=True)
+        comps = nx.connected_components(UG)
     else:
-        # Strong components are returned as sets; count them.
-        return sum(1 for _ in nx.strongly_connected_components(G))
+        comps = nx.strongly_connected_components(G)
+
+    # count only components that contain at least one entity EQC
+    return sum(1 for C in comps if any((n in V_E) for n in C))
 
 # Convenience: one-look summary
 def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
@@ -267,14 +287,16 @@ def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
         "avg_eqc_size": average_eqc_size(pkg),
         "std_eqc_size": std_eqc_size(pkg),
 
-        # edge counts are robust via edge_set() even if no 'edges' key is present
         "edge_count_unweighted": len(edge_set(pkg, include_weights=False)),
-        # compute weighted count from edge_set rather than checking pkg['edges']
-        # if the 'edges' key is missing or empty.
         "edge_count_weighted": sum(w for *_, w in edge_set(pkg, include_weights=True)),
+
+        # CHANGED: over V^E(S) only
         "avg_out_degree_weighted": average_out_degree(pkg, weighted=True),
         "tmh_weighted": tmh_tendency_to_make_hubs(pkg, weighted=True),
+
+        # CHANGED: components that include at least one entity EQC
         "components_weak": connected_components_count(pkg, weak=True),
         "components_strong": connected_components_count(pkg, weak=False),
+
         "n_sizes": len(sizes),
     }
