@@ -184,7 +184,6 @@ def plot_tmh(rows: List[Dict[str, Any]], out_pdf: Path, title: str, key: str, ma
     plt.close()
     print(f"[ok] PDF: {out_pdf}")
 
-
 def main():
     # CHANGED: argument text updated to mention the new plots
     ap = argparse.ArgumentParser(
@@ -225,8 +224,8 @@ def main():
     ap.add_argument("--max-xticks", type=int, default=40, help="Max x-axis tick labels (default: 40).")
     ap.add_argument("--csv", help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u.")
     # optional switches to skip any of the PDFs
-    ap.add_argument("--no-avg-eqc", action="store_true", help="Skip avg+EQC-count PDF.")   # CHANGED
-    ap.add_argument("--no-std-eqc", action="store_true", help="Skip SD-only EQC PDF.")     # CHANGED
+    ap.add_argument("--no-avg-eqc", action="store_true", help="Skip avg+EQC-count PDF.")
+    ap.add_argument("--no-std-eqc", action="store_true", help="Skip SD-only EQC PDF.")
     ap.add_argument("--no-tmh-weighted", action="store_true", help="Skip weighted TMH PDF.")
     ap.add_argument("--no-tmh-unweighted", action="store_true", help="Skip unweighted TMH PDF.")
     args = ap.parse_args()
@@ -241,17 +240,15 @@ def main():
 
     maybe_write_csv(rows, Path(args.csv) if args.csv else None)
 
-    if not args.no-avg_eqc if False else False:
-        pass  # dummy to avoid syntax highlight confusion
-    # proper conditionals:
-    if not args.no_avg_eqc:  # CHANGED
+    # CHANGED: removed the invalid dummy `if` and just use the real flags
+    if not args.no_avg_eqc:
         plot_avg_and_eqc_count(
             rows,
             out_dir / args.avg_eqc_pdf,
             args.title_avg_eqc,
             args.max_xticks,
         )
-    if not args.no_std_eqc:  # CHANGED
+    if not args.no_std_eqc:
         plot_std_only(
             rows,
             out_dir / args.std_eqc_pdf,
@@ -259,9 +256,21 @@ def main():
             args.max_xticks,
         )
     if not args.no_tmh_weighted:
-        plot_tmh(rows, out_dir / args.tmh_weighted_pdf, args.title_tmh_w, key="tmh_w", max_xticks=args.max_xticks)
+        plot_tmh(
+            rows,
+            out_dir / args.tmh_weighted_pdf,
+            args.title_tmh_w,
+            key="tmh_w",
+            max_xticks=args.max_xticks,
+        )
     if not args.no_tmh_unweighted:
-        plot_tmh(rows, out_dir / args.tmh_unweighted_pdf, args.title_tmh_u, key="tmh_u", max_xticks=args.max_xticks)
+        plot_tmh(
+            rows,
+            out_dir / args.tmh_unweighted_pdf,
+            args.title_tmh_u,
+            key="tmh_u",
+            max_xticks=args.max_xticks,
+        )
 
 if __name__ == "__main__":
     main()
