@@ -67,6 +67,28 @@ def _thin_indices(n: int, max_ticks: int) -> List[int]:
         idx[-1] = n - 1
     return idx
 
+def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]]:
+    # Convert date labels like '2012-05-06' into year-based ticks.
+    # Only show one tick per year.
+    years = [lbl[:4] for lbl in labels]  # extract year
+    keep_indices = []
+    keep_labels  = []
+
+    last_year = None
+    for i, y in enumerate(years):
+        if y != last_year:
+            keep_indices.append(i)
+            keep_labels.append(y)
+            last_year = y
+
+    # optionally thin further if too many years
+    if len(keep_indices) > max_ticks:
+        step = max(1, len(keep_indices) // max_ticks)
+        keep_indices = keep_indices[::step]
+        keep_labels  = keep_labels[::step]
+
+    return keep_indices, keep_labels
+
 # CHANGED: new plot function to mimic Figure 10
 #          left y-axis: average EQC size (blue)
 #          right y-axis: number of EQCs (orange, dotted)
@@ -97,10 +119,10 @@ def plot_avg_and_eqc_count(
     fig.suptitle(title)
 
     # thin x-axis labels
-    keep = _thin_indices(len(labels), max_xticks)
-    ax1.set_xticks([i for i in keep])
-    ax1.set_xticklabels([labels[i] for i in keep], rotation=60, ha="right")
-
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    ax1.set_xticks(xticks)
+    ax1.set_xticklabels(xlabels, rotation=0)
+    
     # build combined legend (blue + orange) in one place
     lines_1, labels_1 = ax1.get_legend_handles_labels()
     lines_2, labels_2 = ax2.get_legend_handles_labels()
@@ -131,9 +153,9 @@ def plot_std_only(
     ax.set_ylabel("Std. dev. of EQC size")
     ax.legend()
 
-    keep = _thin_indices(len(labels), max_xticks)
-    plt.xticks(keep, [labels[i] for i in keep], rotation=60, ha="right")
-
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    plt.xticks(xticks, xlabels)
+    
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_pdf, format="pdf")
@@ -153,9 +175,9 @@ def plot_tmh(rows: List[Dict[str, Any]], out_pdf: Path, title: str, key: str, ma
     ax.set_ylabel("TMH")
     ax.legend()
 
-    keep = _thin_indices(len(labels), max_xticks)
-    plt.xticks(keep, [labels[i] for i in keep], rotation=60, ha="right")
-
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    plt.xticks(xticks, xlabels)
+    
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_pdf, format="pdf")
