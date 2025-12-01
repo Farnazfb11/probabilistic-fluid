@@ -4,16 +4,24 @@ import argparse, re, csv
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 
+
 import matplotlib.pyplot as plt
+import seaborn as sns  # NEW: seaborn for nicer plots
+import math
+
+
 from save import load_summary_package
-# CHANGED: also import count_equivalence_classes
-# WHY: we need the number of EQCs for the orange curve (right y-axis).
 from Unary_comp import (
     average_eqc_size,
     std_eqc_size,
     tmh_tendency_to_make_hubs,
-    count_equivalence_classes,        # CHANGED
+    count_equivalence_classes,
+    edge_set,
 )
+
+# NEW: set a global seaborn theme (nice default style)
+sns.set_theme(style="whitegrid")
+
 
 def _label(p: Path) -> str:
     m = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", p.stem)
@@ -38,6 +46,13 @@ def collect(input_dir: Path) -> List[Dict[str, Any]]:
                 "std": float(std_eqc_size(pkg, population=False)),
                 "tmh_w": float(tmh_tendency_to_make_hubs(pkg, weighted=True)),
                 "tmh_u": float(tmh_tendency_to_make_hubs(pkg, weighted=False)),
+                # add edge counts
+                # unweighted = number of superedges
+                "edges_unweighted": len(edge_set(pkg, include_weights=False)),
+                # weighted   = sum of rolled edge counts
+                "edges_weighted": sum(
+                    w for *_, w in edge_set(pkg, include_weights=True)
+                ),
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -52,42 +67,52 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
         # WHY: previous code wrote a non-existent 'tmh' column.
         w = csv.DictWriter(
             f,
-            fieldnames=["label", "file", "eqc", "avg", "std", "tmh_w", "tmh_u"],  # CHANGED
+            fieldnames=["label", "file", "eqc", "avg", "std", "tmh_w", "tmh_u", "edges_unweighted", "edges_weighted",],  # CHANGED
         )
         w.writeheader()
         w.writerows(rows)
     print(f"[ok] CSV: {csv_path}")
 
-def _thin_indices(n: int, max_ticks: int) -> List[int]:
-    if n <= max_ticks:
-        return list(range(n))
-    step = max(1, n // max_ticks)
-    idx = list(range(0, n, step))
-    if idx[-1] != n - 1:
-        idx[-1] = n - 1
-    return idx
-
 def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]]:
-    # Convert date labels like '2012-05-06' into year-based ticks.
-    # Only show one tick per year.
-    years = [lbl[:4] for lbl in labels]  # extract year
-    keep_indices = []
-    keep_labels  = []
+    """
+    Build x-ticks that show (at most) one label per year,
+    but space the year labels *evenly* across the full x-range.
 
-    last_year = None
-    for i, y in enumerate(years):
-        if y != last_year:
-            keep_indices.append(i)
-            keep_labels.append(y)
-            last_year = y
+    We keep all weekly data points; only the tick positions are "normalized"
+    so years don't bunch up visually when some years have more weeks.
+    """
+    if not labels:
+        return [], []
 
-    # optionally thin further if too many years
-    if len(keep_indices) > max_ticks:
-        step = max(1, len(keep_indices) // max_ticks)
-        keep_indices = keep_indices[::step]
-        keep_labels  = keep_labels[::step]
+    # Extract years in order of appearance (they're already chronological)
+    years_seen: List[str] = []
+    for lbl in labels:
+        y = lbl[:4]
+        if not years_seen or years_seen[-1] != y:
+            years_seen.append(y)
 
-    return keep_indices, keep_labels
+    # Optionally thin years further if there are too many distinct years
+    if len(years_seen) > max_ticks:
+        step = max(1, len(years_seen) // max_ticks)
+        years_used = years_seen[::step]
+    else:
+        years_used = years_seen
+
+    n = len(labels)
+    m = len(years_used)
+    if m == 0:
+        return [], []
+
+    # Evenly space tick positions from 0 to n-1 for the chosen years
+    if m == 1:
+        positions = [0]
+    else:
+        positions = [
+            int(round(i * (n - 1) / (m - 1)))
+            for i in range(m)
+        ]
+
+    return positions, years_used
 
 # CHANGED: new plot function to mimic Figure 10
 #          left y-axis: average EQC size (blue)
@@ -104,26 +129,42 @@ def plot_avg_and_eqc_count(
 
     fig, ax1 = plt.subplots(figsize=(8, 6))
 
-    # left axis: average EQC size (blue)
-    ax1.plot(labels, avgs, color="blue", linewidth=1.0, label="Average size of EQC")
+    # LEFT axis: average EQC size (blue)
+    # CHANGED: use seaborn lineplot on ax1
+    sns.lineplot(
+        x=labels,
+        y=avgs,
+        ax=ax1,
+        linewidth=1.0,
+        label="Average size of EQC",
+    )
     ax1.set_xlabel("Timestep")
-    ax1.set_ylabel("Average size of EQC", color="blue")
-    ax1.tick_params(axis="y", labelcolor="blue")
+    ax1.set_ylabel("Average size of EQC", color="tab:blue")
+    ax1.tick_params(axis="y", labelcolor="tab:blue")
 
-    # right axis: number of EQCs (orange, dotted)
+    # RIGHT axis: number of EQCs (orange, dotted)
     ax2 = ax1.twinx()
-    ax2.plot(labels, eqcs, color="orange", linestyle=":", linewidth=1.0, label="Number of EQC")
-    ax2.set_ylabel("Number of EQC", color="orange")
-    ax2.tick_params(axis="y", labelcolor="orange")
+    # CHANGED: seaborn lineplot for EQC count
+    sns.lineplot(
+        x=labels,
+        y=eqcs,
+        ax=ax2,
+        linewidth=1.0,
+        linestyle=":",
+        label="Number of EQC",
+        color="tab:orange",
+    )
+    ax2.set_ylabel("Number of EQC", color="tab:orange")
+    ax2.tick_params(axis="y", labelcolor="tab:orange")
 
     fig.suptitle(title)
 
-    # thin x-axis labels
+    # x-axis: year ticks (unchanged logic)
     xticks, xlabels = _year_ticks(labels, max_xticks)
     ax1.set_xticks(xticks)
     ax1.set_xticklabels(xlabels, rotation=0)
-    
-    # build combined legend (blue + orange) in one place
+
+    # combined legend (both axes)
     lines_1, labels_1 = ax1.get_legend_handles_labels()
     lines_2, labels_2 = ax2.get_legend_handles_labels()
     ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
@@ -133,6 +174,7 @@ def plot_avg_and_eqc_count(
     fig.savefig(out_pdf, format="pdf")
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
+
 
 # CHANGED: new function — standard deviation on its own plot
 # WHY: the number was too big it dawrfed the avg vs eqc count plot
@@ -147,7 +189,16 @@ def plot_std_only(
 
     plt.figure(figsize=(8, 6))
     ax = plt.gca()
-    ax.plot(labels, stds, color="blue", linewidth=1.0, label="Std. dev. of EQC size")
+
+    # CHANGED: seaborn lineplot instead of ax.plot
+    sns.lineplot(
+        x=labels,
+        y=stds,
+        ax=ax,
+        linewidth=1.0,
+        label="Std. dev. of EQC size",
+    )
+
     ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Std. dev. of EQC size")
@@ -155,33 +206,79 @@ def plot_std_only(
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
     plt.xticks(xticks, xlabels)
-    
+
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_pdf, format="pdf")
     plt.close()
     print(f"[ok] PDF: {out_pdf}")
 
-def plot_tmh(rows: List[Dict[str, Any]], out_pdf: Path, title: str, key: str, max_xticks: int):
-    """key is 'tmh_w' or 'tmh_u'."""
+def plot_tmh(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    key: str,
+    max_xticks: int,
+):
+    # key is "tmh_w" or "tmh_u"
     labels = [r["label"] for r in rows]
     tmh    = [r[key]      for r in rows]
 
-    plt.figure(figsize=(12, 6))
-    ax = plt.gca()
-    ax.plot(labels, tmh, marker="^", linestyle="--", label="TMH (tendency to make hubs)")
-    ax.set_title(title)
-    ax.set_xlabel("Snapshot / Summary")
-    ax.set_ylabel("TMH")
-    ax.legend()
+    if key == "tmh_w":
+        # weighted TMH → weighted edge counts (log10 so the scale is sane)
+        raw_edges   = [r["edges_weighted"]   for r in rows]
+        edges_plot  = [0 if v <= 0 else math.log10(v) for v in raw_edges]
+        edge_label  = "Weighted superedges (log10 count)"
+    else:
+        # unweighted TMH → unweighted edge counts (no log)
+        raw_edges   = [r["edges_unweighted"] for r in rows]
+        edges_plot  = raw_edges
+        edge_label  = "Number of superedges"
 
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    # LEFT axis: TMH
+    sns.lineplot(
+        x=labels,
+        y=tmh,
+        ax=ax1,
+        linestyle="--",
+        linewidth=1.0,
+        label="TMH (tendency to make hubs)",
+    )
+    ax1.set_title(title)
+    ax1.set_xlabel("Snapshot / Summary")
+    ax1.set_ylabel("TMH", color="tab:blue")
+    ax1.tick_params(axis="y", labelcolor="tab:blue")
+
+    # RIGHT axis: matching edge count
+    ax2 = ax1.twinx()
+    sns.lineplot(
+        x=labels,
+        y=edges_plot,
+        ax=ax2,
+        linestyle=":",
+        linewidth=1.0,
+        color="tab:orange",
+        label=edge_label,
+    )
+    ax2.set_ylabel(edge_label, color="tab:orange")
+    ax2.tick_params(axis="y", labelcolor="tab:orange")
+
+    # x-axis: year-based ticks (unchanged logic)
     xticks, xlabels = _year_ticks(labels, max_xticks)
-    plt.xticks(xticks, xlabels)
-    
-    plt.tight_layout()
+    ax1.set_xticks(xticks)
+    ax1.set_xticklabels(xlabels, rotation=0)
+
+    # combined legend (TMH + edges)
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+
+    fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_pdf, format="pdf")
-    plt.close()
+    fig.savefig(out_pdf, format="pdf")
+    plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
 def main():
@@ -221,8 +318,12 @@ def main():
     )
     ap.add_argument("--title-tmh-w", default="TMH (Weighted Degrees)", help="Title for weighted TMH plot.")
     ap.add_argument("--title-tmh-u", default="TMH (Unweighted Degrees)", help="Title for unweighted TMH plot.")
-    ap.add_argument("--max-xticks", type=int, default=40, help="Max x-axis tick labels (default: 40).")
-    ap.add_argument("--csv", help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u.")
+    ap.add_argument("--max-xticks", type=int, default=30, help="Max x-axis tick labels (default: 40).")
+    ap.add_argument(
+    "--csv",
+    help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u, edges_unweighted, edges_weighted.",
+    )  # CHANGED: mention edge columns
+
     # optional switches to skip any of the PDFs
     ap.add_argument("--no-avg-eqc", action="store_true", help="Skip avg+EQC-count PDF.")
     ap.add_argument("--no-std-eqc", action="store_true", help="Skip SD-only EQC PDF.")
