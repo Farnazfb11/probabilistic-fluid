@@ -74,13 +74,11 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
     print(f"[ok] CSV: {csv_path}")
 
 def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]]:
-    """
-    Build x-ticks that show (at most) one label per year,
-    but space the year labels *evenly* across the full x-range.
+    # Build x-ticks that show (at most) one label per year,
+    # but space the year labels *evenly* across the full x-range.
 
-    We keep all weekly data points; only the tick positions are "normalized"
-    so years don't bunch up visually when some years have more weeks.
-    """
+    # We keep all weekly data points; only the tick positions are "normalized"
+    # so years don't bunch up visually when some years have more weeks.
     if not labels:
         return [], []
 
@@ -113,6 +111,22 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
         ]
 
     return positions, years_used
+
+#the 5 year filter
+def _filter_rows_by_year_range(
+    rows: List[Dict[str, Any]],
+    start_year: int,
+    end_year: int,
+) -> List[Dict[str, Any]]:
+    subset: List[Dict[str, Any]] = []
+    for r in rows:
+        try:
+            y = int(r["label"][:4])
+        except Exception:
+            continue
+        if start_year <= y <= end_year:
+            subset.append(r)
+    return subset
 
 # CHANGED: new plot function to mimic Figure 10
 #          left y-axis: average EQC size (blue)
@@ -220,24 +234,20 @@ def plot_tmh(
     key: str,
     max_xticks: int,
 ):
-    # key is "tmh_w" or "tmh_u"
     labels = [r["label"] for r in rows]
     tmh    = [r[key]      for r in rows]
 
     if key == "tmh_w":
-        # weighted TMH → weighted edge counts (log10 so the scale is sane)
         raw_edges   = [r["edges_weighted"]   for r in rows]
         edges_plot  = [0 if v <= 0 else math.log10(v) for v in raw_edges]
         edge_label  = "Weighted superedges (log10 count)"
     else:
-        # unweighted TMH → unweighted edge counts (no log)
         raw_edges   = [r["edges_unweighted"] for r in rows]
         edges_plot  = raw_edges
         edge_label  = "Number of superedges"
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
 
-    # LEFT axis: TMH
     sns.lineplot(
         x=labels,
         y=tmh,
@@ -251,7 +261,6 @@ def plot_tmh(
     ax1.set_ylabel("TMH", color="tab:blue")
     ax1.tick_params(axis="y", labelcolor="tab:blue")
 
-    # RIGHT axis: matching edge count
     ax2 = ax1.twinx()
     sns.lineplot(
         x=labels,
@@ -265,12 +274,10 @@ def plot_tmh(
     ax2.set_ylabel(edge_label, color="tab:orange")
     ax2.tick_params(axis="y", labelcolor="tab:orange")
 
-    # x-axis: year-based ticks (unchanged logic)
     xticks, xlabels = _year_ticks(labels, max_xticks)
     ax1.set_xticks(xticks)
     ax1.set_xticklabels(xlabels, rotation=0)
 
-    # combined legend (TMH + edges)
     lines_1, labels_1 = ax1.get_legend_handles_labels()
     lines_2, labels_2 = ax2.get_legend_handles_labels()
     ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
@@ -281,21 +288,20 @@ def plot_tmh(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+# ---------- main ----------
+
 def main():
-    # CHANGED: argument text updated to mention the new plots
     ap = argparse.ArgumentParser(
         description="Create PDFs: avg+EQC count, SD of EQC size, TMH weighted, TMH unweighted."
     )
     ap.add_argument("-i", "--input-dir", required=True, help="Directory with summary JSONs (recursive).")
     ap.add_argument("--out-dir", default="results", help="Output directory for PDFs (default: results).")
 
-    # CHANGED: eqc-pdf now means combined avg+EQC-count plot
     ap.add_argument(
         "--avg-eqc-pdf",
         default="avg_and_eqc_count.pdf",
         help="Filename for combined plot: average EQC size vs number of EQCs.",
     )
-    # CHANGED: new argument for SD-only plot
     ap.add_argument(
         "--std-eqc-pdf",
         default="eqc_std.pdf",
@@ -305,7 +311,13 @@ def main():
     ap.add_argument("--tmh-weighted-pdf", default="tmh_weighted.pdf", help="Filename for weighted TMH PDF.")
     ap.add_argument("--tmh-unweighted-pdf", default="tmh_unweighted.pdf", help="Filename for unweighted TMH PDF.")
 
-    # CHANGED: titles slightly tweaked
+    # NEW: extra TMH-weighted plot for 2015–2020
+    ap.add_argument(
+        "--tmh-weighted-2015-2020-pdf",
+        default="tmh_weighted_2015_2020.pdf",
+        help="Filename for weighted TMH PDF, restricted to years 2015–2020.",
+    )
+
     ap.add_argument(
         "--title-avg-eqc",
         default="Average size of EQC vs Number of EQC",
@@ -318,17 +330,31 @@ def main():
     )
     ap.add_argument("--title-tmh-w", default="TMH (Weighted Degrees)", help="Title for weighted TMH plot.")
     ap.add_argument("--title-tmh-u", default="TMH (Unweighted Degrees)", help="Title for unweighted TMH plot.")
+
+    # NEW: separate title for the 2015–2020 TMH plot
+    ap.add_argument(
+        "--title-tmh-w-2015-2020",
+        default="TMH (Weighted Degrees), 2015–2020",
+        help="Title for weighted TMH plot restricted to 2015–2020.",
+    )
+
     ap.add_argument("--max-xticks", type=int, default=30, help="Max x-axis tick labels (default: 40).")
     ap.add_argument(
-    "--csv",
-    help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u, edges_unweighted, edges_weighted.",
-    )  # CHANGED: mention edge columns
+        "--csv",
+        help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u, edges_unweighted, edges_weighted.",
+    )
 
-    # optional switches to skip any of the PDFs
     ap.add_argument("--no-avg-eqc", action="store_true", help="Skip avg+EQC-count PDF.")
     ap.add_argument("--no-std-eqc", action="store_true", help="Skip SD-only EQC PDF.")
     ap.add_argument("--no-tmh-weighted", action="store_true", help="Skip weighted TMH PDF.")
     ap.add_argument("--no-tmh-unweighted", action="store_true", help="Skip unweighted TMH PDF.")
+    # NEW: skip-flag just for the 2015–2020 plot
+    ap.add_argument(
+        "--no-tmh-weighted-2015-2020",
+        action="store_true",
+        help="Skip weighted TMH PDF for 2015–2020.",
+    )
+
     args = ap.parse_args()
 
     rows = collect(Path(args.input_dir))
@@ -341,7 +367,6 @@ def main():
 
     maybe_write_csv(rows, Path(args.csv) if args.csv else None)
 
-    # CHANGED: removed the invalid dummy `if` and just use the real flags
     if not args.no_avg_eqc:
         plot_avg_and_eqc_count(
             rows,
@@ -372,6 +397,20 @@ def main():
             key="tmh_u",
             max_xticks=args.max_xticks,
         )
+
+    # NEW: extra plot for weighted TMH in 2015–2020 only
+    if not args.no_tmh_weighted_2015_2020:
+        rows_2015_2020 = _filter_rows_by_year_range(rows, 2015, 2020)
+        if not rows_2015_2020:
+            print("[info] No summaries with labels in years 2015–2020; skipping extra TMH plot.")
+        else:
+            plot_tmh(
+                rows_2015_2020,
+                out_dir / args.tmh_weighted_2015_2020_pdf,
+                args.title_tmh_w_2015_2020,
+                key="tmh_w",
+                max_xticks=args.max_xticks,
+            )
 
 if __name__ == "__main__":
     main()
