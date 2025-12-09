@@ -123,17 +123,16 @@ def _kl_divergence(
     *,
     epsilon: float = 1e-12,
 ) -> float:
-    """
-    Compute D(P || Q) over a given support set of SIDs.
+    # Compute D(P || Q) over a given support set of SIDs.
 
-    D(P || Q) = sum_{eq in support} P(eq) * log2(P(eq) / Q(eq))
+    # D(P || Q) = sum_{eq in support} P(eq) * log2(P(eq) / Q(eq))
 
-    Conventions:
-      - If P(eq) == 0, the summand is treated as 0 (limit x log x → 0).
-      - If Q(eq) == 0 and P(eq) > 0, we clip Q(eq) to `epsilon` to avoid
-        infinite divergence. This introduces a very small positive penalty
-        for probability mass that has "no counterpart" in Q.
-    """
+    # Conventions:
+    #   - If P(eq) == 0, the summand is treated as 0 (limit x log x → 0).
+    #   - If Q(eq) == 0 and P(eq) > 0, we clip Q(eq) to `epsilon` to avoid
+    #     infinite divergence. This introduces a very small positive penalty
+    #     for probability mass that has "no counterpart" in Q.
+
     acc = 0.0
     for sid in support:
         p = P.get(sid, 0.0)
@@ -149,23 +148,22 @@ def _kl_divergence(
 
 
 def symmetric_kl_divergence(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> float:
-    """
-    Symmetric KL-based binary metric δ^{(2)}_{KLD}(S_t, S_{t+1}).
+    # Symmetric KL-based binary metric δ^{(2)}_{KLD}(S_t, S_{t+1}).
 
-    Following the LaTeX:
+    # Following the LaTeX:
 
-      D(S_t, S_{t+1})   = sum_{eq in V^E(S_{t+1})} P_{S_t}(eq)   log2( P_{S_t}(eq) / P_{S_{t+1}}(eq) )
-      D(S_{t+1}, S_t)   = sum_{eq in V^E(S_t)}     P_{S_{t+1}}(eq) log2( P_{S_{t+1}}(eq) / P_{S_t}(eq) )
+    #   D(S_t, S_{t+1})   = sum_{eq in V^E(S_{t+1})} P_{S_t}(eq)   log2( P_{S_t}(eq) / P_{S_{t+1}}(eq) )
+    #   D(S_{t+1}, S_t)   = sum_{eq in V^E(S_t)}     P_{S_{t+1}}(eq) log2( P_{S_{t+1}}(eq) / P_{S_t}(eq) )
 
-      δ^{(2)}_{KLD}(S_t, S_{t+1}) = D(S_t, S_{t+1}) + D(S_{t+1}, S_t).
+    #   δ^{(2)}_{KLD}(S_t, S_{t+1}) = D(S_t, S_{t+1}) + D(S_{t+1}, S_t).
 
-    Implementation notes:
-      - We derive P_{S_t} and P_{S_{t+1}} from EQC sizes (vcp or membership).
-      - We use the SID as the identifier of an equivalence class.
-        This assumes SID stability across snapshots (same signature → same ID).
-      - For classes that are only present in one summary, the other side sees
-        probability 0; we clip denominators to epsilon > 0 to avoid infinities.
-    """
+    # Implementation notes:
+    #   - We derive P_{S_t} and P_{S_{t+1}} from EQC sizes (vcp or membership).
+    #   - We use the SID as the identifier of an equivalence class.
+    #     This assumes SID stability across snapshots (same signature → same ID).
+    #   - For classes that are only present in one summary, the other side sees
+    #     probability 0; we clip denominators to epsilon > 0 to avoid infinities.
+    # """
     size_t = _eqc_size_map(pkg_t)        # sid -> |eq| at time t
     size_tp1 = _eqc_size_map(pkg_tp1)    # sid -> |eq| at time t+1
 
