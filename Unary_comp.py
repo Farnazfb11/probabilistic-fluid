@@ -236,7 +236,7 @@ def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> 
     if s1 == 0:
         return 0.0
     s2 = sum(d * d for d in degs)
-    return float(s2) / (2.0 * float(s1))
+    return float(s2) / (float(s1))
 
 # 8) connected_components_count
 
