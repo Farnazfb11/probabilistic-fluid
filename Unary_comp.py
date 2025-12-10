@@ -227,16 +227,12 @@ def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> 
     G = _build_digraph(pkg)
     V_E = _entity_ids(pkg)
 
-    degs = (
-        _weighted_out_degrees_over_entities(G, V_E)
-        if weighted else
-        _unweighted_out_degrees_over_entities(G, V_E)
-    )
+    degs = [G.out_degree(n, weight="weight") for n in V_E]
     s1 = sum(degs)
     if s1 == 0:
         return 0.0
-    s2 = sum(d * d for d in degs)
-    return float(s2) / (float(s1))
+    s2 = sum(d*d for d in degs)
+    return s2 / s1
 
 # 8) connected_components_count
 
