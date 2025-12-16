@@ -12,8 +12,6 @@ class RDFParser:
         # "foo"@en          -> "foo"
         # "foo"@en^^<dt>    -> "foo"^^<dt>
         self._strip_lang_tag = re.compile(r'("(?:(?:[^"\\]|\\.)*)")\s*@[^\s^]+')
-
-
         # CHANGED: generic pattern to strip ANY language tag after a literal
         # Example:
         #   "text"@en         -> "text"
@@ -23,9 +21,6 @@ class RDFParser:
         #
         # It matches: " ... " @ <any run of non-space, non-^ chars>
         # and keeps only the " ... " part.
-        self._strip_lang_tag = re.compile(
-            r'("(?:(?:[^"\\]|\\.)*)")@[^\s^]+'   # CHANGED
-        )
 
         # Permissive N-Quads/N-Triples pattern
         self.pattern = re.compile(r"""
