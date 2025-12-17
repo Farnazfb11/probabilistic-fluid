@@ -12,6 +12,9 @@ class RDFParser:
         # "foo"@en          -> "foo"
         # "foo"@en^^<dt>    -> "foo"^^<dt>
         self._strip_lang_tag = re.compile(r'("(?:(?:[^"\\]|\\.)*)")\s*@[^\s^]+')
+        # self._strip_lang_tag = re.compile(r'("(?:(?:[^"\\]|\\.)*)")\s*@[^\s^]+(\^\^<[^>]*>)?')
+        # line = self._strip_lang_tag.sub(r"\1\2", line)
+
         # CHANGED: generic pattern to strip ANY language tag after a literal
         # Example:
         #   "text"@en         -> "text"
@@ -80,15 +83,12 @@ class RDFParser:
         Canonicalize IRIs and blank nodes.
         Keep literals as-is (except language tag stripping done earlier).
         """
-        if not term:
-            return term
-        if term.startswith('"'):
+        if not term or term.startswith('"'):
             return term
         if term.startswith("<"):
             return self._canonicalize_iri(term)
-        if term.startswith("_:"):
-            return self._canonicalize_bnode(term)
-        return term
+        return term  # do NOT lowercase _: blank nodes
+
 
     def parse(self) -> Iterator[Tuple[str, str, str, Optional[str]]]:
         with gzip.open(self.file_path, 'rt', encoding='utf-8', errors='replace') as f:
