@@ -19,8 +19,23 @@ from Unary_comp import (
     edge_set,
 )
 
-# NEW: set a global seaborn theme (nice default style)
-sns.set_theme(style="whitegrid")
+# NEW: set a global seaborn theme ready for paper
+sns.set_theme(style="white", context="paper")
+
+plt.rcParams.update({
+    "axes.grid": False,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 0.8,
+    "font.size": 11,
+    "axes.titlesize": 12,
+    "axes.labelsize": 11,
+    "legend.fontsize": 10,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+})
+
+BLUE = "#1f77b4"          
+ORANGE_DARK = "#d95f02"  
 
 
 def _label(p: Path) -> str:
@@ -149,28 +164,27 @@ def plot_avg_and_eqc_count(
         x=labels,
         y=avgs,
         ax=ax1,
-        linewidth=1.0,
-        label="Average size of EQC",
+        color=BLUE,
+        linewidth=1.2,
     )
-    ax1.set_xlabel("Timestep")
-    ax1.set_ylabel("Average size of EQC", color="tab:blue")
-    ax1.tick_params(axis="y", labelcolor="tab:blue")
-
+    ax1.set_ylabel("Average size of EQC", color=BLUE)
+    ax1.tick_params(axis="y", labelcolor=BLUE)
+    ax1.grid(False)
     # RIGHT axis: number of EQCs (orange, dotted)
     ax2 = ax1.twinx()
     # CHANGED: seaborn lineplot for EQC count
+    ax2 = ax1.twinx()
     sns.lineplot(
         x=labels,
         y=eqcs,
         ax=ax2,
-        linewidth=1.0,
+        color=ORANGE_DARK,
         linestyle=":",
-        label="Number of EQC",
-        color="tab:orange",
+        linewidth=1.2,
     )
-    ax2.set_ylabel("Number of EQC", color="tab:orange")
-    ax2.tick_params(axis="y", labelcolor="tab:orange")
-
+    ax2.set_ylabel("Number of EQC", color=ORANGE_DARK)
+    ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
+    ax2.grid(False)
     fig.suptitle(title)
 
     # x-axis: year ticks (unchanged logic)
@@ -209,13 +223,14 @@ def plot_std_only(
         x=labels,
         y=stds,
         ax=ax,
-        linewidth=1.0,
-        label="Std. dev. of EQC size",
+        color=BLUE,
+        linewidth=1.2,
     )
 
     ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Std. dev. of EQC size")
+    ax.grid(False)
     ax.legend()
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
@@ -252,27 +267,25 @@ def plot_tmh(
         x=labels,
         y=tmh,
         ax=ax1,
-        linestyle="--",
-        linewidth=1.0,
-        label="TMH (tendency to make hubs)",
+        color=BLUE,
+        linewidth=1.2,
     )
-    ax1.set_title(title)
-    ax1.set_xlabel("Snapshot / Summary")
-    ax1.set_ylabel("TMH", color="tab:blue")
-    ax1.tick_params(axis="y", labelcolor="tab:blue")
+    ax1.set_ylabel("TMH", color=BLUE)
+    ax1.tick_params(axis="y", labelcolor=BLUE)
+    ax1.grid(False)
 
     ax2 = ax1.twinx()
     sns.lineplot(
         x=labels,
         y=edges_plot,
         ax=ax2,
+        color=ORANGE_DARK,
         linestyle=":",
-        linewidth=1.0,
-        color="tab:orange",
-        label=edge_label,
+        linewidth=1.2,
     )
-    ax2.set_ylabel(edge_label, color="tab:orange")
-    ax2.tick_params(axis="y", labelcolor="tab:orange")
+    ax2.set_ylabel(edge_label, color=ORANGE_DARK)
+    ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
+    ax2.grid(False)
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
     ax1.set_xticks(xticks)
