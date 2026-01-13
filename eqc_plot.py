@@ -166,12 +166,12 @@ def plot_avg_and_eqc_count(
         ax=ax1,
         color=BLUE,
         linewidth=1.2,
+        label="Average size of EQC",
     )
     ax1.set_ylabel("Average size of EQC", color=BLUE)
     ax1.tick_params(axis="y", labelcolor=BLUE)
     ax1.grid(False)
     # RIGHT axis: number of EQCs (orange, dotted)
-    ax2 = ax1.twinx()
     # CHANGED: seaborn lineplot for EQC count
     ax2 = ax1.twinx()
     sns.lineplot(
@@ -181,6 +181,7 @@ def plot_avg_and_eqc_count(
         color=ORANGE_DARK,
         linestyle=":",
         linewidth=1.2,
+        label="Number of EQC",
     )
     ax2.set_ylabel("Number of EQC", color=ORANGE_DARK)
     ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
@@ -192,11 +193,7 @@ def plot_avg_and_eqc_count(
     ax1.set_xticks(xticks)
     ax1.set_xticklabels(xlabels, rotation=0)
 
-    # combined legend (both axes)
-    lines_1, labels_1 = ax1.get_legend_handles_labels()
-    lines_2, labels_2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
-
+    ax1.legend(loc="upper left")
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_pdf, format="pdf")

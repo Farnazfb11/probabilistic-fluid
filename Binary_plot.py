@@ -16,7 +16,7 @@ from Binary_comp import (   # binary-metric functions in Binary_comp.py
 )
 
 # nice default style, same as EQC plots
-sns.set_theme(style="whitegrid")
+sns.set_theme(style="white")
 
 
 # helpers to find / label snapshots
