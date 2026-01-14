@@ -1,3 +1,5 @@
+import pytest
+
 from Collector import SchemaCollector
 from AttCollection import SEAttributeCollection
 from Summarizer import group_by_signature

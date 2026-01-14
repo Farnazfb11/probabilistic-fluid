@@ -6,6 +6,7 @@ import networkx as nx
 from save import save_summary_for_strategy, load_summary_package
 from AttCollection import SEAttributeCollection
 from ClassCollection import SEClassCollection
+from AttClassCollection import SEAttributeClassCollection  # NEW
 from CompAttClassCollection import SEComplexAttributeClassCollection
 
 T_PERSON = "http://ex/Person"
@@ -147,3 +148,99 @@ def test_roundtrip_and_determinism(tmp_path, build_minigraph):
     # Round-trip load equals what we just saved
     loaded = load_summary_package(str(out))
     assert loaded == pkg2
+
+def test_attributeclass_non_complex_full_export(tmp_path, build_minigraph):
+    """
+    Export should include:
+    - types
+    - predicates
+    - pred_to_dst_types should be empty {}
+    """
+    G = build_minigraph
+    out = tmp_path / "s" / "mini_acc.json"
+
+    pkg = save_summary_for_strategy(
+        G,
+        strategy=SEAttributeClassCollection(),
+        out_path=str(out),
+        only_id=False,
+        include_membership=True,
+    )
+    assert out.exists()
+
+    # meta sanity
+    assert pkg["meta"]["only_id"] is False
+
+    # ACC should store types + predicates, but NOT dst-types
+    for nd in pkg["nodes"].values():
+        assert isinstance(nd["types"], list)
+        assert isinstance(nd["predicates"], list)
+        assert isinstance(nd["pred_to_dst_types"], dict)
+        assert nd["pred_to_dst_types"] == {}  # key ACC property
+
+    # Check key expected groups exist indirectly via membership
+    memb = pkg["membership"]
+    sid_a = memb["a"]
+    sid_b = memb["b"]
+    sid_e = memb["e"]
+    sid_g = memb["g"]
+    sid_d = memb["d"]
+
+    # a and b same (Person + {knows,worksAt})
+    assert sid_a == sid_b
+
+    # e different (Person + {name})
+    assert sid_e != sid_a
+
+    # d different (Person + empty set)
+    assert sid_d != sid_a
+    assert sid_d != sid_e
+
+    # g different (Org + {knows})
+    assert sid_g != sid_a
+    assert sid_g != sid_e
+    assert sid_g != sid_d
+
+    # Also verify the schema fields of the (a,b) supernode look right
+    nd_ab = pkg["nodes"][str(sid_a)]
+    assert T_PERSON in nd_ab["types"]
+    assert set(nd_ab["predicates"]) == {KNOWS, WORKSAT}
+    assert nd_ab["pred_to_dst_types"] == {}
+
+def test_class_full_export_via_object(tmp_path, build_minigraph):
+    """
+    Same as test_class_full_export, but passes the strategy as a class/object
+    instead of the string "class".
+    This catches bugs in save_summary_for_strategy's strategy dispatch.
+    """
+    G = build_minigraph
+    out = tmp_path / "out" / "deep" / "mini_class_obj.json"
+
+    pkg = save_summary_for_strategy(
+        G,
+        strategy=SEClassCollection(),   # <- object form
+        out_path=str(out),
+        only_id=False,
+        include_membership=True,
+        meta={"include_literals": False},
+    )
+    assert out.exists()
+
+    # meta sanity
+    assert pkg["meta"]["only_id"] is False
+
+    # full nodes present with type info; no predicates for class-only
+    for nd in pkg["nodes"].values():
+        assert isinstance(nd["types"], list)
+        assert nd["predicates"] == []
+        assert nd["pred_to_dst_types"] == {}
+
+    # check Person/Org presence indirectly via membership SIDs
+    memb = pkg["membership"]
+    sid_person = memb["a"]
+    sid_org    = memb["g"]
+    assert sid_person != sid_org
+    for p in ("b", "e", "d", "x"):
+        assert memb[p] == sid_person
+    assert memb["y"] == sid_org
+    assert memb["n1"] not in (sid_person, sid_org)

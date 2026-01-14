@@ -2,6 +2,7 @@ import pytest
 from Collector import SchemaCollector
 from AttCollection import SEAttributeCollection
 from ClassCollection import SEClassCollection
+from AttClassCollection import SEAttributeClassCollection  # NEW
 from CompAttClassCollection import SEComplexAttributeClassCollection
 
 # IRI constants used by the fixture
@@ -92,6 +93,56 @@ def test_class_only(build_minigraph):
     assert set(per_v["g"].types) == {T_ORG}
     assert per_v["g"].neighbors == {}
     assert per_v["g"].neighbor_dst_types == {}
+
+def test_attribute_class_non_complex(build_minigraph):
+    """
+    SEAttributeClassCollection (ACC):
+    signature = (src types) + (outgoing predicate set)
+    NOT dst types.
+    """
+    G = build_minigraph
+    strat = SEAttributeClassCollection()
+    per_v, per_id = SchemaCollector(strat).collect(G)
+
+    subj = _subj_sid_map(per_id)
+
+    # --- Expected grouping logic ---
+    # Person with {knows, worksAt}: a and b
+    assert subj["a"] == subj["b"]
+
+    # Org with {knows}: g must differ from Person-{knows,worksAt}
+    assert subj["g"] != subj["a"]
+
+    # Person with {name}: e must differ from (a,b) and from g
+    assert subj["e"] not in {subj["a"], subj["g"]}
+
+    # Person with empty predicate set: d must be its own group
+    assert subj["d"] not in {subj["a"], subj["e"], subj["g"]}
+
+    # Among subjects: exactly 4 groups -> {a,b}, {g}, {e}, {d}
+    assert len(set(subj.values())) == 4
+
+    # --- Per-vertex summary checks ---
+    # ACC records source types and predicate set, but NOT dst types
+    assert set(per_v["a"].types) == {T_PERSON}
+    assert set(per_v["a"].neighbors.keys()) == {KNOWS, WORKSAT}
+    assert per_v["a"].neighbor_dst_types == {}
+
+    assert set(per_v["b"].types) == {T_PERSON}
+    assert set(per_v["b"].neighbors.keys()) == {KNOWS, WORKSAT}
+    assert per_v["b"].neighbor_dst_types == {}
+
+    assert set(per_v["g"].types) == {T_ORG}
+    assert set(per_v["g"].neighbors.keys()) == {KNOWS}
+    assert per_v["g"].neighbor_dst_types == {}
+
+    assert set(per_v["e"].types) == {T_PERSON}
+    assert set(per_v["e"].neighbors.keys()) == {NAME}
+    assert per_v["e"].neighbor_dst_types == {}
+
+    assert set(per_v["d"].types) == {T_PERSON}
+    assert per_v["d"].neighbors == {}
+    assert per_v["d"].neighbor_dst_types == {}
 
 # complex attribute+class collection (predicate + type + dst-type)
 def test_attribute_class_complex(build_minigraph):
