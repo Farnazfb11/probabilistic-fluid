@@ -96,7 +96,7 @@ def _entity_ids(pkg: Dict[str, Any]) -> Set[int]:
     """
     return {int(s) for s in (pkg.get("nodes") or {}).keys()}
 
-
+#helpers for calculating out degree
 def _weighted_out_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
     """
     # CHANGED: degrees are computed for sources in V^E only,
@@ -110,6 +110,14 @@ def _unweighted_out_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[
     # CHANGED: unweighted out-degrees for V^E only.
     """
     return [int(G.out_degree(n)) for n in V_E if n in G]
+
+#helpers for calculating in degree
+def _weighted_in_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
+    return [int(G.in_degree(n, weight="weight")) for n in V_E if n in G]
+
+
+def _unweighted_in_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
+    return [int(G.in_degree(n)) for n in V_E if n in G]
 
 
 # 1) count_equivalence_classes
@@ -172,32 +180,55 @@ def edge_set(
     *,
     include_weights: bool = False
 ) -> Set[Tuple[int, int] | Tuple[int, int, int]]:
+    """
+    Materialize the directed superedge set from the summary.
 
-    # Materialize the directed superedge set from the summary.
-    # Modes:
-    #   - include_weights=False → {(src, dst)}
-    #   - include_weights=True  → {(src, dst, count)}
-    #   - structural view use counts
-    #   - {} if no edge - robust default
-    # Re: set of tuples as described above.
-    E = _require_edges(pkg)
-    if not E:
+    Parameters
+    pkg:
+        Summary package dictionary.
+
+    include_weights:
+        - False: return a structural edge set of pairs {(src, dst)}.
+                 Parallel edges are collapsed automatically because a set of pairs
+                 cannot contain duplicates.
+        - True:  return a weighted edge set {(src, dst, total_count)} where
+                 parallel edges with the same (src, dst) are MERGED by summing counts.
+                 This is Option B.
+
+    Returns
+    Set of edges:
+        - include_weights=False -> Set[(src, dst)]
+        - include_weights=True  -> Set[(src, dst, total_count)]
+    """
+    edges = pkg.get("edges") or {}
+    if not edges:
         return set()
 
-    if include_weights:
-        return {(int(e["src"]), int(e["dst"]), int(e.get("count", 1))) for e in E.values()}
-    return {(int(e["src"]), int(e["dst"])) for e in E.values()}
+    if not include_weights:
+        # structural view
+        return {(int(e["src"]), int(e["dst"])) for e in edges.values()}
 
-# 6) average_out_degree
+    # Option B: merge parallel edges by summing their counts
+    agg: Dict[Tuple[int, int], int] = defaultdict(int)
+    for e in edges.values():
+        u = int(e["src"])
+        v = int(e["dst"])
+        w = int(e.get("count", 1))
+        agg[(u, v)] += w
+
+    return {(u, v, w) for (u, v), w in agg.items()}
+
+# 6.1 ) average_out_degree
 def average_out_degree(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
-
-    # Average out-degree across supernodes.
-    # - weighted=True  : sum of per-node *weighted* out-degrees divided by |V|.
-    #                    Equivalent to (total rolled edge weight) / |V|. volume of links
-    # - weighted=False : sum of per-node *unweighted* out-degrees divided by |V|.
-    #                    Counts distinct outgoing neighbors per node. structural diversity
-    # Higher values indicate denser inter-class connectivity.
-    # Re: float: average out-degree
+    """
+        Average out-degree across supernodes.
+        - weighted=True  : sum of per-node *weighted* out-degrees divided by |V|.
+                        Equivalent to (total rolled edge weight) / |V|. volume of links
+        - weighted=False : sum of per-node *unweighted* out-degrees divided by |V|.
+                        Counts distinct outgoing neighbors per node. structural diversity
+        Higher values indicate denser inter-class connectivity.
+        Re: float: average out-degree
+    """
     G = _build_digraph(pkg)
     V_E = _entity_ids(pkg)
     n = len(V_E)
@@ -212,26 +243,86 @@ def average_out_degree(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
     total = sum(degs)
     return float(total) / float(n) if n else 0.0
 
-# 7) tmh_tendency_to_make_hubs
-def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
-
-    # Compute TMH (Tendency to Make Hubs) statistic from the out-degree sequence:
-    #     TMH = (Σ d_i^2) / (2 * Σ d_i)
-    # where d_i is the (weighted or unweighted) out-degree of node i.
-    # meaning:(self note)
-    #   - Higher TMH → degree mass is concentrated in few hubs (skewed).
-    #   - Lower TMH → degrees are more evenly distributed.
-    # Edge cases:
-    #   - If Σ d_i == 0 (no edges), TMH is defined as 0.0 (no hub tendency).
-    # Re: float: TMH value
+# 6.2) average_in_degree
+def average_in_degree(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
+    """
+        Average in-degree across supernodes.
+        - weighted=True  : sum of per-node *weighted* in-degrees divided by |V|.
+                        Equivalent to (total rolled edge weight) / |V|. volume of links
+        - weighted=False : sum of per-node *unweighted* in-degrees divided by |V|.
+                        Counts distinct ingoing neighbors per node. structural diversity
+        Higher values indicate denser inter-class connectivity.
+        Re: float: average in-degree
+    """
     G = _build_digraph(pkg)
     V_E = _entity_ids(pkg)
+    n = len(V_E)
+    if n == 0:
+        return 0.0
 
-    degs = [G.out_degree(n, weight="weight") for n in V_E]
+    if weighted:
+        degs = _weighted_in_degrees_over_entities(G, V_E)
+    else:
+        degs = _unweighted_in_degrees_over_entities(G, V_E)
+
+    return float(sum(degs)) / float(n)
+
+# 6.3) average degree
+
+def average_degree(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
+    """
+    Average total degree over entity EQCs.
+
+    total_degree(eq) = in_degree(eq) + out_degree(eq)
+
+    weighted=True uses rolled edge counts as weights.
+    weighted=False uses number of distinct neighbors.
+
+    Returns 0.0 if there are no entity EQCs.
+    """
+    G = _build_digraph(pkg)
+    V_E = _entity_ids(pkg)
+    if not V_E:
+        return 0.0
+
+    total = 0.0
+    for n in V_E:
+        if weighted:
+            total += float(G.in_degree(n, weight="weight") + G.out_degree(n, weight="weight"))
+        else:
+            total += float(G.in_degree(n) + G.out_degree(n))
+
+    return total / float(len(V_E))
+
+# 7) tmh_tendency_to_make_hubs
+def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> float:
+    """
+    TMH as in the paper:
+
+    TMH(S_t) = (sum_{eq in V^E} deg(eq)^2) / (sum_{eq in V^E} deg(eq))
+
+    where deg(eq) counts incoming + outgoing edges.
+    Uses weighted degrees if weighted=True.
+    Returns 0.0 if the denominator is 0.
+    """
+    G = _build_digraph(pkg)
+    V_E = _entity_ids(pkg)
+    if not V_E:
+        return 0.0
+
+    degs: List[float] = []
+    for n in V_E:
+        if weighted:
+            d = float(G.in_degree(n, weight="weight") + G.out_degree(n, weight="weight"))
+        else:
+            d = float(G.in_degree(n) + G.out_degree(n))
+        degs.append(d)
+
     s1 = sum(degs)
     if s1 == 0:
         return 0.0
-    s2 = sum(d*d for d in degs)
+
+    s2 = sum(d * d for d in degs)
     return s2 / s1
 
 # 8) connected_components_count

@@ -5,7 +5,7 @@ from typing import Dict, Any, Set, Tuple, List
 
 import networkx as nx  # NEW
 
-from Unary_comp import (
+from Unary_measure import (
     _entity_ids,       # V^E(S)
     edge_set,          # structural edges
     eqc_size_list,     # EQC sizes (list)

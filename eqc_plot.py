@@ -11,7 +11,7 @@ import math
 
 
 from save import load_summary_package
-from Unary_comp import (
+from Unary_measure import (
     average_eqc_size,
     std_eqc_size,
     tmh_tendency_to_make_hubs,
@@ -153,6 +153,7 @@ def plot_avg_and_eqc_count(
     max_xticks: int,
 ):
     labels = [r["label"] for r in rows]
+    xs     = list(range(len(labels)))
     avgs   = [r["avg"]   for r in rows]
     eqcs   = [r["eqc"]   for r in rows]
 
@@ -161,7 +162,7 @@ def plot_avg_and_eqc_count(
     # LEFT axis: average EQC size (blue)
     # CHANGED: use seaborn lineplot on ax1
     sns.lineplot(
-        x=labels,
+        x=xs,
         y=avgs,
         ax=ax1,
         color=BLUE,
@@ -175,7 +176,7 @@ def plot_avg_and_eqc_count(
     # CHANGED: seaborn lineplot for EQC count
     ax2 = ax1.twinx()
     sns.lineplot(
-        x=labels,
+        x=xs,
         y=eqcs,
         ax=ax2,
         color=ORANGE_DARK,
@@ -193,7 +194,10 @@ def plot_avg_and_eqc_count(
     ax1.set_xticks(xticks)
     ax1.set_xticklabels(xlabels, rotation=0)
 
-    ax1.legend(loc="upper left")
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_pdf, format="pdf")
@@ -210,25 +214,24 @@ def plot_std_only(
     max_xticks: int,
 ):
     labels = [r["label"] for r in rows]
-    stds   = [r["std"]   for r in rows]
+    xs = list(range(len(labels)))
+    stds = [r["std"] for r in rows]
 
-    plt.figure(figsize=(8, 6))
-    ax = plt.gca()
-
-    # CHANGED: seaborn lineplot instead of ax.plot
     sns.lineplot(
-        x=labels,
+        x=xs,
         y=stds,
         ax=ax,
         color=BLUE,
         linewidth=1.2,
     )
 
+    plt.figure(figsize=(8, 6))
+    ax = plt.gca()
+
     ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Std. dev. of EQC size")
     ax.grid(False)
-    ax.legend()
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
     plt.xticks(xticks, xlabels)
@@ -247,7 +250,8 @@ def plot_tmh(
     max_xticks: int,
 ):
     labels = [r["label"] for r in rows]
-    tmh    = [r[key]      for r in rows]
+    xs = list(range(len(labels)))
+    tmh = [r[key] for r in rows]
 
     if key == "tmh_w":
         raw_edges   = [r["edges_weighted"]   for r in rows]
@@ -260,8 +264,9 @@ def plot_tmh(
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
 
+
     sns.lineplot(
-        x=labels,
+        x=xs,
         y=tmh,
         ax=ax1,
         color=BLUE,
@@ -273,7 +278,7 @@ def plot_tmh(
 
     ax2 = ax1.twinx()
     sns.lineplot(
-        x=labels,
+        x=xs,
         y=edges_plot,
         ax=ax2,
         color=ORANGE_DARK,
@@ -348,7 +353,7 @@ def main():
         help="Title for weighted TMH plot restricted to 2015–2020.",
     )
 
-    ap.add_argument("--max-xticks", type=int, default=30, help="Max x-axis tick labels (default: 40).")
+    ap.add_argument("--max-xticks", type=int, default=40, help="Max x-axis tick labels (default: 40).")
     ap.add_argument(
         "--csv",
         help="(Optional) write a CSV with eqc, avg, std, tmh_w, tmh_u, edges_unweighted, edges_weighted.",
