@@ -159,8 +159,7 @@ def plot_avg_and_eqc_count(
 
     fig, ax1 = plt.subplots(figsize=(8, 6))
 
-    # LEFT axis: average EQC size (blue)
-    # CHANGED: use seaborn lineplot on ax1
+    # Left axis line (no seaborn legend)
     sns.lineplot(
         x=xs,
         y=avgs,
@@ -168,12 +167,13 @@ def plot_avg_and_eqc_count(
         color=BLUE,
         linewidth=1.2,
         label="Average size of EQC",
+        legend=False,
     )
     ax1.set_ylabel("Average size of EQC", color=BLUE)
     ax1.tick_params(axis="y", labelcolor=BLUE)
     ax1.grid(False)
-    # RIGHT axis: number of EQCs (orange, dotted)
-    # CHANGED: seaborn lineplot for EQC count
+
+    # Right axis line (no seaborn legend)
     ax2 = ax1.twinx()
     sns.lineplot(
         x=xs,
@@ -183,27 +183,29 @@ def plot_avg_and_eqc_count(
         linestyle=":",
         linewidth=1.2,
         label="Number of EQC",
+        legend=False,
     )
     ax2.set_ylabel("Number of EQC", color=ORANGE_DARK)
     ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
     ax2.grid(False)
+
     fig.suptitle(title)
 
-    # x-axis: year ticks (unchanged logic)
+    # x axis ticks
     xticks, xlabels = _year_ticks(labels, max_xticks)
     ax1.set_xticks(xticks)
     ax1.set_xticklabels(xlabels, rotation=0)
 
-    lines_1, labels_1 = ax1.get_legend_handles_labels()
-    lines_2, labels_2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+    # Single combined legend (one box)
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    ax1.legend(h1 + h2, l1 + l2, loc="upper left")
 
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_pdf, format="pdf")
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
-
 
 # CHANGED: new function — standard deviation on its own plot
 # WHY: the number was too big it dawrfed the avg vs eqc count plot
