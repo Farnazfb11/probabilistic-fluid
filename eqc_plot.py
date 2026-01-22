@@ -217,6 +217,11 @@ def plot_std_only(
     xs = list(range(len(labels)))
     stds = [r["std"] for r in rows]
 
+    
+
+    plt.figure(figsize=(8, 6))
+    ax = plt.gca()
+
     sns.lineplot(
         x=xs,
         y=stds,
@@ -224,10 +229,6 @@ def plot_std_only(
         color=BLUE,
         linewidth=1.2,
     )
-
-    plt.figure(figsize=(8, 6))
-    ax = plt.gca()
-
     ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Std. dev. of EQC size")
