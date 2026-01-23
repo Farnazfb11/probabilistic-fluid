@@ -236,88 +236,92 @@ def earth_mover_distance(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> floa
         return _emd_simplified(V_d, V_i)
 
 
-def _structural_edit_distance(sid_i: int, sid_j: int, 
-                               pkg_t: Dict[str, Any], 
-                               pkg_tp1: Dict[str, Any]) -> float:
-    """
-    Calculate structural edit distance d_{i,j} between two classes.
-    """
+def _degree_map_weighted(G: nx.DiGraph) -> Dict[int, int]:
+    # total degree = in + out (weighted)
+    deg: Dict[int, int] = {}
+    for n in G.nodes:
+        deg[int(n)] = int(G.in_degree(n, weight="weight") + G.out_degree(n, weight="weight"))
+    return deg
+
+
+def _structural_edit_distance_fast(
+    sid_i: int,
+    sid_j: int,
+    deg_t: Dict[int, int],
+    deg_tp1: Dict[int, int],
+) -> float:
+    # same behavior as your old one:
+    # abs(deg_i - deg_j) + 1 unless same sid
     if sid_i == sid_j:
         return 0.0
-    
-    G_t = _build_digraph(pkg_t)
-    G_tp1 = _build_digraph(pkg_tp1)
-    
-    def get_total_degree(graph: nx.DiGraph, sid: int) -> int:
-        if sid not in graph:
-            return 0
-        # Get weighted degree correctly
-        out_deg = graph.out_degree(sid, weight='weight')  # Already a number
-        in_deg = graph.in_degree(sid, weight='weight')    # Already a number
-        return int(out_deg + in_deg)
-    
-    deg_i = get_total_degree(G_t, sid_i)
-    deg_j = get_total_degree(G_tp1, sid_j)
-    
-    return float(abs(deg_i - deg_j) + 1)
+    di = deg_t.get(sid_i, 0)
+    dj = deg_tp1.get(sid_j, 0)
+    return float(abs(di - dj) + 1)
 
 
 def _emd_min_cost_flow(V_d: Dict[int, int], V_i: Dict[int, int],
                        pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> float:
     """
-    Full min-cost flow implementation as per paper Figures 3-4.
+    Faster min cost flow:
+    builds graphs once and reuses degree maps.
+    Also uses proper node demands so network_simplex has less confusion.
     """
+    G_t = _build_digraph(pkg_t)
+    G_tp1 = _build_digraph(pkg_tp1)
+    deg_t = _degree_map_weighted(G_t)
+    deg_tp1 = _degree_map_weighted(G_tp1)
+
+    total_supply = int(sum(V_d.values()))
+    total_demand = int(sum(V_i.values()))
+
     F = nx.DiGraph()
-    
     source = "SOURCE"
     target = "TARGET"
-    
-    # Calculate totals
-    total_supply = sum(V_d.values())
-    total_demand = sum(V_i.values())
-    
-    # Add supply nodes (V_d) and edges from source
+
+    # node demands: negative = supply, positive = demand
+    F.add_node(source, demand=-total_supply)
+    F.add_node(target, demand=total_demand)
+
+    # if imbalance exists, we add one dummy node to balance
+    # and keep total supply == total demand in the flow problem
+    if total_supply < total_demand:
+        # add dummy supply
+        dummy_supply = "DUMMY_SUPPLY"
+        missing = total_demand - total_supply
+        F.add_node(dummy_supply, demand=-missing)
+        # send dummy supply to target with cost 1 per unit (paper)
+        F.add_edge(dummy_supply, target, weight=1, capacity=missing)
+    elif total_demand < total_supply:
+        # add dummy demand
+        dummy_demand = "DUMMY_DEMAND"
+        extra = total_supply - total_demand
+        F.add_node(dummy_demand, demand=extra)
+        # send supply to dummy demand with cost 1 per unit (paper)
+        F.add_edge(source, dummy_demand, weight=1, capacity=extra)
+
+    # add supply nodes and edges from source
     for sid, supply in V_d.items():
         node_d = f"d_{sid}"
-        F.add_edge(source, node_d, weight=0, capacity=supply)
-    
-    # Add demand nodes (V_i) and edges to target
+        F.add_node(node_d, demand=-int(supply))
+        F.add_edge(source, node_d, weight=0, capacity=int(supply))
+
+    # add demand nodes and edges to target
     for sid, demand in V_i.items():
         node_i = f"i_{sid}"
-        F.add_edge(node_i, target, weight=0, capacity=demand)
-    
-    # Add edges between all V_d and V_i pairs with cost = d_{i,j}
+        F.add_node(node_i, demand=int(demand))
+        F.add_edge(node_i, target, weight=0, capacity=int(demand))
+
+    # connect V_d to V_i with costs
+    # capacity can be total_supply, enough for any distribution
+    cap = max(1, total_supply)
     for sid_i in V_d.keys():
+        node_i = f"d_{sid_i}"
         for sid_j in V_i.keys():
-            node_i = f"d_{sid_i}"
             node_j = f"i_{sid_j}"
-            dist = _structural_edit_distance(sid_i, sid_j, pkg_t, pkg_tp1)
-            # Large capacity to allow any flow amount
-            F.add_edge(node_i, node_j, weight=dist, capacity=max(total_supply, total_demand))
-    
-    # Handle supply/demand imbalance (paper Figures 3-4)
-    if total_supply != total_demand:
-        imbalance = abs(total_supply - total_demand)
-        dummy = "DUMMY"
-        
-        if total_supply < total_demand:
-            # Need extra supply (cost = 1)
-            F.add_edge(source, dummy, weight=1, capacity=imbalance)
-            for sid_j in V_i.keys():
-                node_j = f"i_{sid_j}"
-                F.add_edge(dummy, node_j, weight=0, capacity=imbalance)
-        else:
-            # Need to absorb surplus (cost = 1)
-            for sid_i in V_d.keys():
-                node_i = f"d_{sid_i}"
-                F.add_edge(node_i, dummy, weight=0, capacity=imbalance)
-            F.add_edge(dummy, target, weight=1, capacity=imbalance)
-    
-    # Set demands and solve
-    F.nodes[source]['demand'] = -max(total_supply, total_demand)
-    F.nodes[target]['demand'] = max(total_supply, total_demand)
-    
-    flow_cost, flow_dict = nx.network_simplex(F)
+            dist = _structural_edit_distance_fast(sid_i, sid_j, deg_t, deg_tp1)
+            F.add_edge(node_i, node_j, weight=dist, capacity=cap)
+
+    flow_cost, _ = nx.network_simplex(F)
     return float(flow_cost)
 
 
