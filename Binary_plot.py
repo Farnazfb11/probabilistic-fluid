@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from save import load_summary_package
-from Binary_comp import (   # binary-metric functions in Binary_comp.py
+from Binary_measure import (
     jaccard_vertices,
     jaccard_edges,
     graph_edit_distance_structural,
     symmetric_kl_divergence,
+    earth_mover_distance,  # ADDED: Import EMD
 )
 
 # nice default style, same as EQC plots
@@ -66,9 +67,11 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
 # collect pairwise (t, t+1) metrics
 
 def collect_pairs(input_dir: Path) -> List[Dict[str, Any]]:
-    # Stream through summaries in date order and compute binary metrics
-    # only for consecutive pairs S_t, S_{t+1}, keeping at most two
-    # packages in memory at any time.
+    """
+    Stream through summaries in date order and compute binary metrics
+    only for consecutive pairs S_t, S_{t+1}, keeping at most two
+    packages in memory at any time.
+    """
     files = sorted(input_dir.rglob("*.json"), key=_sort_key)
     if len(files) < 2:
         return []
@@ -93,6 +96,7 @@ def collect_pairs(input_dir: Path) -> List[Dict[str, Any]]:
                 jac_e = float(jaccard_edges(prev_pkg, pkg))
                 ged   = float(graph_edit_distance_structural(prev_pkg, pkg))
                 kld   = float(symmetric_kl_divergence(prev_pkg, pkg))
+                emd   = float(earth_mover_distance(prev_pkg, pkg))  # ADDED: Compute EMD
             except Exception as e:
                 print(f"[warn] metrics failed for pair {prev_label}→{label}: {e}")
                 # still advance window
@@ -103,6 +107,7 @@ def collect_pairs(input_dir: Path) -> List[Dict[str, Any]]:
                     "jac_e": jac_e,
                     "ged":   ged,
                     "kld":   kld,
+                    "emd":   emd,     # ADDED: Include EMD in output
                 })
 
         # slide window
@@ -119,14 +124,14 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(
             f,
-            fieldnames=["label", "jac_v", "jac_e", "ged", "kld"],
+            fieldnames=["label", "jac_v", "jac_e", "ged", "kld", "emd"],  # ADDED: emd field
         )
         w.writeheader()
         w.writerows(rows)
     print(f"[ok] CSV: {csv_path}")
 
 
-# generic “one-curve” plot helper
+# generic "one-curve" plot helper
 
 def _plot_metric(
     rows: List[Dict[str, Any]],
@@ -143,25 +148,28 @@ def _plot_metric(
     ax = plt.gca()
 
     sns.lineplot(
-        x=labels,
+        x=list(range(len(labels))),  # FIXED: Use numeric x-axis
         y=values,
         ax=ax,
-        linewidth=1.0,
-        label=ylabel,
+        linewidth=1.5,
+        marker='o',
+        markersize=3,
     )
 
-    ax.set_title(title)
-    ax.set_xlabel("Timestep")
-    ax.set_ylabel(ylabel)
-    ax.legend()
-
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_xlabel("Timestep", fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    
+    # Set x-axis ticks to show years
     xticks, xlabels = _year_ticks(labels, max_xticks)
     ax.set_xticks(xticks)
-    ax.set_xticklabels(xlabels, rotation=0)
+    ax.set_xticklabels(xlabels, rotation=45, ha='right')
+    
+    ax.grid(True, alpha=0.3, linestyle='--')
 
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_pdf, format="pdf")
+    plt.savefig(out_pdf, format="pdf", dpi=300)
     plt.close()
     print(f"[ok] PDF: {out_pdf}")
 
@@ -169,7 +177,7 @@ def _plot_metric(
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Binary metrics over consecutive summaries: Jaccard (V/E), GED, KLD."
+        description="Binary metrics over consecutive summaries: Jaccard (V/E), GED, KLD, EMD."
     )
     ap.add_argument(
         "-i", "--input-dir",
@@ -203,27 +211,37 @@ def main():
         default="kld_symmetric.pdf",
         help="PDF filename for symmetric KL divergence.",
     )
+    ap.add_argument(
+        "--emd-pdf",
+        default="emd_payload.pdf",
+        help="PDF filename for Earth Mover's Distance.",
+    )
 
     # titles
     ap.add_argument(
         "--title-jac-v",
-        default="Jaccard over entity vertices (δ²_JacV)",
+        default="Jaccard Distance over Entity Vertices (δ²_JacV)",
         help="Title for vertex Jaccard plot.",
     )
     ap.add_argument(
         "--title-jac-e",
-        default="Jaccard over superedges (δ²_JacE)",
+        default="Jaccard Distance over Superedges (δ²_JacE)",
         help="Title for edge Jaccard plot.",
     )
     ap.add_argument(
         "--title-ged",
-        default="Structural graph edit distance (δ²_GED)",
+        default="Structural Graph Edit Distance (δ²_GED)",
         help="Title for GED-like plot.",
     )
     ap.add_argument(
         "--title-kld",
-        default="Symmetric KL divergence over EQC-size distributions (δ²_KLD)",
+        default="Symmetric KL Divergence over EQC Distributions (δ²_KLD)",
         help="Title for KLD plot.",
+    )
+    ap.add_argument(
+        "--title-emd",
+        default="Earth Mover's Distance over EQC Payloads (δ²_EMD)",
+        help="Title for EMD plot.",
     )
 
     ap.add_argument(
@@ -235,7 +253,7 @@ def main():
 
     ap.add_argument(
         "--csv",
-        help="(Optional) write a CSV with label, jac_v, jac_e, ged, kld.",
+        help="(Optional) write a CSV with label, jac_v, jac_e, ged, kld, emd.",
     )
 
     # optional skip flags
@@ -243,6 +261,7 @@ def main():
     ap.add_argument("--no-jac-e", action="store_true", help="Skip Jaccard-edges PDF.")
     ap.add_argument("--no-ged",   action="store_true", help="Skip GED PDF.")
     ap.add_argument("--no-kld",   action="store_true", help="Skip KLD PDF.")
+    ap.add_argument("--no-emd",   action="store_true", help="Skip EMD PDF.")
 
     args = ap.parse_args()
 
@@ -290,11 +309,23 @@ def main():
         _plot_metric(
             rows,
             key="kld",
-            ylabel="δ²_KLD (symmetric KL)",
+            ylabel="δ²_KLD (symmetric KL, bits)",
             title=args.title_kld,
             out_pdf=out_dir / args.kld_pdf,
             max_xticks=args.max_xticks,
         )
+
+    if not args.no_emd:
+        _plot_metric(
+            rows,
+            key="emd",
+            ylabel="δ²_EMD (entity movement cost)",
+            title=args.title_emd,
+            out_pdf=out_dir / args.emd_pdf,
+            max_xticks=args.max_xticks,
+        )
+
+    print(f"\n[done] All metrics computed for {len(rows)} consecutive pairs.")
 
 
 if __name__ == "__main__":
