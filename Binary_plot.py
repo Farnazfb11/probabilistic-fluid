@@ -66,7 +66,7 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
 
 # collect pairwise (t, t+1) metrics
 
-def collect_pairs(input_dir: Path) -> List[Dict[str, Any]]:
+def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str, Any]]:
     """
     Stream through summaries in date order and compute binary metrics
     only for consecutive pairs S_t, S_{t+1}, keeping at most two
@@ -96,19 +96,22 @@ def collect_pairs(input_dir: Path) -> List[Dict[str, Any]]:
                 jac_e = float(jaccard_edges(prev_pkg, pkg))
                 ged   = float(graph_edit_distance_structural(prev_pkg, pkg))
                 kld   = float(symmetric_kl_divergence(prev_pkg, pkg))
-                emd   = float(earth_mover_distance(prev_pkg, pkg))  # ADDED: Compute EMD
-            except Exception as e:
-                print(f"[warn] metrics failed for pair {prev_label}→{label}: {e}")
-                # still advance window
-            else:
-                rows.append({
+
+                row = {
                     "label": label,   # change leading to this snapshot
                     "jac_v": jac_v,
                     "jac_e": jac_e,
                     "ged":   ged,
                     "kld":   kld,
-                    "emd":   emd,     # ADDED: Include EMD in output
-                })
+                }
+
+                if compute_emd:
+                    row["emd"] = float(earth_mover_distance(prev_pkg, pkg))
+
+            except Exception as e:
+                print(f"[warn] metrics failed for pair {prev_label}→{label}: {e}")
+            else:
+                rows.append(row)
 
         # slide window
         prev_pkg = pkg
@@ -121,13 +124,16 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
     if not csv_path:
         return
     csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fieldnames = ["label", "jac_v", "jac_e", "ged", "kld"]
+    if rows and "emd" in rows[0]:
+        fieldnames.append("emd")
+
     with csv_path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(
-            f,
-            fieldnames=["label", "jac_v", "jac_e", "ged", "kld", "emd"],  # ADDED: emd field
-        )
+        w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         w.writerows(rows)
+
     print(f"[ok] CSV: {csv_path}")
 
 
@@ -265,7 +271,7 @@ def main():
 
     args = ap.parse_args()
 
-    rows = collect_pairs(Path(args.input_dir))
+    rows = collect_pairs(Path(args.input_dir), compute_emd=(not args.no_emd))
     if not rows:
         print("[info] Not enough summaries or all pairs failed to compute.")
         return

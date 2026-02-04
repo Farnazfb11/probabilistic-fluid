@@ -50,40 +50,43 @@ def jaccard_edges(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> float:
 # 2) Graph Edit Distance - FIXED to match paper's per-class formulation
 
 def graph_edit_distance_structural(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> int:
-    """
-    Graph Edit Distance as per Paper Equation 14.
-    """
-    G_t = _build_digraph(pkg_t)
-    G_tp1 = _build_digraph(pkg_tp1)
-    
+    # entity vertex ids
     V_t = set(_entity_ids(pkg_t))
     V_tp1 = set(_entity_ids(pkg_tp1))
-    S_GED = V_t | V_tp1
-    
-    total_edge_edits = 0
-    total_class_edits = 0
-    
-    for sid in S_GED:
-        # Get incident edges for this class
-        edges_t = _get_incident_edges(G_t, sid)
-        edges_tp1 = _get_incident_edges(G_tp1, sid)
-        
-        # Count edge operations (will be counted twice - once per endpoint)
-        edge_additions = len(edges_tp1 - edges_t)
-        edge_deletions = len(edges_t - edges_tp1)
-        total_edge_edits += edge_additions + edge_deletions
-        
-        # Count class creation/deletion (only for isolated classes)
-        if sid not in V_t and sid in V_tp1:
-            if not edges_tp1:
-                total_class_edits += 1
-        elif sid in V_t and sid not in V_tp1:
-            if not edges_t:
-                total_class_edits += 1
-    
-    # Edge edits counted twice (from both endpoints), divide by 2
-    # Class edits counted once, don't divide
-    return (total_edge_edits // 2) + total_class_edits
+
+    # unweighted edge sets
+    E_t = edge_set(pkg_t, include_weights=False)
+    E_tp1 = edge_set(pkg_tp1, include_weights=False)
+
+    # edge edits are just symmetric difference size
+    edge_edits = len(E_t ^ E_tp1)
+
+    # incident vertex sets (who appears in at least one edge)
+    inc_t = set()
+    for u, v in E_t:
+        inc_t.add(u)
+        inc_t.add(v)
+
+    inc_tp1 = set()
+    for u, v in E_tp1:
+        inc_tp1.add(u)
+        inc_tp1.add(v)
+
+    # isolated class edits like your code
+    class_edits = 0
+
+    # created isolated classes: in tp1 but not in t, and has no incident edges in tp1
+    for sid in (V_tp1 - V_t):
+        if sid not in inc_tp1:
+            class_edits += 1
+
+    # deleted isolated classes: in t but not in tp1, and had no incident edges in t
+    for sid in (V_t - V_tp1):
+        if sid not in inc_t:
+            class_edits += 1
+
+    return edge_edits + class_edits
+
 
 
 def _get_incident_edges(graph: nx.DiGraph, sid: int) -> Set[Tuple[int, int]]:
