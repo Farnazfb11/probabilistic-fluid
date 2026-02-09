@@ -15,6 +15,7 @@ from Binary_measure import (
     symmetric_kl_divergence,
     earth_mover_distance,  # ADDED: Import EMD
 )
+ALLOWED_WEEKS = {"2016-05-23", "2016-05-29"}
 
 # nice default style, same as EQC plots
 sns.set_theme(style="white")
@@ -72,52 +73,46 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
     only for consecutive pairs S_t, S_{t+1}, keeping at most two
     packages in memory at any time.
     """
-    files = sorted(input_dir.rglob("*.json"), key=_sort_key)
-    if len(files) < 2:
-        return []
-
     rows: List[Dict[str, Any]] = []
-
     prev_pkg: Optional[Dict[str, Any]] = None
     prev_label: Optional[str] = None
 
     for fp in files:
+        label = _label(fp)
+
+        # 🔴 FILTER HERE
+        if label not in ALLOWED_WEEKS:
+            continue
+
         try:
             pkg = load_summary_package(fp)
-            label = _label(fp)
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
             continue
 
         if prev_pkg is not None:
-            # S_t = prev_pkg, S_{t+1} = pkg
             try:
-                jac_v = float(jaccard_vertices(prev_pkg, pkg))
-                jac_e = float(jaccard_edges(prev_pkg, pkg))
-                ged   = float(graph_edit_distance_structural(prev_pkg, pkg))
-                kld   = float(symmetric_kl_divergence(prev_pkg, pkg))
-
                 row = {
-                    "label": label,   # change leading to this snapshot
-                    "jac_v": jac_v,
-                    "jac_e": jac_e,
-                    "ged":   ged,
-                    "kld":   kld,
+                    "label": label,
+                    "jac_v": float(jaccard_vertices(prev_pkg, pkg)),
+                    "jac_e": float(jaccard_edges(prev_pkg, pkg)),
+                    "ged":   float(graph_edit_distance_structural(prev_pkg, pkg)),
+                    "kld":   float(symmetric_kl_divergence(prev_pkg, pkg)),
                 }
 
                 if compute_emd:
                     row["emd"] = float(earth_mover_distance(prev_pkg, pkg))
 
-            except Exception as e:
-                print(f"[warn] metrics failed for pair {prev_label}→{label}: {e}")
-            else:
                 rows.append(row)
 
-        # slide window
+            except Exception as e:
+                print(f"[warn] metrics failed for pair {prev_label}→{label}: {e}")
+
         prev_pkg = pkg
         prev_label = label
 
     return rows
+
 
 
 def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
