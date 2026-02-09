@@ -68,6 +68,7 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
 # collect pairwise (t, t+1) metrics
 
 def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str, Any]]:
+    files = sorted(input_dir.rglob("*.json"), key=_sort_key)
     """
     Stream through summaries in date order and compute binary metrics
     only for consecutive pairs S_t, S_{t+1}, keeping at most two
