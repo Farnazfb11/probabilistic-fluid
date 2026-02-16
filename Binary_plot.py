@@ -15,7 +15,7 @@ from Binary_measure import (
     symmetric_kl_divergence,
     earth_mover_distance,  # ADDED: Import EMD
 )
-ALLOWED_WEEKS = {"2016-05-23", "2016-05-29"}
+
 
 # nice default style, same as EQC plots
 sns.set_theme(style="white")
@@ -81,9 +81,6 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
     for fp in files:
         label = _label(fp)
 
-        # 🔴 FILTER HERE
-        if label not in ALLOWED_WEEKS:
-            continue
 
         try:
             pkg = load_summary_package(fp)
