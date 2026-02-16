@@ -157,7 +157,7 @@ def plot_avg_and_eqc_count(
     avgs   = [r["avg"]   for r in rows]
     eqcs   = [r["eqc"]   for r in rows]
 
-    fig, ax1 = plt.subplots(figsize=(8, 6))
+    fig, ax1 = plt.subplots(figsize=(12, 5))
 
     # Left axis line (no seaborn legend)
     sns.lineplot(
@@ -203,7 +203,7 @@ def plot_avg_and_eqc_count(
 
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_pdf, format="pdf")
+    fig.savefig(out_pdf, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
@@ -221,7 +221,7 @@ def plot_std_only(
 
     
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12, 4.5))
     ax = plt.gca()
 
     sns.lineplot(
@@ -241,7 +241,7 @@ def plot_std_only(
 
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_pdf, format="pdf")
+    plt.savefig(out_pdf, format="pdf", bbox_inches="tight")
     plt.close()
     print(f"[ok] PDF: {out_pdf}")
 

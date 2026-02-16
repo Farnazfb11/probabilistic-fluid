@@ -146,16 +146,14 @@ def _plot_metric(
     labels = [r["label"] for r in rows]
     values = [r[key] for r in rows]
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12, 5))
     ax = plt.gca()
 
     sns.lineplot(
-        x=list(range(len(labels))),  # FIXED: Use numeric x-axis
+        x=list(range(len(labels))),
         y=values,
         ax=ax,
-        linewidth=1.5,
-        marker='o',
-        markersize=3,
+        linewidth=1.2,
     )
 
     ax.set_title(title, fontsize=14, fontweight='bold')
