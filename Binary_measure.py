@@ -6,8 +6,6 @@ import networkx as nx
 from Unary_measure import (
     _entity_ids,       # V^E(S)
     edge_set,          # structural edges
-    eqc_size_list,     # EQC sizes (list)
-    _build_digraph,    # graph construction from summary
 )
 
 
@@ -197,46 +195,44 @@ def symmetric_kl_divergence(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> f
 
 # 4) Earth Mover's Distance - ENHANCED with proper flow network
 
-def earth_mover_distance(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> float:
+
+
+def earth_mover_distance(
+    pkg_t: Dict[str, Any],
+    pkg_tp1: Dict[str, Any],
+    *,
+    deg_t: Dict[int, int] | None = None,
+    deg_tp1: Dict[int, int] | None = None,
+) -> float:
     """
-    Earth Mover's Distance as per Paper Equation 15.
-    
-    Implements the full min-cost flow network from Figures 3-4:
-    - V_d: classes with decreased payload (supply)
-    - V_i: classes with increased payload (demand)
-    - Distance d_{i,j} between classes (using edit distance)
-    - Flow network with source, target, and balance vertices
-    
-    Falls back to simplified calculation if flow network fails.
+    CHANGED: accepts optional cached degree maps.
+    WHY: avoid recomputing degrees and avoid NetworkX graph reconstruction.
     """
     size_t = _eqc_size_map(pkg_t)
     size_tp1 = _eqc_size_map(pkg_tp1)
-    
-    # Build V_d (decreased) and V_i (increased)
+
     V_d: Dict[int, int] = {}
     V_i: Dict[int, int] = {}
-    
+
     all_sids = set(size_t.keys()) | set(size_tp1.keys())
     for sid in all_sids:
         s_t = size_t.get(sid, 0)
         s_tp1 = size_tp1.get(sid, 0)
         delta = s_tp1 - s_t
-        
+
         if delta > 0:
             V_i[sid] = delta
         elif delta < 0:
             V_d[sid] = -delta
-    
-    # No change → zero cost
+
     if not V_d and not V_i:
         return 0.0
-    
-    # Try full flow network implementation
+
     try:
-        return _emd_min_cost_flow(V_d, V_i, pkg_t, pkg_tp1)
+        return _emd_min_cost_flow(V_d, V_i, pkg_t, pkg_tp1, deg_t=deg_t, deg_tp1=deg_tp1)
     except (nx.NetworkXError, nx.NetworkXUnfeasible, Exception):
-        # Fallback to simplified version (uniform distance)
         return _emd_simplified(V_d, V_i)
+
 
 
 def _degree_map_weighted(G: nx.DiGraph) -> Dict[int, int]:
@@ -244,6 +240,38 @@ def _degree_map_weighted(G: nx.DiGraph) -> Dict[int, int]:
     deg: Dict[int, int] = {}
     for n in G.nodes:
         deg[int(n)] = int(G.in_degree(n, weight="weight") + G.out_degree(n, weight="weight"))
+    return deg
+
+def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
+    """
+    Compute total weighted degree per sid directly from pkg['edges'].
+
+    Uses the same meaning as the old code:
+    total degree = in(weight) + out(weight)
+
+    CHANGED: avoids NetworkX reconstruction for speed.
+    WHY: EMD only needs degrees, not full graph object.
+    """
+    deg: Dict[int, int] = {}
+
+    nodes = pkg.get("nodes") or {}
+    for sid in nodes.keys():
+        deg[int(sid)] = 0
+
+    edges = pkg.get("edges")
+    if not edges:
+        raise ValueError(
+            "EMD(degree-based) requires saved summary edges, but pkg has no 'edges'. "
+            "Run summaries with include_edges=True."
+        )
+
+    for e in edges.items():
+        u = int(e["src"])
+        v = int(e["dst"])
+        w = int(e.get("count", 0))
+        deg[u] = deg.get(u, 0) + w
+        deg[v] = deg.get(v, 0) + w
+
     return deg
 
 
@@ -262,17 +290,24 @@ def _structural_edit_distance_fast(
     return float(abs(di - dj) + 1)
 
 
-def _emd_min_cost_flow(V_d: Dict[int, int], V_i: Dict[int, int],
-                       pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> float:
+def _emd_min_cost_flow(
+    V_d: Dict[int, int],
+    V_i: Dict[int, int],
+    pkg_t: Dict[str, Any],
+    pkg_tp1: Dict[str, Any],
+    *,
+    deg_t: Dict[int, int] | None = None,
+    deg_tp1: Dict[int, int] | None = None,
+) -> float:
     """
-    Faster min cost flow:
-    builds graphs once and reuses degree maps.
-    Also uses proper node demands so network_simplex has less confusion.
+    CHANGED: do not reconstruct NetworkX graphs when degrees can be computed from edges.
+    WHY: speed.
     """
-    G_t = _build_digraph(pkg_t)
-    G_tp1 = _build_digraph(pkg_tp1)
-    deg_t = _degree_map_weighted(G_t)
-    deg_tp1 = _degree_map_weighted(G_tp1)
+
+    if deg_t is None:
+        deg_t = _degree_map_weighted_from_pkg(pkg_t)  # CHANGED
+    if deg_tp1 is None:
+        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1)  # CHANGED
 
     total_supply = int(sum(V_d.values()))
     total_demand = int(sum(V_i.values()))
@@ -281,7 +316,6 @@ def _emd_min_cost_flow(V_d: Dict[int, int], V_i: Dict[int, int],
     source = "SOURCE"
     target = "TARGET"
 
-    # node demands: negative = supply, positive = demand
     F.add_node(source, demand=-total_supply)
     F.add_node(target, demand=total_demand)
 

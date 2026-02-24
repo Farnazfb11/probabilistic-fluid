@@ -14,6 +14,7 @@ from Binary_measure import (
     graph_edit_distance_structural,
     symmetric_kl_divergence,
     earth_mover_distance,  # ADDED: Import EMD
+    _degree_map_weighted_from_pkg
 )
 
 
@@ -78,9 +79,15 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
     prev_pkg: Optional[Dict[str, Any]] = None
     prev_label: Optional[str] = None
 
+    # CHANGED: cache degree maps so we do not recompute per pair
+    # WHY: you want degree based EMD without reconstructing graphs repeatedly
+    prev_deg: Optional[Dict[int, int]] = None
+
+    # CHANGED: counter for consecutive pairs
+    pair_idx = 0
+
     for fp in files:
         label = _label(fp)
-
 
         try:
             pkg = load_summary_package(fp)
@@ -88,7 +95,17 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
             print(f"[warn] skip {fp}: {e}")
             continue
 
+        # CHANGED: compute degree map once for this week, only if EMD enabled
+        curr_deg: Optional[Dict[int, int]] = None
+        if compute_emd:
+            try:
+                curr_deg = _degree_map_weighted_from_pkg(pkg)
+            except Exception as e:
+                curr_deg = None
+                print(f"[warn] degree map failed for {label}: {e}")
+
         if prev_pkg is not None:
+            pair_idx += 1
             try:
                 row = {
                     "label": label,
@@ -99,7 +116,13 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
                 }
 
                 if compute_emd:
-                    row["emd"] = float(earth_mover_distance(prev_pkg, pkg))
+                    # CHANGED: pass cached degrees
+                    # WHY: avoid rebuilding or recomputing anything per pair
+                    row["emd"] = float(earth_mover_distance(prev_pkg, pkg, deg_t=prev_deg, deg_tp1=curr_deg))
+
+                    # CHANGED: print per pair message with week name and number
+                    # WHY: progress tracking exactly as requested
+                    print(f"[emd] pair {pair_idx}: {prev_label} -> {label} | emd={row['emd']}")
 
                 rows.append(row)
 
@@ -108,8 +131,10 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
 
         prev_pkg = pkg
         prev_label = label
+        prev_deg = curr_deg  # CHANGED: carry forward cached degree map
 
     return rows
+
 
 
 
@@ -166,7 +191,7 @@ def _plot_metric(
 
     plt.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_pdf, format="pdf", dpi=300)
+    plt.savefig(out_pdf, format="pdf", dpi=300, bbox_inches="tight")
     plt.close()
     print(f"[ok] PDF: {out_pdf}")
 

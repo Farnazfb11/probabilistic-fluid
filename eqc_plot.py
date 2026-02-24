@@ -221,7 +221,7 @@ def plot_std_only(
 
     
 
-    plt.figure(figsize=(12, 4.5))
+    plt.figure(figsize=(12, 5))
     ax = plt.gca()
 
     sns.lineplot(
@@ -265,7 +265,7 @@ def plot_tmh(
         edges_plot  = raw_edges
         edge_label  = "Number of superedges"
 
-    fig, ax1 = plt.subplots(figsize=(12, 6))
+    fig, ax1 = plt.subplots(figsize=(12, 5))
 
 
     sns.lineplot(
