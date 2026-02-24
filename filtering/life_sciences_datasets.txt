@@ -1,0 +1,371 @@
+bioportal-imr | Molecule role (INOH Protein name/family name ontology) | http://bioportal.bioontology.org/ontologies/1029
+bioportal-ddanat | Dictyostelium discoideum anatomy | http://bioportal.bioontology.org/ontologies/1008
+bioportal-teddy | Terminology for the Description of Dynamics | http://bioportal.bioontology.org/ontologies/1407
+bioportal-ocre | Ontology of Clinical Research (OCRe) | http://bioportal.bioontology.org/ontologies/1076
+tcga-roadmap | TCGA Roadmap | http://tcga.github.com/Roadmap/
+nextprot | neXtProt | https://www.nextprot.org/
+bioportal-ehdaa | Human developmental anatomy, abstract version | http://bioportal.bioontology.org/ontologies/1021
+fu-berlin-drugbank | DrugBank | http://www4.wiwiss.fu-berlin.de/drugbank/
+eagle-i-alaska | eagle-i @ University of Alaska Fairbanks | http://alaska.eagle-i.net
+bioportal-pr | PRotein Ontology (PRO) | http://bioportal.bioontology.org/ontologies/1062
+bioportal-cheminf | Chemical Information Ontology | http://bioportal.bioontology.org/ontologies/1444
+eagle-i-upr | eagle-i@ University of Puerto Rico - Medical Sciences Campus | http://upr.eagle-i.net
+bioportal-tmo | Translational Medicine Ontology | http://bioportal.bioontology.org/ontologies/1461
+gene-expression-atlas-rdf | Gene Expression Atlas RDF | None
+PubChem RDF | PubChem RDF | https://pubchem.ncbi.nlm.nih.gov/
+HealthCare Ontology | HealthCare Ontology | http://bioportal.bioontology.org/ontologies/HCOT
+eagle-i-famu | eagle-i @ Florida Agricultural and Mechanical University | http://famu.eagle-i.net
+eagle-i-psm | eagle-i @ Ponce School of Medicine | http://psm.eagle-i.net/
+lodac-bdls | LODAC BDLS | http://lod.ac/wiki/LODAC_BDLS
+bioportal-tads | Tick gross anatomy | http://bioportal.bioontology.org/ontologies/1065
+bioportal-cl | Cell type | http://bioportal.bioontology.org/ontologies/1006
+bioportal-imgt | IMGT-ONTOLOGY | http://bioportal.bioontology.org/ontologies/1491
+bioportal-ma | Mouse adult gross anatomy | http://bioportal.bioontology.org/ontologies/1000
+bioportal-icpc | International Classification of Primary Care | http://bioportal.bioontology.org/ontologies/1344
+bioportal-cst | COSTART | http://bioportal.bioontology.org/ontologies/1341
+bioportal-bto | BRENDA tissue / enzyme source | http://bioportal.bioontology.org/ontologies/1005
+eagle-i-howard | eagle-i @ Howard University | http://howard.eagle-i.net
+bioportal-exo | ExO | http://bioportal.bioontology.org/ontologies/1575
+bioportal-ehda | Human developmental anatomy, timed version | http://bioportal.bioontology.org/ontologies/1022
+bio2rdf-sider | Bio2RDF::Sider | http://sider.bio2rdf.org/
+eagle-i-ohsu | eagle-i @ Oregon Health and Science University | http://ohsu.eagle-i.net
+fu-berlin-stitch | STITCH: Chemical-Protein Interactions | http://www4.wiwiss.fu-berlin.de/stitch/
+bioportal-gro_x2 | Gene Regulation Ontology | http://bioportal.bioontology.org/ontologies/1082
+bioportal-ontoorpha | Orphanet Ontology of Rare Diseases | http://bioportal.bioontology.org/ontologies/1586
+bioportal-mdr | MedDRA | http://bioportal.bioontology.org/ontologies/1422
+taxonconcept-occurences | taxonconcept-occurences | None
+bio2rdf-goa | Bio2RDF::Goa | http://goa.bio2rdf.org/
+eagle-i-tuskegee | eagle-i @ Tuskegee University | http://tuskegee.eagle-i.net
+eagle-i-meharry | eagle-i @ Meharry Medical College | http://meharry.eagle-i.net
+bioportal-repo | Reproductive trait and phenotype ontology | http://bioportal.bioontology.org/ontologies/1552
+GACS | Global Agricultural Concept Space | https://agrisemantics.org/#GACShome/
+bioportal-fypo | Fission Yeast Phenotype Ontology | http://bioportal.bioontology.org/ontologies/1689
+bioportal-rcd | Read Codes, Clinical Terms Version 3 (CTV3) | http://bioportal.bioontology.org/ontologies/1427
+bio2rdf-irefindex | Bio2RDF::Irefindex | http://irefindex.bio2rdf.org/
+bioportal-gro_x1 | Cereal plant gross anatomy | http://bioportal.bioontology.org/ontologies/1001
+bioportal-spd | Spider Ontology | http://bioportal.bioontology.org/ontologies/1091
+bioportal-tto | Teleost taxonomy | http://bioportal.bioontology.org/ontologies/1081
+geospecies | GeoSpecies Knowledge Base | http://lod.geospecies.org/
+bioportal-opl | Ontology for Parasite LifeCycle | http://bioportal.bioontology.org/ontologies/1190
+bioportal-fbcv | FlyBase Controlled Vocabulary | http://bioportal.bioontology.org/ontologies/1017
+bio2rdf-bioportal | Bio2RDF::Bioportal | http://bioportal.bio2rdf.org/
+bioportal-pw | Pathway ontology | http://bioportal.bioontology.org/ontologies/1035
+bioportal-mddb | Master Drug Data Base | http://bioportal.bioontology.org/ontologies/1426
+bioportal-ero | eagle-i research resource ontology | http://bioportal.bioontology.org/ontologies/3016
+CoDa | Cooperation Databank | https://data.cooperationdatabank.org/
+bio2rdf-sabiork | Bio2RDF::Sabiork | http://sabiork.bio2rdf.org/
+bioportal-ogmd | Ontology of Glucose Metabolism Disorder | http://bioportal.bioontology.org/ontologies/1085
+eagle-i-jsu | eagle-i @ Jackson State University | http://jsu.eagle-i.net
+bioportal-icf_x1 | International Classification of Functioning, Disability and Health (ICF) | http://bioportal.bioontology.org/ontologies/1411
+bioportal-snpo | SNP-Ontology | http://bioportal.bioontology.org/ontologies/1058
+eagle-i-hunter-cuny | eagle-i @ Hunter College | http://hunter-cuny.eagle-i.net
+uniprot-metadata | uniprot-metadata | None
+bioportal-iev | Event (INOH pathway ontology) | http://bioportal.bioontology.org/ontologies/1011
+bioportal-natpro | Natural Products Ontology | http://bioportal.bioontology.org/ontologies/3004
+bioportal-nddf | National Drug Data File | http://bioportal.bioontology.org/ontologies/1424
+eagle-i-harvard | eagle-i @ Harvard University | http://harvard.eagle-i.net
+eagle-i-uccaribe | eagle-i @ Universidad Central del Caribe | http://uccaribe.eagle-i.net
+bioportal-mf | Mental Functioning Ontology | http://bioportal.bioontology.org/ontologies/3002
+eagle-i-tsu | eagle-i @ Texas Southern University | http://tsu.eagle-i.net
+eagle-i-cau | eagle-i @ Clark Atlanta University | http://cau.eagle-i.net/
+eagle-i-ccny-cuny | eagle-i @ The City College of New York | http://ccny-cuny.eagle-i.net
+bio2rdf-chembl | Bio2RDF::Chembl | http://chembl.bio2rdf.org/
+bioportal-vivo | VIVO | http://bioportal.bioontology.org/ontologies/1699
+bioportal-uo | Units of measurement | http://bioportal.bioontology.org/ontologies/1112
+bioportal-spto | Solanaceae Phenotype Ontology | http://bioportal.bioontology.org/ontologies/3029
+bioportal-idomal | Malaria Ontology | http://bioportal.bioontology.org/ontologies/1311
+eagle-i-utep | eagle-i @ University of Texas at El Paso | http://utep.eagle-i.net
+bioportal-co_wheat | Wheat trait | http://bioportal.bioontology.org/ontologies/1545
+bioportal-tgma | Mosquito gross anatomy | http://bioportal.bioontology.org/ontologies/1030
+bioportal-nonrctontology | Non Randomized Controlled Trials Ontology | http://bioportal.bioontology.org/ontologies/3012
+Covid-on-the-Web | Covid-on-the-Web Dataset | https://github.com/Wimmics/CovidOnTheWeb
+bioportal-mccl | Cell line ontology | http://bioportal.bioontology.org/ontologies/1541
+disgenet | DisGeNET | http://ibi.imim.es/
+bio2rdf-mgi | Bio2RDF::Mgi | http://mgi.bio2rdf.org/
+bioportal-mego | MeGO | http://bioportal.bioontology.org/ontologies/1257
+bioportal-fbsp | Fly taxonomy | http://bioportal.bioontology.org/ontologies/1064
+bioportal-cco | Cell Cycle Ontology | http://bioportal.bioontology.org/ontologies/1507
+bioportal-pedterm | Pediatric Terminology | http://bioportal.bioontology.org/ontologies/1640
+bioportal-pko | PKO_Re | http://bioportal.bioontology.org/ontologies/1409
+agrovoc | AGROVOC | http://www.fao.org/agrovoc/
+chembl-rdf | ChEMBL RDF | None
+bioportal-cpt | Current Procedural Terminology | http://bioportal.bioontology.org/ontologies/1504
+bioportal-aba | ABA Adult Mouse Brain | http://bioportal.bioontology.org/ontologies/1290
+bioportal-peo | Parasite Experiment Ontology | http://bioportal.bioontology.org/ontologies/1335
+bioportal-hlth_indics | HEALTH_INDICATORS | http://bioportal.bioontology.org/ontologies/1581
+bioportal-vandf | VANDF | http://bioportal.bioontology.org/ontologies/1527
+bioportal-gfo-bio | General Formal Ontology: Biology | http://bioportal.bioontology.org/ontologies/1440
+bioportal-rex | Physico-chemical process | http://bioportal.bioontology.org/ontologies/1043
+bioportal-chebi | Chemical entities of biological interest | http://bioportal.bioontology.org/ontologies/1007
+bioportal-oae | Ontology of Adverse Events (OAE) | http://bioportal.bioontology.org/ontologies/1489
+bio2rdf-biomodels | Bio2RDF::Biomodels | http://biomodels.bio2rdf.org/
+bioportal-phare | PHARE | http://bioportal.bioontology.org/ontologies/1550
+bioportal-ddi | Ontology for Drug Discovery Investigations | http://bioportal.bioontology.org/ontologies/1540
+bioportal-neomarkontology | Neomark Oral Cancer-Centred Ontology | http://bioportal.bioontology.org/ontologies/1501
+allie-abbreviation-and-long-form-database-in-life-science | Allie Abbreviation And Long Form Database in Life Science | http://allie.dbcls.jp/
+bioportal-lipro | Lipid Ontology | http://bioportal.bioontology.org/ontologies/1183
+bioportal-lnc | Logical Observation Identifier Names and Codes | http://bioportal.bioontology.org/ontologies/1350
+bioportal-envo | Environment Ontology | http://bioportal.bioontology.org/ontologies/1069
+bioportal-po | Plant Anatomy | http://bioportal.bioontology.org/ontologies/1108
+linked-life-data | Linked Life Data | http://linkedlifedata.com/
+UniProt | UniProt | https://www.uniprot.org/
+bioportal-icpc2p | ICPC-2 PLUS | http://bioportal.bioontology.org/ontologies/1429
+eagle-i-vanderbilt | eagle-i @ Vanderbilt University | http://eagle-i.ea.vanderbilt.edu
+bioportal-cmo | Clinical Measurement Ontology | http://bioportal.bioontology.org/ontologies/1583
+bio2rdf-sgd | Bio2RDF::Sgd | http://sgd.bio2rdf.org/
+bioportal-ogms | Ontology for General Medical Science | http://bioportal.bioontology.org/ontologies/1414
+bioportal-rnao | RNA ontology | http://bioportal.bioontology.org/ontologies/1500
+kupkb | Kidney and Urinary Pathway Knowledge Base | None
+PGxLOD | PGxLOD | https://pgxlod.loria.fr/
+bioportal-fda-meddevice | FDA Medical Devices (2010) | http://bioportal.bioontology.org/ontologies/1576
+bioportal-hpio | Host Pathogen Interactions Ontology | http://bioportal.bioontology.org/ontologies/1569
+bioportal-bfo | Basic Formal Ontology | http://bioportal.bioontology.org/ontologies/1332
+linked-structured-product-labels | Linked Structured Product Labels | http://purl.org/net/linkedSPLs
+bio2rdf-genage | Bio2RDF::Genage | http://genage.bio2rdf.org/
+bioportal-icd10 | ICD10 | http://bioportal.bioontology.org/ontologies/1516
+bioportal-icnp | International Classification for Nursing Practice | http://bioportal.bioontology.org/ontologies/1401
+bioportal-go_x1 | Gene Ontology Extension | http://bioportal.bioontology.org/ontologies/1506
+bioportal-bao | BioAssay Ontology | http://bioportal.bioontology.org/ontologies/1533
+bioportal-hugo | HUGO | http://bioportal.bioontology.org/ontologies/1528
+biomodels-rdf | BioModels RDF | None
+reactome-rdf | Reactome RDF | None
+bioportal-fbdv | Drosophila development | http://bioportal.bioontology.org/ontologies/1016
+bioportal-eo | Plant environmental conditions | http://bioportal.bioontology.org/ontologies/1036
+bioportal-po_x1 | Plant Growth and Development Stage | http://bioportal.bioontology.org/ontologies/1038
+bioportal-fma | Foundational Model of Anatomy | http://bioportal.bioontology.org/ontologies/1053
+bioportal-cogpo | Cognitive Paradigm Ontology | http://bioportal.bioontology.org/ontologies/1560
+bioportal-sbro | Smoking Behavior Risk Ontology | http://bioportal.bioontology.org/ontologies/1249
+bioportal-fbbi | Biological imaging methods | http://bioportal.bioontology.org/ontologies/1023
+bioportal-sep | Sample processing and separation techniques | http://bioportal.bioontology.org/ontologies/1044
+bio2rdf-drugbank | Bio2RDF::Drugbank | http://drugbank.bio2rdf.org/
+bioportal-oboe-sbc | OBOE SBC | http://bioportal.bioontology.org/ontologies/1523
+bioportal-cao | CAO | http://bioportal.bioontology.org/ontologies/1582
+bioportal-efo | Experimental Factor Ontology | http://bioportal.bioontology.org/ontologies/1136
+ontobeef-domain | OntoBeef Domain | http://onto.beef.org.pl/ontobeef
+bio2rdf-hgnc | Bio2RDF::Hgnc | http://hgnc.bio2rdf.org/
+bioportal-nemo_x1 | Neural ElectroMagnetic Ontologies | http://bioportal.bioontology.org/ontologies/1321
+bioportal-bspo | Spatial Ontology | http://bioportal.bioontology.org/ontologies/1078
+bio2rdf-gendr | Bio2RDF::Gendr | http://gendr.bio2rdf.org/
+bioportal-taxrank | Taxonomic rank vocabulary | http://bioportal.bioontology.org/ontologies/1419
+bioportal-icd10pcs | ICD-10-PCS | http://bioportal.bioontology.org/ontologies/1425
+bio2rdf-orphanet | Bio2RDF::Orphanet | http://orphanet.bio2rdf.org/
+bioportal-medlineplus | MedlinePlus Health Topics | http://bioportal.bioontology.org/ontologies/1347
+bioportal-rctontology | Randomized Controlled Trials (RCT) Ontology | http://bioportal.bioontology.org/ontologies/1676
+bioportal-odgi | Ontology for disease genetic investigation | http://bioportal.bioontology.org/ontologies/1086
+bioportal-icd9cm | International Classification of Diseases | http://bioportal.bioontology.org/ontologies/1101
+bioportal-omim | Online Mendelian Inheritance in Man | http://bioportal.bioontology.org/ontologies/1348
+eagle-i-dartmouth | eagle-i @ Dartmouth College | http://dartmouth.eagle-i.net
+bioportal-ino | Interaction Network Ontology | http://bioportal.bioontology.org/ontologies/1515
+bioportal-obi | Ontology for Biomedical Investigations | http://bioportal.bioontology.org/ontologies/1123
+bioportal-ontodm | Ontology of Data Mining | http://bioportal.bioontology.org/ontologies/1638
+bioportal-mfoem | Emotion Ontology | http://bioportal.bioontology.org/ontologies/1666
+bioportal-mcbcc | Breast tissue cell lines | http://bioportal.bioontology.org/ontologies/1438
+fu-berlin-diseasome | Diseasome | http://www4.wiwiss.fu-berlin.de/diseasome/
+bioportal-clo | Cell Line Ontology | http://bioportal.bioontology.org/ontologies/1314
+bioportal-roleo | Role Ontology | http://bioportal.bioontology.org/ontologies/1538
+bioportal-mthch | Metathesaurus CPT Hierarchical Terms | http://bioportal.bioontology.org/ontologies/1510
+bio2rdf-mesh | Bio2RDF::Mesh | http://mesh.bio2rdf.org/
+bioportal-doid | Human disease ontology | http://bioportal.bioontology.org/ontologies/1009
+bioportal-propreo | Proteomics data and process provenance | http://bioportal.bioontology.org/ontologies/1039
+bioportal-mo | MGED Ontology | http://bioportal.bioontology.org/ontologies/1131
+bioportal-sbo | Systems Biology | http://bioportal.bioontology.org/ontologies/1046
+bio2rdf-wormbase | Bio2RDF::Wormbase | http://wormbase.bio2rdf.org/
+Fishery Stock Dataset | Norway fishery stocks dataset @PSNC | https://www.foodie-cloud.org/fct/
+bioportal-mat | Minimal anatomical terminology | http://bioportal.bioontology.org/ontologies/1152
+bio2rdf-ndc | Bio2RDF::Ndc | http://ndc.bio2rdf.org/
+uniprotkb | UniProtKB | https://www.uniprot.org/uniprot/
+bioportal-hl7 | Health Level Seven | http://bioportal.bioontology.org/ontologies/1343
+bioportal-ato | Amphibian taxonomy | http://bioportal.bioontology.org/ontologies/1370
+Catch Record (2014- 2019) | Norway catch records dataset @PSNC | https://www.foodie-cloud.org/fct/
+bioportal-xao | Xenopus anatomy and development | http://bioportal.bioontology.org/ontologies/1095
+bioportal-rid | RadLex | http://bioportal.bioontology.org/ontologies/1057
+bioportal-rxnorm | RxNORM | http://bioportal.bioontology.org/ontologies/1423
+bioportal-idobru | Brucellosis Ontology | http://bioportal.bioontology.org/ontologies/1537
+bio2rdf-lsr | Bio2RDF::Lsr | http://lsr.bio2rdf.org/
+bio2rdf-omim | Bio2RDF::Omim | http://omim.bio2rdf.org/
+bioportal-bdo | Bone Dysplasia Ontology | http://bioportal.bioontology.org/ontologies/1613
+taxonconcept-assets | taxonconcept-assets | 
+bioportal-diagnosticont | Diagnostic Ontology | http://bioportal.bioontology.org/ontologies/3013
+bioportal-fao | Fungal gross anatomy | http://bioportal.bioontology.org/ontologies/1019
+bioportal-acgt | Cancer Research and Management ACGT Master Ontology | http://bioportal.bioontology.org/ontologies/1130
+bioportal-sitbac | Situation-Based Access Control | http://bioportal.bioontology.org/ontologies/1237
+bioportal-ontodt | Ontology of General Purpose Datatypes | http://bioportal.bioontology.org/ontologies/1588
+linkedct | LinkedCT | http://linkedct.org/
+bioportal-icd10cm | ICD10CM | http://bioportal.bioontology.org/ontologies/1553
+bioportal-apo | Ascomycete phenotype ontology | http://bioportal.bioontology.org/ontologies/1222
+bioportal-teo | Time Event Ontology | http://bioportal.bioontology.org/ontologies/3042
+eagle-i-hawaii | eagle-i @ University of Hawai’i at Mānoa | http://hawaii.eagle-i.net
+bioportal-gfo | General Formal Ontology | http://bioportal.bioontology.org/ontologies/1439
+bioportal-ecg | Electrocardiography Ontology | http://bioportal.bioontology.org/ontologies/1146
+bioportal-icps | ICPS Network | http://bioportal.bioontology.org/ontologies/1509
+bioportal-aeo | Anatomical Entity Ontology | http://bioportal.bioontology.org/ontologies/1568
+bioportal-epileponto | Epilepsy | http://bioportal.bioontology.org/ontologies/1639
+bio2rdf-dbsnp | Bio2RDF::Dbsnp | http://dbsnp.bio2rdf.org/
+tcmgenedit_dataset | TCMGeneDIT Dataset | http://code.google.com/p/junsbriefcase/wiki/TGDdataset
+bioportal-sdo | Sleep Domain Ontology | http://bioportal.bioontology.org/ontologies/1651
+bioportal-ypo | Yeast phenotypes | http://bioportal.bioontology.org/ontologies/1115
+bioportal-sao | Subcellular Anatomy Ontology (SAO) | http://bioportal.bioontology.org/ontologies/1068
+cz-eh-1-atc | ATC groups | http://linked.opendata.cz/resource/dataset/atc
+bioportal-mp | Mammalian phenotype | http://bioportal.bioontology.org/ontologies/1025
+bioportal-amino-acid | Amino Acid | http://bioportal.bioontology.org/ontologies/1054
+Norway Fishery  | Norway fishery stocks dataset | https://www.foodie-cloud.org/fct/
+bioportal-bcgo | Breast Cancer Grading Ontology | http://bioportal.bioontology.org/ontologies/1304
+bioportal-vt | Vertebrate Trait Ontology | http://bioportal.bioontology.org/ontologies/1659
+bioportal-omit | Ontology for MicroRNA Target Prediction | http://bioportal.bioontology.org/ontologies/1505
+addgene | Addgene | http://www.addgene.org/
+eagle-i-cdrewu | eagle-i @ Charles R. Drew University | http://cdrewu.eagle-i.net
+bioportal-wbls | C. elegans development | http://bioportal.bioontology.org/ontologies/1049
+arrayexpress_e-mtab-104 | Transcription profiling of rat bladder after inoculation with bladder cancer cells | 
+bioportal-dikb-evidence | DIKB-Evidence-Ontology | http://bioportal.bioontology.org/ontologies/1672
+bioportal-npo | NanoParticle Ontology | http://bioportal.bioontology.org/ontologies/1083
+bio2rdf-clinicaltrials | Bio2RDF::Clinicaltrials | http://clinicaltrials.bio2rdf.org/
+bioportal-nif_cell | NIF Cell | http://bioportal.bioontology.org/ontologies/1402
+fu-berlin-sider | SIDER: Side Effect Resource | http://www4.wiwiss.fu-berlin.de/sider/
+bioportal-vao | Vertebrate Anatomy Ontology | http://bioportal.bioontology.org/ontologies/1555
+bioportal-hcpcs | HCPCS | http://bioportal.bioontology.org/ontologies/1529
+eagle-i-utsa | eagle-i @ University of Texas at San Antonio | http://utsa.eagle-i.net
+bioportal-shr | Student Health Record | http://bioportal.bioontology.org/ontologies/1665
+chem2bio2rdf | Chem2Bio2RDF | http://chem2bio2rdf.org
+bioportal-ogi | Ontology for Genetic Interval | http://bioportal.bioontology.org/ontologies/1100
+bioportal-ehdaa2 | Human developmental anatomy, abstract version, v2 | http://bioportal.bioontology.org/ontologies/1517
+taxonconcept | TaxonConcept Knowledge Base | http://lod.taxonconcept.org/
+bioportal-aero | Adverse Event Reporting ontology | http://bioportal.bioontology.org/ontologies/1580
+ckan | Comprehensive Knowledge Archive Network | http://www.ckan.net/
+bioportal-geospecies | GeoSpecies Ontology | http://bioportal.bioontology.org/ontologies/1247
+bioportal-pmr | Physical Medicine and Rehabilitation | http://bioportal.bioontology.org/ontologies/3015
+bioportal-bt | BioTop | http://bioportal.bioontology.org/ontologies/1134
+biolod-pdb | BioLOD for Protein Data Bank Japan | http://biolod.org/database/ria1i/Protein_Data_Bank
+bioportal-sopharm | Suggested Ontology for Pharmacogenomics | http://bioportal.bioontology.org/ontologies/1061
+bioportal-bootstrep | Gene Regulation Ontology | http://bioportal.bioontology.org/ontologies/1106
+bioportal-mccl_x1 | Cell line ontology | http://bioportal.bioontology.org/ontologies/1245
+ogolod | Orthology and Diseases Information - OGO | http://miuras.inf.um.es/~ogo/ogolod.html
+bioportal-adw | Animal natural history and life history | http://bioportal.bioontology.org/ontologies/1530
+bioportal-mesh-owl | MESH Thesaurus (OWL version) | http://bioportal.bioontology.org/ontologies/3019
+bioportal-mi | Protein-protein interaction | http://bioportal.bioontology.org/ontologies/1040
+bioportal-po_x2 | Plant Ontology | http://bioportal.bioontology.org/ontologies/1587
+bioportal-bho | Bleeding History Phenotype | http://bioportal.bioontology.org/ontologies/1116
+bioportal-ncit | NCI Thesaurus | http://bioportal.bioontology.org/ontologies/1032
+organic-edunet | Organic Edunet Linked Open Data | http://data.organic-edunet.eu/
+bioportal-cno | Computational Neuroscience Ontology | http://bioportal.bioontology.org/ontologies/3003
+bio2rdf-taxonomy | Bio2RDF::Taxonomy | http://taxonomy.bio2rdf.org/
+bioportal-unitsontology | Units Ontology | http://bioportal.bioontology.org/ontologies/1650
+bioportal-chem2bio2owl | Systems Chemical Biology/Chemogenomics | http://bioportal.bioontology.org/ontologies/1615
+bioportal-pma | PMA 2010 | http://bioportal.bioontology.org/ontologies/1497
+bioportal-hp_x1 | Human Phenotype Ontology | http://bioportal.bioontology.org/ontologies/1125
+bioportal-xco | Experimental Conditions Ontology | http://bioportal.bioontology.org/ontologies/1585
+bioportal-swo | Software Ontology | http://bioportal.bioontology.org/ontologies/1413
+bioportal-ctcae | Common Terminology Criteria for Adverse Events | http://bioportal.bioontology.org/ontologies/1415
+bio2rdf-iproclass | Bio2RDF::Iproclass | http://iproclass.bio2rdf.org/
+bioportal-mod | Protein modification | http://bioportal.bioontology.org/ontologies/1041
+bioportal-tao | Teleost Anatomy Ontology | http://bioportal.bioontology.org/ontologies/1110
+bioportal-cogat | Cognitive Atlas | http://bioportal.bioontology.org/ontologies/1633
+bioportal-to | Plant Trait Ontology | http://bioportal.bioontology.org/ontologies/1037
+bio2rdf-ncbigene | Bio2RDF::Ncbigene | http://ncbigene.bio2rdf.org/
+linked-tcga | Linked TCGA | None
+bioportal-tm-signs-and-sympts | Traditional Medicine Signs and Symptoms Value Set | http://bioportal.bioontology.org/ontologies/1572
+bioportal-birnlex | BIRNLex | http://bioportal.bioontology.org/ontologies/1089
+bioportal-nif_dysfunction | NIF Dysfunction | http://bioportal.bioontology.org/ontologies/1381
+eagle-i-msm | eagle-i @ Morehouse School of Medicine | http://msm.eagle-i.net
+bioportal-sso | Syndromic Surveillance Ontology | http://bioportal.bioontology.org/ontologies/1394
+bioportal-snomedct | SNOMED Clinical Terms | http://bioportal.bioontology.org/ontologies/1353
+farmbio-chembl | ChEMBL-RDF (@ Uppsala University) | https://github.com/egonw/chembl.rdf
+bioportal-neomark | Neomark Oral Cancer Ontology | http://bioportal.bioontology.org/ontologies/1686
+entrez_gene | Entrez Gene | http://www.ncbi.nlm.nih.gov/gene
+bioportal-nif | NIFSTD | http://bioportal.bioontology.org/ontologies/1084
+bioportal-mfo | Medaka fish anatomy and development | http://bioportal.bioontology.org/ontologies/1027
+bioportal-lhn | Loggerhead nesting | http://bioportal.bioontology.org/ontologies/1024
+bioportal-pato | Phenotypic quality | http://bioportal.bioontology.org/ontologies/1107
+bioportal-csp | CRISP Thesaurus, 2006 | http://bioportal.bioontology.org/ontologies/1526
+bioportal-so_x1 | Sequence types and features | http://bioportal.bioontology.org/ontologies/1109
+taxref-ld | TAXREF-LD: Knowledge Graph of the French taxonomic registery | https://github.com/frmichel/taxref-ld/
+bio2rdf-affymetrix | Bio2RDF::Affymetrix | http://affymetrix.bio2rdf.org/
+bioportal-vhog | vertebrate Homologous Organ Groups | http://bioportal.bioontology.org/ontologies/1574
+bioportal-oboe | OBOE | http://bioportal.bioontology.org/ontologies/1524
+bioportal-jerm | SysMO-JERM | http://bioportal.bioontology.org/ontologies/1488
+bioportal-basic-vertebrate-gross-anatomy | Basic Vertebrate Anatomy | http://bioportal.bioontology.org/ontologies/1056
+Vehicule Autonome | VA | https://fr.wikipedia.org/wiki/V%C3%A9hicule_autonome
+bioportal-ncbitaxon | NCBI organismal classification | http://bioportal.bioontology.org/ontologies/1132
+bioportal-flu | Influenza Ontology | http://bioportal.bioontology.org/ontologies/1417
+bio2rdf-homologene | Bio2RDF::Homologene | http://homologene.bio2rdf.org/
+bioportal-miro | Mosquito insecticide resistance | http://bioportal.bioontology.org/ontologies/1077
+bioportal-ido | Infectious Disease Ontology | http://bioportal.bioontology.org/ontologies/1092
+bioportal-ixno | IxnO | http://bioportal.bioontology.org/ontologies/1614
+bioportal-bro_x1 | Biomedical Resource Ontology | http://bioportal.bioontology.org/ontologies/1104
+bioportal-wbphenotype | C. elegans phenotype | http://bioportal.bioontology.org/ontologies/1067
+bioportal-uberon | Uber anatomy ontology | http://bioportal.bioontology.org/ontologies/1404
+bio2rdf-interpro | Bio2RDF::Interpro | http://interpro.bio2rdf.org/
+bioportal-cdao | Comparative Data Analysis Ontology | http://bioportal.bioontology.org/ontologies/1128
+bioportal-mao | Multiple alignment | http://bioportal.bioontology.org/ontologies/1026
+bioportal-carelex | CareLex | http://bioportal.bioontology.org/ontologies/3008
+fu-berlin-dailymed | DailyMed | http://www4.wiwiss.fu-berlin.de/dailymed/
+fu-berlin-medicare | MediCare | http://www4.wiwiss.fu-berlin.de/medicare/
+bioportal-bp | BioPAX | http://bioportal.bioontology.org/ontologies/1522
+bioportal-rs | Rat Strain Ontology | http://bioportal.bioontology.org/ontologies/1150
+bioportal-vo | Vaccine Ontology | http://bioportal.bioontology.org/ontologies/1172
+bioportal-mpath | Mouse pathology | http://bioportal.bioontology.org/ontologies/1031
+bioportal-fbbt | Drosophila gross anatomy | http://bioportal.bioontology.org/ontologies/1015
+cz-sidc-drugs | Medicinal products marketed in Czech Republic | http://linked.opendata.cz/resource/dataset/sukl/drugs
+bioportal-mcv | MIxS Controlled Vocabularies | http://bioportal.bioontology.org/ontologies/3000
+bioportal-sio | SemanticScience Integrated Ontology | http://bioportal.bioontology.org/ontologies/1532
+bioportal-ctx | Cerebrotendinous xanthomatosis | http://bioportal.bioontology.org/ontologies/3025
+bioportal-tok | TOK_Ontology | http://bioportal.bioontology.org/ontologies/1418
+bioportal-thesaurus | thesaurus | http://bioportal.bioontology.org/ontologies/3034
+eunis | European Nature Information System | http://eunis.eea.europa.eu
+bioportal-msh | Medical Subject Headings | http://bioportal.bioontology.org/ontologies/1351
+bioportal-pdq | Physician Data Query | http://bioportal.bioontology.org/ontologies/1349
+bioportal-atmo | African Traditional Medicine | http://bioportal.bioontology.org/ontologies/1099
+bioportal-mmo | Measurement Method Ontology | http://bioportal.bioontology.org/ontologies/1584
+bioportal-ndfrt | National Drug File | http://bioportal.bioontology.org/ontologies/1352
+bioportal-iao | Information Artifact Ontology | http://bioportal.bioontology.org/ontologies/1393
+bioportal-bila | Bilateria anatomy | http://bioportal.bioontology.org/ontologies/1114
+bioportal-fhho | Family Health History Ontology | http://bioportal.bioontology.org/ontologies/1126
+snik | SNIK | https://www.snik.eu
+bio2rdf-pubmed | Bio2RDF::Pubmed | http://pubmed.bio2rdf.org/
+bioportal-hao | Hymenoptera Anatomy Ontology | http://bioportal.bioontology.org/ontologies/1362
+bioportal-aao | Amphibian gross anatomy | http://bioportal.bioontology.org/ontologies/1090
+biosamples-rdf | BioSamples RDF | None
+uniprot | UniProt | http://www.uniprot.org/
+bioportal-omrse | Ontology of Medically Related Social Entities | http://bioportal.bioontology.org/ontologies/1565
+bioportal-soy | SoyOntology | http://bioportal.bioontology.org/ontologies/3028
+FAO species | FAO ASFIS classification of biological entities @PSNC | https://www.foodie-cloud.org/fct/
+bioportal-wbbt | C. elegans gross anatomy | http://bioportal.bioontology.org/ontologies/1048
+nvs | NERC Vocabulary Server 2.0 | http://vocab.nerc.ac.uk/
+bioportal-zfa | Zebrafish anatomy and development | http://bioportal.bioontology.org/ontologies/1051
+eagle-i-xula | eagle-i @ Xavier University of Louisiana | http://xula.eagle-i.net
+sandre | Taxons  | http://sandre.eaufrance.fr/
+bioportal-mhc | MaHCO - An MHC Ontology | http://bioportal.bioontology.org/ontologies/1088
+bioportal-ev | eVOC (Expressed Sequence Annotation for Humans) | http://bioportal.bioontology.org/ontologies/1013
+cz-sidc-drug-ingredients | Active ingredients of medicinal products available in Czech Republic | http://linked.opendata.cz/resource/dataset/sukl/drug-ingredients
+bioportal-canco | Cancer Chemoprevention Ontology | http://bioportal.bioontology.org/ontologies/3030
+bioportal-nigo | Neural-Immune Gene Ontology | http://bioportal.bioontology.org/ontologies/1539
+bioportal-who | WHO Adverse Reaction Terminology | http://bioportal.bioontology.org/ontologies/1354
+bioportal-nmr | NMR-instrument specific component of metabolomics investigations | http://bioportal.bioontology.org/ontologies/1033
+bio2rdf-ctd | Bio2RDF::Ctd | http://ctd.bio2rdf.org/
+bioportal-dc_cl | Dendritic cell | http://bioportal.bioontology.org/ontologies/1144
+bio2rdf-pharmgkb | Bio2RDF::Pharmgkb | http://pharmgkb.bio2rdf.org/
+bioportal-ms | Mass spectrometry | http://bioportal.bioontology.org/ontologies/1105
+eagle-i-montana | eagle-i @ Montana State University | http://montana.eagle-i.net
+bioportal-ep | Cardiac Electrophysiology Ontology | http://bioportal.bioontology.org/ontologies/1142
+bioportal-air | AI/RHEUM | http://bioportal.bioontology.org/ontologies/1430
+bioportal-go_x2 | Gene Ontology | http://bioportal.bioontology.org/ontologies/1070
+http://sensormeasurement.appspot.com/dataset/naturopathy-dataset | Naturopathy knowledge Graph (Ontology and Dataset) - RDF distribution of the naturopathy dataset. | http://sensormeasurement.appspot.com/dataset/naturopathy-dataset
+Naturopathy | Naturopathy Knowledge Graph (Ontology and Dataset) - RDF distribution of the naturopathy dataset. | http://sensormeasurement.appspot.com/dataset/naturopathy-dataset
+entice-graph | ENTICE Educational Episodes Knowledge Graph | https://data.entice.eu/
+ASCDC-NMMBA-Fish-Otoliths | The Digital Collection of Taiwan's Fish Otoliths (NMMBA-Fish-Otoliths) | https://data.ascdc.tw/en/data.php
+ASCDC-NMMBA-Aquatic-Animals-in-Taiwan | Research on the Aquatic Animals in Taiwan and its Neighborhood Area (NMMBA-Aquatic-Animals-in-Taiwan) | https://data.ascdc.tw/en/data.php
+ASCDC-AS-TFD-Fish-Species | Taiwan Fauna Database Research: Taiwan Digital Fish Species Database (AS-TFD-Fish-Species) | https://data.ascdc.tw/en/data.php
+https://bioportal.bioontology.org/ontologies/IBIO/?p=summary | Indian Biodiversity | https://bioportal.bioontology.org/ontologies/IBIO/?p=summary
+http://www.semanticweb.org/mca/ontologies/2018/8/untitled-ontology-47 | Indian Biodiversity | http://www.semanticweb.org/mca/ontologies/2018/8/untitled-ontology-47
+https://data.bioontology.org/ontologies/IBIO/submissions/1/download?apikey=66c2aec1-4044-4900-979d-6f529857554a | Indian Biodiversity | https://bioportal.bioontology.org/ontologies/IBIO/?p=summary
+https://bioportal.bioontology.org/ontologies/IBIO | Indian Biodiversity | https://bioportal.bioontology.org/ontologies/IBIO
+https://data.bioontology.org/ontologies/IBD/submissions/1/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb | Indian Biodiversity | https://data.bioontology.org/ontologies/IBD/submissions/1/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb
+Himanshu Mahawar | Himanshu Mahawar | https://himanshumahawar.com
+ https://data.bioontology.org/ontologies/BOF/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf | Indian Biodiversity | https://data.bioontology.org/ontologies/BOF/download?apikey=8b5b7825-538d-40e0-9e9e-5ab9274a9aeb&download_format=rdf
+Hermos | Hermos | https://mcbu-semanticweb-lab.github.io/hermos/
+racai-llod-simonero | SiMoNERo - the Romanian medical treebank | https://www.racai.ro/p/llod/index.html
+whonto | COvid-19 statistics Ontology | https://www.semintelligence.org
+issa-agritrop | ISSA Agritrop Dataset | https://github.com/issa-project/issa-pipeline
+chemdb-basicInfo | chemdb  dataset | http://semweb.csdb.cn/
+chemdb-thermochemistry | chemdb thermochemistry dataset | http://chemdc.casdc.cn/
+chemdb-phaseTransition | chemdb phase transition dataset | http://chemdc.casdc.cn/
+chemdb-estimatedProperties | chemdb estimated properties dataset | http://chemdc.casdc.cn/

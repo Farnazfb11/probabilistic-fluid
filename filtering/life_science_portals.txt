@@ -1,0 +1,260 @@
+bioportal-imr | Molecule role (INOH Protein name/family name ontology) | None
+bioportal-ddanat | Dictyostelium discoideum anatomy | None
+bioportal-teddy | Terminology for the Description of Dynamics | None
+bioportal-ocre | Ontology of Clinical Research (OCRe) | None
+bioportal-ehdaa | Human developmental anatomy, abstract version | None
+eagle-i-alaska | eagle-i @ University of Alaska Fairbanks | None
+bioportal-pr | PRotein Ontology (PRO) | None
+bioportal-cheminf | Chemical Information Ontology | None
+eagle-i-upr | eagle-i@ University of Puerto Rico - Medical Sciences Campus | None
+bioportal-tmo | Translational Medicine Ontology | None
+eagle-i-famu | eagle-i @ Florida Agricultural and Mechanical University | None
+eagle-i-psm | eagle-i @ Ponce School of Medicine | None
+bioportal-tads | Tick gross anatomy | None
+bioportal-cl | Cell type | None
+bioportal-imgt | IMGT-ONTOLOGY | None
+bioportal-ma | Mouse adult gross anatomy | None
+bioportal-icpc | International Classification of Primary Care | None
+bioportal-cst | COSTART | None
+bioportal-bto | BRENDA tissue / enzyme source | None
+eagle-i-howard | eagle-i @ Howard University | None
+bioportal-exo | ExO | None
+bioportal-ehda | Human developmental anatomy, timed version | None
+eagle-i-ohsu | eagle-i @ Oregon Health and Science University | None
+bioportal-gro_x2 | Gene Regulation Ontology | None
+bioportal-ontoorpha | Orphanet Ontology of Rare Diseases | None
+bioportal-mdr | MedDRA | None
+eagle-i-tuskegee | eagle-i @ Tuskegee University | None
+eagle-i-meharry | eagle-i @ Meharry Medical College | None
+bioportal-repo | Reproductive trait and phenotype ontology | None
+bioportal-fypo | Fission Yeast Phenotype Ontology | None
+bioportal-rcd | Read Codes, Clinical Terms Version 3 (CTV3) | None
+bioportal-gro_x1 | Cereal plant gross anatomy | None
+bioportal-spd | Spider Ontology | None
+bioportal-tto | Teleost taxonomy | None
+bioportal-opl | Ontology for Parasite LifeCycle | None
+bioportal-fbcv | FlyBase Controlled Vocabulary | None
+bioportal-pw | Pathway ontology | None
+bioportal-mddb | Master Drug Data Base | None
+bioportal-ero | eagle-i research resource ontology | None
+bioportal-ogmd | Ontology of Glucose Metabolism Disorder | None
+eagle-i-jsu | eagle-i @ Jackson State University | None
+bioportal-icf_x1 | International Classification of Functioning, Disability and Health (ICF) | None
+bioportal-snpo | SNP-Ontology | None
+eagle-i-hunter-cuny | eagle-i @ Hunter College | None
+bioportal-iev | Event (INOH pathway ontology) | None
+bioportal-natpro | Natural Products Ontology | None
+bioportal-nddf | National Drug Data File | None
+eagle-i-harvard | eagle-i @ Harvard University | None
+eagle-i-uccaribe | eagle-i @ Universidad Central del Caribe | None
+bioportal-mf | Mental Functioning Ontology | None
+eagle-i-tsu | eagle-i @ Texas Southern University | None
+eagle-i-cau | eagle-i @ Clark Atlanta University | None
+eagle-i-ccny-cuny | eagle-i @ The City College of New York | None
+bioportal-vivo | VIVO | None
+bioportal-uo | Units of measurement | None
+bioportal-spto | Solanaceae Phenotype Ontology | None
+bioportal-idomal | Malaria Ontology | None
+eagle-i-utep | eagle-i @ University of Texas at El Paso | None
+bioportal-co_wheat | Wheat trait | None
+bioportal-tgma | Mosquito gross anatomy | None
+bioportal-nonrctontology | Non Randomized Controlled Trials Ontology | None
+bioportal-mccl | Cell line ontology | None
+bioportal-mego | MeGO | None
+bioportal-fbsp | Fly taxonomy | None
+bioportal-cco | Cell Cycle Ontology | None
+bioportal-pedterm | Pediatric Terminology | None
+bioportal-pko | PKO_Re | None
+bioportal-cpt | Current Procedural Terminology | None
+bioportal-aba | ABA Adult Mouse Brain | None
+bioportal-peo | Parasite Experiment Ontology | None
+bioportal-hlth_indics | HEALTH_INDICATORS | None
+bioportal-vandf | VANDF | None
+bioportal-gfo-bio | General Formal Ontology: Biology | None
+bioportal-rex | Physico-chemical process | None
+bioportal-chebi | Chemical entities of biological interest | None
+bioportal-oae | Ontology of Adverse Events (OAE) | None
+bioportal-phare | PHARE | None
+bioportal-ddi | Ontology for Drug Discovery Investigations | None
+bioportal-neomarkontology | Neomark Oral Cancer-Centred Ontology | None
+bioportal-lipro | Lipid Ontology | None
+bioportal-lnc | Logical Observation Identifier Names and Codes | None
+bioportal-envo | Environment Ontology | None
+bioportal-po | Plant Anatomy | None
+bioportal-icpc2p | ICPC-2 PLUS | None
+eagle-i-vanderbilt | eagle-i @ Vanderbilt University | None
+bioportal-cmo | Clinical Measurement Ontology | None
+bioportal-ogms | Ontology for General Medical Science | None
+bioportal-rnao | RNA ontology | None
+bioportal-fda-meddevice | FDA Medical Devices (2010) | None
+bioportal-hpio | Host Pathogen Interactions Ontology | None
+bioportal-bfo | Basic Formal Ontology | None
+bioportal-icd10 | ICD10 | None
+bioportal-icnp | International Classification for Nursing Practice | None
+bioportal-go_x1 | Gene Ontology Extension | None
+bioportal-bao | BioAssay Ontology | None
+bioportal-hugo | HUGO | None
+bioportal-fbdv | Drosophila development | None
+bioportal-eo | Plant environmental conditions | None
+bioportal-po_x1 | Plant Growth and Development Stage | None
+bioportal-fma | Foundational Model of Anatomy | None
+bioportal-cogpo | Cognitive Paradigm Ontology | None
+bioportal-sbro | Smoking Behavior Risk Ontology | None
+bioportal-fbbi | Biological imaging methods | None
+bioportal-sep | Sample processing and separation techniques | None
+bioportal-oboe-sbc | OBOE SBC | None
+bioportal-cao | CAO | None
+bioportal-efo | Experimental Factor Ontology | None
+bioportal-nemo_x1 | Neural ElectroMagnetic Ontologies | None
+bioportal-bspo | Spatial Ontology | None
+bioportal-taxrank | Taxonomic rank vocabulary | None
+bioportal-icd10pcs | ICD-10-PCS | None
+bioportal-medlineplus | MedlinePlus Health Topics | None
+bioportal-rctontology | Randomized Controlled Trials (RCT) Ontology | None
+bioportal-odgi | Ontology for disease genetic investigation | None
+bioportal-icd9cm | International Classification of Diseases | None
+bioportal-omim | Online Mendelian Inheritance in Man | None
+eagle-i-dartmouth | eagle-i @ Dartmouth College | None
+bioportal-ino | Interaction Network Ontology | None
+bioportal-obi | Ontology for Biomedical Investigations | None
+bioportal-ontodm | Ontology of Data Mining | None
+bioportal-mfoem | Emotion Ontology | None
+bioportal-mcbcc | Breast tissue cell lines | None
+bioportal-clo | Cell Line Ontology | None
+bioportal-roleo | Role Ontology | None
+bioportal-mthch | Metathesaurus CPT Hierarchical Terms | None
+bioportal-doid | Human disease ontology | None
+bioportal-propreo | Proteomics data and process provenance | None
+bioportal-mo | MGED Ontology | None
+bioportal-sbo | Systems Biology | None
+bioportal-mat | Minimal anatomical terminology | None
+bioportal-hl7 | Health Level Seven | None
+bioportal-ato | Amphibian taxonomy | None
+bioportal-xao | Xenopus anatomy and development | None
+bioportal-rid | RadLex | None
+bioportal-rxnorm | RxNORM | None
+bioportal-idobru | Brucellosis Ontology | None
+bioportal-bdo | Bone Dysplasia Ontology | None
+bioportal-diagnosticont | Diagnostic Ontology | None
+bioportal-fao | Fungal gross anatomy | None
+bioportal-acgt | Cancer Research and Management ACGT Master Ontology | None
+bioportal-sitbac | Situation-Based Access Control | None
+bioportal-ontodt | Ontology of General Purpose Datatypes | None
+bioportal-icd10cm | ICD10CM | None
+bioportal-apo | Ascomycete phenotype ontology | None
+bioportal-teo | Time Event Ontology | None
+eagle-i-hawaii | eagle-i @ University of Hawai’i at Mānoa | None
+bioportal-gfo | General Formal Ontology | None
+bioportal-ecg | Electrocardiography Ontology | None
+bioportal-icps | ICPS Network | None
+bioportal-aeo | Anatomical Entity Ontology | None
+bioportal-epileponto | Epilepsy | None
+bioportal-sdo | Sleep Domain Ontology | None
+bioportal-ypo | Yeast phenotypes | None
+bioportal-sao | Subcellular Anatomy Ontology (SAO) | None
+bioportal-mp | Mammalian phenotype | None
+bioportal-amino-acid | Amino Acid | None
+bioportal-bcgo | Breast Cancer Grading Ontology | None
+bioportal-vt | Vertebrate Trait Ontology | None
+bioportal-omit | Ontology for MicroRNA Target Prediction | None
+eagle-i-cdrewu | eagle-i @ Charles R. Drew University | None
+bioportal-wbls | C. elegans development | None
+bioportal-dikb-evidence | DIKB-Evidence-Ontology | None
+bioportal-npo | NanoParticle Ontology | None
+bioportal-nif_cell | NIF Cell | None
+bioportal-vao | Vertebrate Anatomy Ontology | None
+bioportal-hcpcs | HCPCS | None
+eagle-i-utsa | eagle-i @ University of Texas at San Antonio | None
+bioportal-shr | Student Health Record | None
+bioportal-ogi | Ontology for Genetic Interval | None
+bioportal-ehdaa2 | Human developmental anatomy, abstract version, v2 | None
+bioportal-aero | Adverse Event Reporting ontology | None
+bioportal-geospecies | GeoSpecies Ontology | None
+bioportal-pmr | Physical Medicine and Rehabilitation | None
+bioportal-bt | BioTop | None
+bioportal-sopharm | Suggested Ontology for Pharmacogenomics | None
+bioportal-bootstrep | Gene Regulation Ontology | None
+bioportal-mccl_x1 | Cell line ontology | None
+bioportal-adw | Animal natural history and life history | None
+bioportal-mesh-owl | MESH Thesaurus (OWL version) | None
+bioportal-mi | Protein-protein interaction | None
+bioportal-po_x2 | Plant Ontology | None
+bioportal-bho | Bleeding History Phenotype | None
+bioportal-ncit | NCI Thesaurus | None
+bioportal-cno | Computational Neuroscience Ontology | None
+bioportal-unitsontology | Units Ontology | None
+bioportal-chem2bio2owl | Systems Chemical Biology/Chemogenomics | None
+bioportal-pma | PMA 2010 | None
+bioportal-hp_x1 | Human Phenotype Ontology | None
+bioportal-xco | Experimental Conditions Ontology | None
+bioportal-swo | Software Ontology | None
+bioportal-ctcae | Common Terminology Criteria for Adverse Events | None
+bioportal-mod | Protein modification | None
+bioportal-tao | Teleost Anatomy Ontology | None
+bioportal-cogat | Cognitive Atlas | None
+bioportal-to | Plant Trait Ontology | None
+bioportal-tm-signs-and-sympts | Traditional Medicine Signs and Symptoms Value Set | None
+bioportal-birnlex | BIRNLex | None
+bioportal-nif_dysfunction | NIF Dysfunction | None
+eagle-i-msm | eagle-i @ Morehouse School of Medicine | None
+bioportal-sso | Syndromic Surveillance Ontology | None
+bioportal-snomedct | SNOMED Clinical Terms | None
+bioportal-neomark | Neomark Oral Cancer Ontology | None
+bioportal-nif | NIFSTD | None
+bioportal-mfo | Medaka fish anatomy and development | None
+bioportal-lhn | Loggerhead nesting | None
+bioportal-pato | Phenotypic quality | None
+bioportal-csp | CRISP Thesaurus, 2006 | None
+bioportal-so_x1 | Sequence types and features | None
+bioportal-vhog | vertebrate Homologous Organ Groups | None
+bioportal-oboe | OBOE | None
+bioportal-jerm | SysMO-JERM | None
+bioportal-basic-vertebrate-gross-anatomy | Basic Vertebrate Anatomy | None
+bioportal-ncbitaxon | NCBI organismal classification | None
+bioportal-flu | Influenza Ontology | None
+bioportal-miro | Mosquito insecticide resistance | None
+bioportal-ido | Infectious Disease Ontology | None
+bioportal-ixno | IxnO | None
+bioportal-bro_x1 | Biomedical Resource Ontology | None
+bioportal-wbphenotype | C. elegans phenotype | None
+bioportal-uberon | Uber anatomy ontology | None
+bioportal-cdao | Comparative Data Analysis Ontology | None
+bioportal-mao | Multiple alignment | None
+bioportal-carelex | CareLex | None
+bioportal-bp | BioPAX | None
+bioportal-rs | Rat Strain Ontology | None
+bioportal-vo | Vaccine Ontology | None
+bioportal-mpath | Mouse pathology | None
+bioportal-fbbt | Drosophila gross anatomy | None
+bioportal-mcv | MIxS Controlled Vocabularies | None
+bioportal-sio | SemanticScience Integrated Ontology | None
+bioportal-ctx | Cerebrotendinous xanthomatosis | None
+bioportal-tok | TOK_Ontology | None
+bioportal-thesaurus | thesaurus | None
+bioportal-msh | Medical Subject Headings | None
+bioportal-pdq | Physician Data Query | None
+bioportal-atmo | African Traditional Medicine | None
+bioportal-mmo | Measurement Method Ontology | None
+bioportal-ndfrt | National Drug File | None
+bioportal-iao | Information Artifact Ontology | None
+bioportal-bila | Bilateria anatomy | None
+bioportal-fhho | Family Health History Ontology | None
+bioportal-hao | Hymenoptera Anatomy Ontology | None
+bioportal-aao | Amphibian gross anatomy | None
+bioportal-omrse | Ontology of Medically Related Social Entities | None
+bioportal-soy | SoyOntology | None
+bioportal-wbbt | C. elegans gross anatomy | None
+bioportal-zfa | Zebrafish anatomy and development | None
+eagle-i-xula | eagle-i @ Xavier University of Louisiana | None
+bioportal-mhc | MaHCO - An MHC Ontology | None
+bioportal-ev | eVOC (Expressed Sequence Annotation for Humans) | None
+bioportal-canco | Cancer Chemoprevention Ontology | None
+bioportal-nigo | Neural-Immune Gene Ontology | None
+bioportal-who | WHO Adverse Reaction Terminology | None
+bioportal-nmr | NMR-instrument specific component of metabolomics investigations | None
+bioportal-dc_cl | Dendritic cell | None
+bioportal-ms | Mass spectrometry | None
+eagle-i-montana | eagle-i @ Montana State University | None
+bioportal-ep | Cardiac Electrophysiology Ontology | None
+bioportal-air | AI/RHEUM | None
+bioportal-go_x2 | Gene Ontology | None

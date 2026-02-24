@@ -1,0 +1,1990 @@
+[
+  {
+    "id": "bioportal-imr",
+    "title": "Molecule role (INOH Protein name/family name ontology)",
+    "website": "http://bioportal.bioontology.org/ontologies/1029",
+    "sparql": [],
+    "triples": "123081"
+  },
+  {
+    "id": "bioportal-ddanat",
+    "title": "Dictyostelium discoideum anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1008",
+    "sparql": [],
+    "triples": "2740"
+  },
+  {
+    "id": "bioportal-teddy",
+    "title": "Terminology for the Description of Dynamics",
+    "website": "http://bioportal.bioontology.org/ontologies/1407",
+    "sparql": [],
+    "triples": "15301"
+  },
+  {
+    "id": "bioportal-ocre",
+    "title": "Ontology of Clinical Research (OCRe)",
+    "website": "http://bioportal.bioontology.org/ontologies/1076",
+    "sparql": [],
+    "triples": "5139"
+  },
+  {
+    "id": "bioportal-ehdaa",
+    "title": "Human developmental anatomy, abstract version",
+    "website": "http://bioportal.bioontology.org/ontologies/1021",
+    "sparql": [],
+    "triples": "16345"
+  },
+  {
+    "id": "eagle-i-alaska",
+    "title": "eagle-i @ University of Alaska Fairbanks",
+    "website": "http://alaska.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://alaska.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "15000"
+  },
+  {
+    "id": "bioportal-pr",
+    "title": "PRotein Ontology (PRO)",
+    "website": "http://bioportal.bioontology.org/ontologies/1062",
+    "sparql": [],
+    "triples": "626238"
+  },
+  {
+    "id": "bioportal-cheminf",
+    "title": "Chemical Information Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1444",
+    "sparql": [],
+    "triples": "5931"
+  },
+  {
+    "id": "eagle-i-upr",
+    "title": "eagle-i@ University of Puerto Rico - Medical Sciences Campus",
+    "website": "http://upr.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://upr.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "36000"
+  },
+  {
+    "id": "bioportal-tmo",
+    "title": "Translational Medicine Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1461",
+    "sparql": [],
+    "triples": "2742"
+  },
+  {
+    "id": "eagle-i-famu",
+    "title": "eagle-i @ Florida Agricultural and Mechanical University",
+    "website": "http://famu.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://famu.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='famu.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3686aefd30>, 'Connection to famu.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "3000"
+  },
+  {
+    "id": "eagle-i-psm",
+    "title": "eagle-i @ Ponce School of Medicine",
+    "website": "http://psm.eagle-i.net/",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://psm.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "2000"
+  },
+  {
+    "id": "bioportal-tads",
+    "title": "Tick gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1065",
+    "sparql": [],
+    "triples": "9121"
+  },
+  {
+    "id": "bioportal-cl",
+    "title": "Cell type",
+    "website": "http://bioportal.bioontology.org/ontologies/1006",
+    "sparql": [],
+    "triples": "29166"
+  },
+  {
+    "id": "bioportal-imgt",
+    "title": "IMGT-ONTOLOGY",
+    "website": "http://bioportal.bioontology.org/ontologies/1491",
+    "sparql": [],
+    "triples": "8283"
+  },
+  {
+    "id": "bioportal-ma",
+    "title": "Mouse adult gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1000",
+    "sparql": [],
+    "triples": "18640"
+  },
+  {
+    "id": "bioportal-icpc",
+    "title": "International Classification of Primary Care",
+    "website": "http://bioportal.bioontology.org/ontologies/1344",
+    "sparql": [],
+    "triples": "8581"
+  },
+  {
+    "id": "bioportal-cst",
+    "title": "COSTART",
+    "website": "http://bioportal.bioontology.org/ontologies/1341",
+    "sparql": [],
+    "triples": "22035"
+  },
+  {
+    "id": "bioportal-bto",
+    "title": "BRENDA tissue / enzyme source",
+    "website": "http://bioportal.bioontology.org/ontologies/1005",
+    "sparql": [],
+    "triples": "65751"
+  },
+  {
+    "id": "eagle-i-howard",
+    "title": "eagle-i @ Howard University",
+    "website": "http://howard.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://howard.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='howard.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3686bdd5a0>, 'Connection to howard.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "400"
+  },
+  {
+    "id": "bioportal-exo",
+    "title": "ExO",
+    "website": "http://bioportal.bioontology.org/ontologies/1575",
+    "sparql": [],
+    "triples": "1241"
+  },
+  {
+    "id": "bioportal-ehda",
+    "title": "Human developmental anatomy, timed version",
+    "website": "http://bioportal.bioontology.org/ontologies/1022",
+    "sparql": [],
+    "triples": "75000"
+  },
+  {
+    "id": "eagle-i-ohsu",
+    "title": "eagle-i @ Oregon Health and Science University",
+    "website": "http://ohsu.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://ohsu.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "55000"
+  },
+  {
+    "id": "bioportal-gro_x2",
+    "title": "Gene Regulation Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1082",
+    "sparql": [],
+    "triples": "5210"
+  },
+  {
+    "id": "bioportal-ontoorpha",
+    "title": "Orphanet Ontology of Rare Diseases",
+    "website": "http://bioportal.bioontology.org/ontologies/1586",
+    "sparql": [],
+    "triples": "367109"
+  },
+  {
+    "id": "bioportal-mdr",
+    "title": "MedDRA",
+    "website": "http://bioportal.bioontology.org/ontologies/1422",
+    "sparql": [],
+    "triples": "1774258"
+  },
+  {
+    "id": "eagle-i-tuskegee",
+    "title": "eagle-i @ Tuskegee University",
+    "website": "http://tuskegee.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://tuskegee.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "600"
+  },
+  {
+    "id": "eagle-i-meharry",
+    "title": "eagle-i @ Meharry Medical College",
+    "website": "http://meharry.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://meharry.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='meharry.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3686aefa60>, 'Connection to meharry.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "220"
+  },
+  {
+    "id": "bioportal-repo",
+    "title": "Reproductive trait and phenotype ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1552",
+    "sparql": [],
+    "triples": "793"
+  },
+  {
+    "id": "bioportal-fypo",
+    "title": "Fission Yeast Phenotype Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1689",
+    "sparql": [],
+    "triples": "33885"
+  },
+  {
+    "id": "bioportal-rcd",
+    "title": "Read Codes, Clinical Terms Version 3 (CTV3)",
+    "website": "http://bioportal.bioontology.org/ontologies/1427",
+    "sparql": [],
+    "triples": "4229895"
+  },
+  {
+    "id": "bioportal-gro_x1",
+    "title": "Cereal plant gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1001",
+    "sparql": [],
+    "triples": "40081"
+  },
+  {
+    "id": "bioportal-spd",
+    "title": "Spider Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1091",
+    "sparql": [],
+    "triples": "6606"
+  },
+  {
+    "id": "bioportal-tto",
+    "title": "Teleost taxonomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1081",
+    "sparql": [],
+    "triples": "611539"
+  },
+  {
+    "id": "bioportal-opl",
+    "title": "Ontology for Parasite LifeCycle",
+    "website": "http://bioportal.bioontology.org/ontologies/1190",
+    "sparql": [],
+    "triples": "5158"
+  },
+  {
+    "id": "bioportal-fbcv",
+    "title": "FlyBase Controlled Vocabulary",
+    "website": "http://bioportal.bioontology.org/ontologies/1017",
+    "sparql": [],
+    "triples": "8512"
+  },
+  {
+    "id": "bioportal-pw",
+    "title": "Pathway ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1035",
+    "sparql": [],
+    "triples": "16830"
+  },
+  {
+    "id": "bioportal-mddb",
+    "title": "Master Drug Data Base",
+    "website": "http://bioportal.bioontology.org/ontologies/1426",
+    "sparql": [],
+    "triples": "76883"
+  },
+  {
+    "id": "bioportal-ero",
+    "title": "eagle-i research resource ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3016",
+    "sparql": [],
+    "triples": "25228"
+  },
+  {
+    "id": "bioportal-ogmd",
+    "title": "Ontology of Glucose Metabolism Disorder",
+    "website": "http://bioportal.bioontology.org/ontologies/1085",
+    "sparql": [],
+    "triples": "530"
+  },
+  {
+    "id": "eagle-i-jsu",
+    "title": "eagle-i @ Jackson State University",
+    "website": "http://jsu.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://jsu.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "10200"
+  },
+  {
+    "id": "bioportal-icf_x1",
+    "title": "International Classification of Functioning, Disability and Health (ICF)",
+    "website": "http://bioportal.bioontology.org/ontologies/1411",
+    "sparql": [],
+    "triples": "28475"
+  },
+  {
+    "id": "bioportal-snpo",
+    "title": "SNP-Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1058",
+    "sparql": [],
+    "triples": "42131"
+  },
+  {
+    "id": "eagle-i-hunter-cuny",
+    "title": "eagle-i @ Hunter College",
+    "website": "http://hunter-cuny.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://hunter-cuny.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='hunter-cuny.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3686aef220>, 'Connection to hunter-cuny.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "900"
+  },
+  {
+    "id": "bioportal-iev",
+    "title": "Event (INOH pathway ontology)",
+    "website": "http://bioportal.bioontology.org/ontologies/1011",
+    "sparql": [],
+    "triples": "43375"
+  },
+  {
+    "id": "bioportal-natpro",
+    "title": "Natural Products Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3004",
+    "sparql": [],
+    "triples": "300824"
+  },
+  {
+    "id": "bioportal-nddf",
+    "title": "National Drug Data File",
+    "website": "http://bioportal.bioontology.org/ontologies/1424",
+    "sparql": [],
+    "triples": "490514"
+  },
+  {
+    "id": "eagle-i-harvard",
+    "title": "eagle-i @ Harvard University",
+    "website": "http://harvard.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://harvard.eagle-i.net/sparqler/sparql",
+        "status": "OK"
+      }
+    ],
+    "triples": "335000"
+  },
+  {
+    "id": "eagle-i-uccaribe",
+    "title": "eagle-i @ Universidad Central del Caribe",
+    "website": "http://uccaribe.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://uccaribe.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "5500"
+  },
+  {
+    "id": "bioportal-mf",
+    "title": "Mental Functioning Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3002",
+    "sparql": [],
+    "triples": "2766"
+  },
+  {
+    "id": "eagle-i-tsu",
+    "title": "eagle-i @ Texas Southern University",
+    "website": "http://tsu.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://tsu.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "2000"
+  },
+  {
+    "id": "eagle-i-cau",
+    "title": "eagle-i @ Clark Atlanta University",
+    "website": "http://cau.eagle-i.net/",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://cau.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='cau.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f36843002e0>, 'Connection to cau.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "130"
+  },
+  {
+    "id": "eagle-i-ccny-cuny",
+    "title": "eagle-i @ The City College of New York",
+    "website": "http://ccny-cuny.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://ccny-cuny.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='ccny-cuny.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f36843fd930>, 'Connection to ccny-cuny.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "200"
+  },
+  {
+    "id": "bioportal-vivo",
+    "title": "VIVO",
+    "website": "http://bioportal.bioontology.org/ontologies/1699",
+    "sparql": [],
+    "triples": "4988"
+  },
+  {
+    "id": "bioportal-uo",
+    "title": "Units of measurement",
+    "website": "http://bioportal.bioontology.org/ontologies/1112",
+    "sparql": [],
+    "triples": "5038"
+  },
+  {
+    "id": "bioportal-spto",
+    "title": "Solanaceae Phenotype Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3029",
+    "sparql": [],
+    "triples": "4089"
+  },
+  {
+    "id": "bioportal-idomal",
+    "title": "Malaria Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1311",
+    "sparql": [],
+    "triples": "35586"
+  },
+  {
+    "id": "eagle-i-utep",
+    "title": "eagle-i @ University of Texas at El Paso",
+    "website": "http://utep.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://utep.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "3000"
+  },
+  {
+    "id": "bioportal-co_wheat",
+    "title": "Wheat trait",
+    "website": "http://bioportal.bioontology.org/ontologies/1545",
+    "sparql": [],
+    "triples": "2647"
+  },
+  {
+    "id": "bioportal-tgma",
+    "title": "Mosquito gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1030",
+    "sparql": [],
+    "triples": "57288"
+  },
+  {
+    "id": "bioportal-nonrctontology",
+    "title": "Non Randomized Controlled Trials Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3012",
+    "sparql": [],
+    "triples": "1502"
+  },
+  {
+    "id": "bioportal-mccl",
+    "title": "Cell line ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1541",
+    "sparql": [],
+    "triples": "20689"
+  },
+  {
+    "id": "bioportal-mego",
+    "title": "MeGO",
+    "website": "http://bioportal.bioontology.org/ontologies/1257",
+    "sparql": [],
+    "triples": "4696"
+  },
+  {
+    "id": "bioportal-fbsp",
+    "title": "Fly taxonomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1064",
+    "sparql": [],
+    "triples": "36207"
+  },
+  {
+    "id": "bioportal-cco",
+    "title": "Cell Cycle Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1507",
+    "sparql": [],
+    "triples": "3266342"
+  },
+  {
+    "id": "bioportal-pedterm",
+    "title": "Pediatric Terminology",
+    "website": "http://bioportal.bioontology.org/ontologies/1640",
+    "sparql": [],
+    "triples": "5349"
+  },
+  {
+    "id": "bioportal-pko",
+    "title": "PKO_Re",
+    "website": "http://bioportal.bioontology.org/ontologies/1409",
+    "sparql": [],
+    "triples": "3127"
+  },
+  {
+    "id": "bioportal-cpt",
+    "title": "Current Procedural Terminology",
+    "website": "http://bioportal.bioontology.org/ontologies/1504",
+    "sparql": [],
+    "triples": "76229"
+  },
+  {
+    "id": "bioportal-aba",
+    "title": "ABA Adult Mouse Brain",
+    "website": "http://bioportal.bioontology.org/ontologies/1290",
+    "sparql": [],
+    "triples": "9617"
+  },
+  {
+    "id": "bioportal-peo",
+    "title": "Parasite Experiment Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1335",
+    "sparql": [],
+    "triples": "1175"
+  },
+  {
+    "id": "bioportal-hlth_indics",
+    "title": "HEALTH_INDICATORS",
+    "website": "http://bioportal.bioontology.org/ontologies/1581",
+    "sparql": [],
+    "triples": "2183"
+  },
+  {
+    "id": "bioportal-vandf",
+    "title": "VANDF",
+    "website": "http://bioportal.bioontology.org/ontologies/1527",
+    "sparql": [],
+    "triples": "667272"
+  },
+  {
+    "id": "bioportal-gfo-bio",
+    "title": "General Formal Ontology: Biology",
+    "website": "http://bioportal.bioontology.org/ontologies/1440",
+    "sparql": [],
+    "triples": "1369"
+  },
+  {
+    "id": "bioportal-rex",
+    "title": "Physico-chemical process",
+    "website": "http://bioportal.bioontology.org/ontologies/1043",
+    "sparql": [],
+    "triples": "5046"
+  },
+  {
+    "id": "bioportal-chebi",
+    "title": "Chemical entities of biological interest",
+    "website": "http://bioportal.bioontology.org/ontologies/1007",
+    "sparql": [],
+    "triples": "1573682"
+  },
+  {
+    "id": "bioportal-oae",
+    "title": "Ontology of Adverse Events (OAE)",
+    "website": "http://bioportal.bioontology.org/ontologies/1489",
+    "sparql": [],
+    "triples": "4940"
+  },
+  {
+    "id": "bioportal-phare",
+    "title": "PHARE",
+    "website": "http://bioportal.bioontology.org/ontologies/1550",
+    "sparql": [],
+    "triples": "2801"
+  },
+  {
+    "id": "bioportal-ddi",
+    "title": "Ontology for Drug Discovery Investigations",
+    "website": "http://bioportal.bioontology.org/ontologies/1540",
+    "sparql": [],
+    "triples": "5819"
+  },
+  {
+    "id": "bioportal-neomarkontology",
+    "title": "Neomark Oral Cancer-Centred Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1501",
+    "sparql": [],
+    "triples": "6243"
+  },
+  {
+    "id": "bioportal-lipro",
+    "title": "Lipid Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1183",
+    "sparql": [],
+    "triples": "15406"
+  },
+  {
+    "id": "bioportal-lnc",
+    "title": "Logical Observation Identifier Names and Codes",
+    "website": "http://bioportal.bioontology.org/ontologies/1350",
+    "sparql": [],
+    "triples": "4037280"
+  },
+  {
+    "id": "bioportal-envo",
+    "title": "Environment Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1069",
+    "sparql": [],
+    "triples": "26584"
+  },
+  {
+    "id": "bioportal-po",
+    "title": "Plant Anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1108",
+    "sparql": [],
+    "triples": "21840"
+  },
+  {
+    "id": "bioportal-icpc2p",
+    "title": "ICPC-2 PLUS",
+    "website": "http://bioportal.bioontology.org/ontologies/1429",
+    "sparql": [],
+    "triples": "94630"
+  },
+  {
+    "id": "eagle-i-vanderbilt",
+    "title": "eagle-i @ Vanderbilt University",
+    "website": "http://eagle-i.ea.vanderbilt.edu",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "https://eagle-i.ea.vanderbilt.edu/sparqler/sparql",
+        "status": "FAIL (HTTPSConnectionPool(host='eagle-i.ea.vanderbilt.edu', port=443): Max retries exceeded with url: /sparqler/sparql (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f36843fe110>: Failed to establish a new connection: [Errno -2] Name or service not known')))"
+      }
+    ],
+    "triples": "10057"
+  },
+  {
+    "id": "bioportal-cmo",
+    "title": "Clinical Measurement Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1583",
+    "sparql": [],
+    "triples": "7026"
+  },
+  {
+    "id": "bioportal-ogms",
+    "title": "Ontology for General Medical Science",
+    "website": "http://bioportal.bioontology.org/ontologies/1414",
+    "sparql": [],
+    "triples": "1550"
+  },
+  {
+    "id": "bioportal-rnao",
+    "title": "RNA ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1500",
+    "sparql": [],
+    "triples": "2973"
+  },
+  {
+    "id": "bioportal-fda-meddevice",
+    "title": "FDA Medical Devices (2010)",
+    "website": "http://bioportal.bioontology.org/ontologies/1576",
+    "sparql": [],
+    "triples": "61147"
+  },
+  {
+    "id": "bioportal-hpio",
+    "title": "Host Pathogen Interactions Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1569",
+    "sparql": [],
+    "triples": "2841"
+  },
+  {
+    "id": "bioportal-bfo",
+    "title": "Basic Formal Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1332",
+    "sparql": [],
+    "triples": "467"
+  },
+  {
+    "id": "bioportal-icd10",
+    "title": "ICD10",
+    "website": "http://bioportal.bioontology.org/ontologies/1516",
+    "sparql": [],
+    "triples": "87925"
+  },
+  {
+    "id": "bioportal-icnp",
+    "title": "International Classification for Nursing Practice",
+    "website": "http://bioportal.bioontology.org/ontologies/1401",
+    "sparql": [],
+    "triples": "141481"
+  },
+  {
+    "id": "bioportal-go_x1",
+    "title": "Gene Ontology Extension",
+    "website": "http://bioportal.bioontology.org/ontologies/1506",
+    "sparql": [],
+    "triples": "807473"
+  },
+  {
+    "id": "bioportal-bao",
+    "title": "BioAssay Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1533",
+    "sparql": [],
+    "triples": "9939"
+  },
+  {
+    "id": "bioportal-hugo",
+    "title": "HUGO",
+    "website": "http://bioportal.bioontology.org/ontologies/1528",
+    "sparql": [],
+    "triples": "898855"
+  },
+  {
+    "id": "bioportal-fbdv",
+    "title": "Drosophila development",
+    "website": "http://bioportal.bioontology.org/ontologies/1016",
+    "sparql": [],
+    "triples": "2776"
+  },
+  {
+    "id": "bioportal-eo",
+    "title": "Plant environmental conditions",
+    "website": "http://bioportal.bioontology.org/ontologies/1036",
+    "sparql": [],
+    "triples": "4780"
+  },
+  {
+    "id": "bioportal-po_x1",
+    "title": "Plant Growth and Development Stage",
+    "website": "http://bioportal.bioontology.org/ontologies/1038",
+    "sparql": [],
+    "triples": "8717"
+  },
+  {
+    "id": "bioportal-fma",
+    "title": "Foundational Model of Anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1053",
+    "sparql": [],
+    "triples": "1714653"
+  },
+  {
+    "id": "bioportal-cogpo",
+    "title": "Cognitive Paradigm Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1560",
+    "sparql": [],
+    "triples": "4916"
+  },
+  {
+    "id": "bioportal-sbro",
+    "title": "Smoking Behavior Risk Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1249",
+    "sparql": [],
+    "triples": "738"
+  },
+  {
+    "id": "bioportal-fbbi",
+    "title": "Biological imaging methods",
+    "website": "http://bioportal.bioontology.org/ontologies/1023",
+    "sparql": [],
+    "triples": "4066"
+  },
+  {
+    "id": "bioportal-sep",
+    "title": "Sample processing and separation techniques",
+    "website": "http://bioportal.bioontology.org/ontologies/1044",
+    "sparql": [],
+    "triples": "2931"
+  },
+  {
+    "id": "bioportal-oboe-sbc",
+    "title": "OBOE SBC",
+    "website": "http://bioportal.bioontology.org/ontologies/1523",
+    "sparql": [],
+    "triples": "7059"
+  },
+  {
+    "id": "bioportal-cao",
+    "title": "CAO",
+    "website": "http://bioportal.bioontology.org/ontologies/1582",
+    "sparql": [],
+    "triples": "2752"
+  },
+  {
+    "id": "bioportal-efo",
+    "title": "Experimental Factor Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1136",
+    "sparql": [],
+    "triples": "81324"
+  },
+  {
+    "id": "bioportal-nemo_x1",
+    "title": "Neural ElectroMagnetic Ontologies",
+    "website": "http://bioportal.bioontology.org/ontologies/1321",
+    "sparql": [],
+    "triples": "37248"
+  },
+  {
+    "id": "bioportal-bspo",
+    "title": "Spatial Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1078",
+    "sparql": [],
+    "triples": "2149"
+  },
+  {
+    "id": "bioportal-taxrank",
+    "title": "Taxonomic rank vocabulary",
+    "website": "http://bioportal.bioontology.org/ontologies/1419",
+    "sparql": [],
+    "triples": "384"
+  },
+  {
+    "id": "bioportal-icd10pcs",
+    "title": "ICD-10-PCS",
+    "website": "http://bioportal.bioontology.org/ontologies/1425",
+    "sparql": [],
+    "triples": "1844776"
+  },
+  {
+    "id": "bioportal-medlineplus",
+    "title": "MedlinePlus Health Topics",
+    "website": "http://bioportal.bioontology.org/ontologies/1347",
+    "sparql": [],
+    "triples": "94291"
+  },
+  {
+    "id": "bioportal-rctontology",
+    "title": "Randomized Controlled Trials (RCT) Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1676",
+    "sparql": [],
+    "triples": "2091"
+  },
+  {
+    "id": "bioportal-odgi",
+    "title": "Ontology for disease genetic investigation",
+    "website": "http://bioportal.bioontology.org/ontologies/1086",
+    "sparql": [],
+    "triples": "3851"
+  },
+  {
+    "id": "bioportal-icd9cm",
+    "title": "International Classification of Diseases",
+    "website": "http://bioportal.bioontology.org/ontologies/1101",
+    "sparql": [],
+    "triples": "322211"
+  },
+  {
+    "id": "bioportal-omim",
+    "title": "Online Mendelian Inheritance in Man",
+    "website": "http://bioportal.bioontology.org/ontologies/1348",
+    "sparql": [],
+    "triples": "754767"
+  },
+  {
+    "id": "eagle-i-dartmouth",
+    "title": "eagle-i @ Dartmouth College",
+    "website": "http://dartmouth.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://dartmouth.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='dartmouth.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3684300910>, 'Connection to dartmouth.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "440000"
+  },
+  {
+    "id": "bioportal-ino",
+    "title": "Interaction Network Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1515",
+    "sparql": [],
+    "triples": "6107"
+  },
+  {
+    "id": "bioportal-obi",
+    "title": "Ontology for Biomedical Investigations",
+    "website": "http://bioportal.bioontology.org/ontologies/1123",
+    "sparql": [],
+    "triples": "73908"
+  },
+  {
+    "id": "bioportal-ontodm",
+    "title": "Ontology of Data Mining",
+    "website": "http://bioportal.bioontology.org/ontologies/1638",
+    "sparql": [],
+    "triples": "7425"
+  },
+  {
+    "id": "bioportal-mfoem",
+    "title": "Emotion Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1666",
+    "sparql": [],
+    "triples": "3676"
+  },
+  {
+    "id": "bioportal-mcbcc",
+    "title": "Breast tissue cell lines",
+    "website": "http://bioportal.bioontology.org/ontologies/1438",
+    "sparql": [],
+    "triples": "15681"
+  },
+  {
+    "id": "bioportal-clo",
+    "title": "Cell Line Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1314",
+    "sparql": [],
+    "triples": "46770"
+  },
+  {
+    "id": "bioportal-roleo",
+    "title": "Role Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1538",
+    "sparql": [],
+    "triples": "4101"
+  },
+  {
+    "id": "bioportal-mthch",
+    "title": "Metathesaurus CPT Hierarchical Terms",
+    "website": "http://bioportal.bioontology.org/ontologies/1510",
+    "sparql": [],
+    "triples": "7302"
+  },
+  {
+    "id": "bioportal-doid",
+    "title": "Human disease ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1009",
+    "sparql": [],
+    "triples": "179543"
+  },
+  {
+    "id": "bioportal-propreo",
+    "title": "Proteomics data and process provenance",
+    "website": "http://bioportal.bioontology.org/ontologies/1039",
+    "sparql": [],
+    "triples": "2807"
+  },
+  {
+    "id": "bioportal-mo",
+    "title": "MGED Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1131",
+    "sparql": [],
+    "triples": "5492"
+  },
+  {
+    "id": "bioportal-sbo",
+    "title": "Systems Biology",
+    "website": "http://bioportal.bioontology.org/ontologies/1046",
+    "sparql": [],
+    "triples": "4572"
+  },
+  {
+    "id": "bioportal-mat",
+    "title": "Minimal anatomical terminology",
+    "website": "http://bioportal.bioontology.org/ontologies/1152",
+    "sparql": [],
+    "triples": "4430"
+  },
+  {
+    "id": "bioportal-hl7",
+    "title": "Health Level Seven",
+    "website": "http://bioportal.bioontology.org/ontologies/1343",
+    "sparql": [],
+    "triples": "100848"
+  },
+  {
+    "id": "bioportal-ato",
+    "title": "Amphibian taxonomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1370",
+    "sparql": [],
+    "triples": "49391"
+  },
+  {
+    "id": "bioportal-xao",
+    "title": "Xenopus anatomy and development",
+    "website": "http://bioportal.bioontology.org/ontologies/1095",
+    "sparql": [],
+    "triples": "16711"
+  },
+  {
+    "id": "bioportal-rid",
+    "title": "RadLex",
+    "website": "http://bioportal.bioontology.org/ontologies/1057",
+    "sparql": [],
+    "triples": "373165"
+  },
+  {
+    "id": "bioportal-rxnorm",
+    "title": "RxNORM",
+    "website": "http://bioportal.bioontology.org/ontologies/1423",
+    "sparql": [],
+    "triples": "5832652"
+  },
+  {
+    "id": "bioportal-idobru",
+    "title": "Brucellosis Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1537",
+    "sparql": [],
+    "triples": "17365"
+  },
+  {
+    "id": "bioportal-bdo",
+    "title": "Bone Dysplasia Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1613",
+    "sparql": [],
+    "triples": "198018"
+  },
+  {
+    "id": "bioportal-diagnosticont",
+    "title": "Diagnostic Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3013",
+    "sparql": [],
+    "triples": "729"
+  },
+  {
+    "id": "bioportal-fao",
+    "title": "Fungal gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1019",
+    "sparql": [],
+    "triples": "1011"
+  },
+  {
+    "id": "bioportal-acgt",
+    "title": "Cancer Research and Management ACGT Master Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1130",
+    "sparql": [],
+    "triples": "13274"
+  },
+  {
+    "id": "bioportal-sitbac",
+    "title": "Situation-Based Access Control",
+    "website": "http://bioportal.bioontology.org/ontologies/1237",
+    "sparql": [],
+    "triples": "4971"
+  },
+  {
+    "id": "bioportal-ontodt",
+    "title": "Ontology of General Purpose Datatypes",
+    "website": "http://bioportal.bioontology.org/ontologies/1588",
+    "sparql": [],
+    "triples": "1650"
+  },
+  {
+    "id": "bioportal-icd10cm",
+    "title": "ICD10CM",
+    "website": "http://bioportal.bioontology.org/ontologies/1553",
+    "sparql": [],
+    "triples": "1119554"
+  },
+  {
+    "id": "bioportal-apo",
+    "title": "Ascomycete phenotype ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1222",
+    "sparql": [],
+    "triples": "4213"
+  },
+  {
+    "id": "bioportal-teo",
+    "title": "Time Event Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3042",
+    "sparql": [],
+    "triples": "9032"
+  },
+  {
+    "id": "eagle-i-hawaii",
+    "title": "eagle-i @ University of Hawai’i at Mānoa",
+    "website": "http://hawaii.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://hawaii.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "344000"
+  },
+  {
+    "id": "bioportal-gfo",
+    "title": "General Formal Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1439",
+    "sparql": [],
+    "triples": "647"
+  },
+  {
+    "id": "bioportal-ecg",
+    "title": "Electrocardiography Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1146",
+    "sparql": [],
+    "triples": "8543"
+  },
+  {
+    "id": "bioportal-icps",
+    "title": "ICPS Network",
+    "website": "http://bioportal.bioontology.org/ontologies/1509",
+    "sparql": [],
+    "triples": "9468"
+  },
+  {
+    "id": "bioportal-aeo",
+    "title": "Anatomical Entity Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1568",
+    "sparql": [],
+    "triples": "3167"
+  },
+  {
+    "id": "bioportal-epileponto",
+    "title": "Epilepsy",
+    "website": "http://bioportal.bioontology.org/ontologies/1639",
+    "sparql": [],
+    "triples": "879"
+  },
+  {
+    "id": "bioportal-sdo",
+    "title": "Sleep Domain Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1651",
+    "sparql": [],
+    "triples": "14058"
+  },
+  {
+    "id": "bioportal-ypo",
+    "title": "Yeast phenotypes",
+    "website": "http://bioportal.bioontology.org/ontologies/1115",
+    "sparql": [],
+    "triples": "3846"
+  },
+  {
+    "id": "bioportal-sao",
+    "title": "Subcellular Anatomy Ontology (SAO)",
+    "website": "http://bioportal.bioontology.org/ontologies/1068",
+    "sparql": [],
+    "triples": "11036"
+  },
+  {
+    "id": "bioportal-mp",
+    "title": "Mammalian phenotype",
+    "website": "http://bioportal.bioontology.org/ontologies/1025",
+    "sparql": [],
+    "triples": "117067"
+  },
+  {
+    "id": "bioportal-amino-acid",
+    "title": "Amino Acid",
+    "website": "http://bioportal.bioontology.org/ontologies/1054",
+    "sparql": [],
+    "triples": "1562"
+  },
+  {
+    "id": "bioportal-bcgo",
+    "title": "Breast Cancer Grading Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1304",
+    "sparql": [],
+    "triples": "3780"
+  },
+  {
+    "id": "bioportal-vt",
+    "title": "Vertebrate Trait Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1659",
+    "sparql": [],
+    "triples": "47649"
+  },
+  {
+    "id": "bioportal-omit",
+    "title": "Ontology for MicroRNA Target Prediction",
+    "website": "http://bioportal.bioontology.org/ontologies/1505",
+    "sparql": [],
+    "triples": "1610"
+  },
+  {
+    "id": "eagle-i-cdrewu",
+    "title": "eagle-i @ Charles R. Drew University",
+    "website": "http://cdrewu.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://cdrewu.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (HTTPConnectionPool(host='cdrewu.eagle-i.net', port=80): Max retries exceeded with url: /sparqler/sparql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x7f3686bde1a0>, 'Connection to cdrewu.eagle-i.net timed out. (connect timeout=30)')))"
+      }
+    ],
+    "triples": "4000"
+  },
+  {
+    "id": "bioportal-wbls",
+    "title": "C. elegans development",
+    "website": "http://bioportal.bioontology.org/ontologies/1049",
+    "sparql": [],
+    "triples": "633"
+  },
+  {
+    "id": "bioportal-dikb-evidence",
+    "title": "DIKB-Evidence-Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1672",
+    "sparql": [],
+    "triples": "2278"
+  },
+  {
+    "id": "bioportal-npo",
+    "title": "NanoParticle Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1083",
+    "sparql": [],
+    "triples": "37796"
+  },
+  {
+    "id": "bioportal-nif_cell",
+    "title": "NIF Cell",
+    "website": "http://bioportal.bioontology.org/ontologies/1402",
+    "sparql": [],
+    "triples": "35057"
+  },
+  {
+    "id": "bioportal-vao",
+    "title": "Vertebrate Anatomy Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1555",
+    "sparql": [],
+    "triples": "3662"
+  },
+  {
+    "id": "bioportal-hcpcs",
+    "title": "HCPCS",
+    "website": "http://bioportal.bioontology.org/ontologies/1529",
+    "sparql": [],
+    "triples": "96969"
+  },
+  {
+    "id": "eagle-i-utsa",
+    "title": "eagle-i @ University of Texas at San Antonio",
+    "website": "http://utsa.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://utsa.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "2300"
+  },
+  {
+    "id": "bioportal-shr",
+    "title": "Student Health Record",
+    "website": "http://bioportal.bioontology.org/ontologies/1665",
+    "sparql": [],
+    "triples": "1327"
+  },
+  {
+    "id": "bioportal-ogi",
+    "title": "Ontology for Genetic Interval",
+    "website": "http://bioportal.bioontology.org/ontologies/1100",
+    "sparql": [],
+    "triples": "2024"
+  },
+  {
+    "id": "bioportal-ehdaa2",
+    "title": "Human developmental anatomy, abstract version, v2",
+    "website": "http://bioportal.bioontology.org/ontologies/1517",
+    "sparql": [],
+    "triples": "56358"
+  },
+  {
+    "id": "bioportal-aero",
+    "title": "Adverse Event Reporting ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1580",
+    "sparql": [],
+    "triples": "5154"
+  },
+  {
+    "id": "bioportal-geospecies",
+    "title": "GeoSpecies Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1247",
+    "sparql": [],
+    "triples": "9616"
+  },
+  {
+    "id": "bioportal-pmr",
+    "title": "Physical Medicine and Rehabilitation",
+    "website": "http://bioportal.bioontology.org/ontologies/3015",
+    "sparql": [],
+    "triples": "481"
+  },
+  {
+    "id": "bioportal-bt",
+    "title": "BioTop",
+    "website": "http://bioportal.bioontology.org/ontologies/1134",
+    "sparql": [],
+    "triples": "6025"
+  },
+  {
+    "id": "bioportal-sopharm",
+    "title": "Suggested Ontology for Pharmacogenomics",
+    "website": "http://bioportal.bioontology.org/ontologies/1061",
+    "sparql": [],
+    "triples": "358171"
+  },
+  {
+    "id": "bioportal-bootstrep",
+    "title": "Gene Regulation Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1106",
+    "sparql": [],
+    "triples": "5210"
+  },
+  {
+    "id": "bioportal-mccl_x1",
+    "title": "Cell line ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1245",
+    "sparql": [],
+    "triples": "1065437"
+  },
+  {
+    "id": "bioportal-adw",
+    "title": "Animal natural history and life history",
+    "website": "http://bioportal.bioontology.org/ontologies/1530",
+    "sparql": [],
+    "triples": "2151"
+  },
+  {
+    "id": "bioportal-mesh-owl",
+    "title": "MESH Thesaurus (OWL version)",
+    "website": "http://bioportal.bioontology.org/ontologies/3019",
+    "sparql": [],
+    "triples": "1262119"
+  },
+  {
+    "id": "bioportal-mi",
+    "title": "Protein-protein interaction",
+    "website": "http://bioportal.bioontology.org/ontologies/1040",
+    "sparql": [],
+    "triples": "18499"
+  },
+  {
+    "id": "bioportal-po_x2",
+    "title": "Plant Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1587",
+    "sparql": [],
+    "triples": "50279"
+  },
+  {
+    "id": "bioportal-bho",
+    "title": "Bleeding History Phenotype",
+    "website": "http://bioportal.bioontology.org/ontologies/1116",
+    "sparql": [],
+    "triples": "6526"
+  },
+  {
+    "id": "bioportal-ncit",
+    "title": "NCI Thesaurus",
+    "website": "http://bioportal.bioontology.org/ontologies/1032",
+    "sparql": [],
+    "triples": "1594625"
+  },
+  {
+    "id": "bioportal-cno",
+    "title": "Computational Neuroscience Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3003",
+    "sparql": [],
+    "triples": "3363"
+  },
+  {
+    "id": "bioportal-unitsontology",
+    "title": "Units Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1650",
+    "sparql": [],
+    "triples": "407"
+  },
+  {
+    "id": "bioportal-chem2bio2owl",
+    "title": "Systems Chemical Biology/Chemogenomics",
+    "website": "http://bioportal.bioontology.org/ontologies/1615",
+    "sparql": [],
+    "triples": "1368"
+  },
+  {
+    "id": "bioportal-pma",
+    "title": "PMA 2010",
+    "website": "http://bioportal.bioontology.org/ontologies/1497",
+    "sparql": [],
+    "triples": "12544"
+  },
+  {
+    "id": "bioportal-hp_x1",
+    "title": "Human Phenotype Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1125",
+    "sparql": [],
+    "triples": "107770"
+  },
+  {
+    "id": "bioportal-xco",
+    "title": "Experimental Conditions Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1585",
+    "sparql": [],
+    "triples": "1540"
+  },
+  {
+    "id": "bioportal-swo",
+    "title": "Software Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1413",
+    "sparql": [],
+    "triples": "18153"
+  },
+  {
+    "id": "bioportal-ctcae",
+    "title": "Common Terminology Criteria for Adverse Events",
+    "website": "http://bioportal.bioontology.org/ontologies/1415",
+    "sparql": [],
+    "triples": "50880"
+  },
+  {
+    "id": "bioportal-mod",
+    "title": "Protein modification",
+    "website": "http://bioportal.bioontology.org/ontologies/1041",
+    "sparql": [],
+    "triples": "49779"
+  },
+  {
+    "id": "bioportal-tao",
+    "title": "Teleost Anatomy Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1110",
+    "sparql": [],
+    "triples": "35496"
+  },
+  {
+    "id": "bioportal-cogat",
+    "title": "Cognitive Atlas",
+    "website": "http://bioportal.bioontology.org/ontologies/1633",
+    "sparql": [],
+    "triples": "25779"
+  },
+  {
+    "id": "bioportal-to",
+    "title": "Plant Trait Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1037",
+    "sparql": [],
+    "triples": "13219"
+  },
+  {
+    "id": "bioportal-tm-signs-and-sympts",
+    "title": "Traditional Medicine Signs and Symptoms Value Set",
+    "website": "http://bioportal.bioontology.org/ontologies/1572",
+    "sparql": [],
+    "triples": "2697"
+  },
+  {
+    "id": "bioportal-birnlex",
+    "title": "BIRNLex",
+    "website": "http://bioportal.bioontology.org/ontologies/1089",
+    "sparql": [],
+    "triples": "40405"
+  },
+  {
+    "id": "bioportal-nif_dysfunction",
+    "title": "NIF Dysfunction",
+    "website": "http://bioportal.bioontology.org/ontologies/1381",
+    "sparql": [],
+    "triples": "37171"
+  },
+  {
+    "id": "eagle-i-msm",
+    "title": "eagle-i @ Morehouse School of Medicine",
+    "website": "http://msm.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://msm.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "8800"
+  },
+  {
+    "id": "bioportal-sso",
+    "title": "Syndromic Surveillance Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1394",
+    "sparql": [],
+    "triples": "2225"
+  },
+  {
+    "id": "bioportal-snomedct",
+    "title": "SNOMED Clinical Terms",
+    "website": "http://bioportal.bioontology.org/ontologies/1353",
+    "sparql": [],
+    "triples": "13644855"
+  },
+  {
+    "id": "bioportal-neomark",
+    "title": "Neomark Oral Cancer Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1686",
+    "sparql": [],
+    "triples": "3223"
+  },
+  {
+    "id": "bioportal-nif",
+    "title": "NIFSTD",
+    "website": "http://bioportal.bioontology.org/ontologies/1084",
+    "sparql": [],
+    "triples": "1975611"
+  },
+  {
+    "id": "bioportal-mfo",
+    "title": "Medaka fish anatomy and development",
+    "website": "http://bioportal.bioontology.org/ontologies/1027",
+    "sparql": [],
+    "triples": "30501"
+  },
+  {
+    "id": "bioportal-lhn",
+    "title": "Loggerhead nesting",
+    "website": "http://bioportal.bioontology.org/ontologies/1024",
+    "sparql": [],
+    "triples": "2623"
+  },
+  {
+    "id": "bioportal-pato",
+    "title": "Phenotypic quality",
+    "website": "http://bioportal.bioontology.org/ontologies/1107",
+    "sparql": [],
+    "triples": "24953"
+  },
+  {
+    "id": "bioportal-csp",
+    "title": "CRISP Thesaurus, 2006",
+    "website": "http://bioportal.bioontology.org/ontologies/1526",
+    "sparql": [],
+    "triples": "258641"
+  },
+  {
+    "id": "bioportal-so_x1",
+    "title": "Sequence types and features",
+    "website": "http://bioportal.bioontology.org/ontologies/1109",
+    "sparql": [],
+    "triples": "31419"
+  },
+  {
+    "id": "bioportal-vhog",
+    "title": "vertebrate Homologous Organ Groups",
+    "website": "http://bioportal.bioontology.org/ontologies/1574",
+    "sparql": [],
+    "triples": "14059"
+  },
+  {
+    "id": "bioportal-oboe",
+    "title": "OBOE",
+    "website": "http://bioportal.bioontology.org/ontologies/1524",
+    "sparql": [],
+    "triples": "872"
+  },
+  {
+    "id": "bioportal-jerm",
+    "title": "SysMO-JERM",
+    "website": "http://bioportal.bioontology.org/ontologies/1488",
+    "sparql": [],
+    "triples": "1533"
+  },
+  {
+    "id": "bioportal-basic-vertebrate-gross-anatomy",
+    "title": "Basic Vertebrate Anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1056",
+    "sparql": [],
+    "triples": "1028"
+  },
+  {
+    "id": "bioportal-ncbitaxon",
+    "title": "NCBI organismal classification",
+    "website": "http://bioportal.bioontology.org/ontologies/1132",
+    "sparql": [],
+    "triples": "4154130"
+  },
+  {
+    "id": "bioportal-flu",
+    "title": "Influenza Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1417",
+    "sparql": [],
+    "triples": "5425"
+  },
+  {
+    "id": "bioportal-miro",
+    "title": "Mosquito insecticide resistance",
+    "website": "http://bioportal.bioontology.org/ontologies/1077",
+    "sparql": [],
+    "triples": "58954"
+  },
+  {
+    "id": "bioportal-ido",
+    "title": "Infectious Disease Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1092",
+    "sparql": [],
+    "triples": "7370"
+  },
+  {
+    "id": "bioportal-ixno",
+    "title": "IxnO",
+    "website": "http://bioportal.bioontology.org/ontologies/1614",
+    "sparql": [],
+    "triples": "1184"
+  },
+  {
+    "id": "bioportal-bro_x1",
+    "title": "Biomedical Resource Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1104",
+    "sparql": [],
+    "triples": "2755"
+  },
+  {
+    "id": "bioportal-wbphenotype",
+    "title": "C. elegans phenotype",
+    "website": "http://bioportal.bioontology.org/ontologies/1067",
+    "sparql": [],
+    "triples": "25609"
+  },
+  {
+    "id": "bioportal-uberon",
+    "title": "Uber anatomy ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1404",
+    "sparql": [],
+    "triples": "284209"
+  },
+  {
+    "id": "bioportal-cdao",
+    "title": "Comparative Data Analysis Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1128",
+    "sparql": [],
+    "triples": "2565"
+  },
+  {
+    "id": "bioportal-mao",
+    "title": "Multiple alignment",
+    "website": "http://bioportal.bioontology.org/ontologies/1026",
+    "sparql": [],
+    "triples": "1754"
+  },
+  {
+    "id": "bioportal-carelex",
+    "title": "CareLex",
+    "website": "http://bioportal.bioontology.org/ontologies/3008",
+    "sparql": [],
+    "triples": "4140"
+  },
+  {
+    "id": "bioportal-bp",
+    "title": "BioPAX",
+    "website": "http://bioportal.bioontology.org/ontologies/1522",
+    "sparql": [],
+    "triples": "1230"
+  },
+  {
+    "id": "bioportal-rs",
+    "title": "Rat Strain Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1150",
+    "sparql": [],
+    "triples": "23606"
+  },
+  {
+    "id": "bioportal-vo",
+    "title": "Vaccine Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1172",
+    "sparql": [],
+    "triples": "129325"
+  },
+  {
+    "id": "bioportal-mpath",
+    "title": "Mouse pathology",
+    "website": "http://bioportal.bioontology.org/ontologies/1031",
+    "sparql": [],
+    "triples": "9413"
+  },
+  {
+    "id": "bioportal-fbbt",
+    "title": "Drosophila gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1015",
+    "sparql": [],
+    "triples": "135761"
+  },
+  {
+    "id": "bioportal-mcv",
+    "title": "MIxS Controlled Vocabularies",
+    "website": "http://bioportal.bioontology.org/ontologies/3000",
+    "sparql": [],
+    "triples": "3121"
+  },
+  {
+    "id": "bioportal-sio",
+    "title": "SemanticScience Integrated Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1532",
+    "sparql": [],
+    "triples": "8123"
+  },
+  {
+    "id": "bioportal-ctx",
+    "title": "Cerebrotendinous xanthomatosis",
+    "website": "http://bioportal.bioontology.org/ontologies/3025",
+    "sparql": [],
+    "triples": "8131"
+  },
+  {
+    "id": "bioportal-tok",
+    "title": "TOK_Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1418",
+    "sparql": [],
+    "triples": "5306"
+  },
+  {
+    "id": "bioportal-thesaurus",
+    "title": "thesaurus",
+    "website": "http://bioportal.bioontology.org/ontologies/3034",
+    "sparql": [],
+    "triples": "799"
+  },
+  {
+    "id": "bioportal-msh",
+    "title": "Medical Subject Headings",
+    "website": "http://bioportal.bioontology.org/ontologies/1351",
+    "sparql": [],
+    "triples": "7970325"
+  },
+  {
+    "id": "bioportal-pdq",
+    "title": "Physician Data Query",
+    "website": "http://bioportal.bioontology.org/ontologies/1349",
+    "sparql": [],
+    "triples": "124212"
+  },
+  {
+    "id": "bioportal-atmo",
+    "title": "African Traditional Medicine",
+    "website": "http://bioportal.bioontology.org/ontologies/1099",
+    "sparql": [],
+    "triples": "1460"
+  },
+  {
+    "id": "bioportal-mmo",
+    "title": "Measurement Method Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1584",
+    "sparql": [],
+    "triples": "2018"
+  },
+  {
+    "id": "bioportal-ndfrt",
+    "title": "National Drug File",
+    "website": "http://bioportal.bioontology.org/ontologies/1352",
+    "sparql": [],
+    "triples": "1166537"
+  },
+  {
+    "id": "bioportal-iao",
+    "title": "Information Artifact Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1393",
+    "sparql": [],
+    "triples": "2160"
+  },
+  {
+    "id": "bioportal-bila",
+    "title": "Bilateria anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1114",
+    "sparql": [],
+    "triples": "1136"
+  },
+  {
+    "id": "bioportal-fhho",
+    "title": "Family Health History Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1126",
+    "sparql": [],
+    "triples": "6639"
+  },
+  {
+    "id": "bioportal-hao",
+    "title": "Hymenoptera Anatomy Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1362",
+    "sparql": [],
+    "triples": "53821"
+  },
+  {
+    "id": "bioportal-aao",
+    "title": "Amphibian gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1090",
+    "sparql": [],
+    "triples": "17511"
+  },
+  {
+    "id": "bioportal-omrse",
+    "title": "Ontology of Medically Related Social Entities",
+    "website": "http://bioportal.bioontology.org/ontologies/1565",
+    "sparql": [],
+    "triples": "943"
+  },
+  {
+    "id": "bioportal-soy",
+    "title": "SoyOntology",
+    "website": "http://bioportal.bioontology.org/ontologies/3028",
+    "sparql": [],
+    "triples": "33895"
+  },
+  {
+    "id": "bioportal-wbbt",
+    "title": "C. elegans gross anatomy",
+    "website": "http://bioportal.bioontology.org/ontologies/1048",
+    "sparql": [],
+    "triples": "97058"
+  },
+  {
+    "id": "bioportal-zfa",
+    "title": "Zebrafish anatomy and development",
+    "website": "http://bioportal.bioontology.org/ontologies/1051",
+    "sparql": [],
+    "triples": "71952"
+  },
+  {
+    "id": "eagle-i-xula",
+    "title": "eagle-i @ Xavier University of Louisiana",
+    "website": "http://xula.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://xula.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "10000"
+  },
+  {
+    "id": "bioportal-mhc",
+    "title": "MaHCO - An MHC Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1088",
+    "sparql": [],
+    "triples": "1025"
+  },
+  {
+    "id": "bioportal-ev",
+    "title": "eVOC (Expressed Sequence Annotation for Humans)",
+    "website": "http://bioportal.bioontology.org/ontologies/1013",
+    "sparql": [],
+    "triples": "16187"
+  },
+  {
+    "id": "bioportal-canco",
+    "title": "Cancer Chemoprevention Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/3030",
+    "sparql": [],
+    "triples": "122470"
+  },
+  {
+    "id": "bioportal-nigo",
+    "title": "Neural-Immune Gene Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1539",
+    "sparql": [],
+    "triples": "81702"
+  },
+  {
+    "id": "bioportal-who",
+    "title": "WHO Adverse Reaction Terminology",
+    "website": "http://bioportal.bioontology.org/ontologies/1354",
+    "sparql": [],
+    "triples": "247707"
+  },
+  {
+    "id": "bioportal-nmr",
+    "title": "NMR-instrument specific component of metabolomics investigations",
+    "website": "http://bioportal.bioontology.org/ontologies/1033",
+    "sparql": [],
+    "triples": "1883"
+  },
+  {
+    "id": "bioportal-dc_cl",
+    "title": "Dendritic cell",
+    "website": "http://bioportal.bioontology.org/ontologies/1144",
+    "sparql": [],
+    "triples": "3004"
+  },
+  {
+    "id": "bioportal-ms",
+    "title": "Mass spectrometry",
+    "website": "http://bioportal.bioontology.org/ontologies/1105",
+    "sparql": [],
+    "triples": "20027"
+  },
+  {
+    "id": "eagle-i-montana",
+    "title": "eagle-i @ Montana State University",
+    "website": "http://montana.eagle-i.net",
+    "sparql": [
+      {
+        "title": "Sparql Endpoint",
+        "description": "Public Sparql endpoint allowing queries against the eagle-i dataset.\r\n\r\nTo obtain only instance data, use 'default-graph-uri=http://eagle-i.org/ont/repo/1.0/NG_Published'. To obtain instance data and ontology triples, use 'view=published' (eagle-i extension).\r\n\r\nDetailed API documentation:\r\nhttps://open.med.harvard.edu/display/eaglei/Repository+Design+Specification+and+API+Manual",
+        "access_url": "http://montana.eagle-i.net/sparqler/sparql",
+        "status": "FAIL (400)"
+      }
+    ],
+    "triples": "24000"
+  },
+  {
+    "id": "bioportal-ep",
+    "title": "Cardiac Electrophysiology Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1142",
+    "sparql": [],
+    "triples": "31827"
+  },
+  {
+    "id": "bioportal-air",
+    "title": "AI/RHEUM",
+    "website": "http://bioportal.bioontology.org/ontologies/1430",
+    "sparql": [],
+    "triples": "5528"
+  },
+  {
+    "id": "bioportal-go_x2",
+    "title": "Gene Ontology",
+    "website": "http://bioportal.bioontology.org/ontologies/1070",
+    "sparql": [],
+    "triples": "853791"
+  }
+]
