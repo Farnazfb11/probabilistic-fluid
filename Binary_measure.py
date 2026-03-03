@@ -2,6 +2,7 @@ import math
 from typing import Dict, Any, Set, Tuple, List
 
 import networkx as nx
+from typing import Optional
 
 from Unary_measure import (
     _entity_ids,       # V^E(S)
@@ -201,8 +202,8 @@ def earth_mover_distance(
     pkg_t: Dict[str, Any],
     pkg_tp1: Dict[str, Any],
     *,
-    deg_t: Dict[int, int] | None = None,
-    deg_tp1: Dict[int, int] | None = None,
+    deg_t: Optional[Dict[int, int]] = None,
+    deg_tp1: Optional[Dict[int, int]] = None,
 ) -> float:
     """
     CHANGED: accepts optional cached degree maps.
@@ -295,8 +296,8 @@ def _emd_min_cost_flow(
     pkg_t: Dict[str, Any],
     pkg_tp1: Dict[str, Any],
     *,
-    deg_t: Dict[int, int] | None = None,
-    deg_tp1: Dict[int, int] | None = None,
+    deg_t: Optional[Dict[int, int]] = None,
+    deg_tp1: Optional[Dict[int, int]] = None,
 ) -> float:
     """
     CHANGED: do not reconstruct NetworkX graphs when degrees can be computed from edges.
