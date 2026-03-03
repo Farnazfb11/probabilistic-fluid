@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Tuple, Optional
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 
 from save import load_summary_package
 from Binary_measure import (
@@ -118,11 +119,11 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
                 if compute_emd:
                     # CHANGED: pass cached degrees
                     # WHY: avoid rebuilding or recomputing anything per pair
+                    print(f"[emd] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
+                    t0 = time.perf_counter()
                     row["emd"] = float(earth_mover_distance(prev_pkg, pkg, deg_t=prev_deg, deg_tp1=curr_deg))
-
-                    # CHANGED: print per pair message with week name and number
-                    # WHY: progress tracking exactly as requested
-                    print(f"[emd] pair {pair_idx}: {prev_label} -> {label} | emd={row['emd']}")
+                    dt = time.perf_counter() - t0
+                    print(f"[emd] DONE  pair {pair_idx}: {prev_label} -> {label} | emd={row['emd']} | {dt:.1f}s", flush=True)
 
                 rows.append(row)
 

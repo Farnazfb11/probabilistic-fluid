@@ -246,29 +246,28 @@ def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
     """
     Compute total weighted degree per sid directly from pkg['edges'].
 
-    Uses the same meaning as the old code:
-    total degree = in(weight) + out(weight)
-
-    CHANGED: avoids NetworkX reconstruction for speed.
-    WHY: EMD only needs degrees, not full graph object.
+    total degree = in(count) + out(count)
+    Works with your JSON where edges is:
+      "edges": { "src->dst": {"src":..., "dst":..., "count":..., ...}, ... }
     """
     deg: Dict[int, int] = {}
 
+    # Prefill nodes so isolated nodes exist too
     nodes = pkg.get("nodes") or {}
     for sid in nodes.keys():
         deg[int(sid)] = 0
 
-    edges = pkg.get("edges")
+    edges = pkg.get("edges") or {}
     if not edges:
         raise ValueError(
-            "EMD(degree-based) requires saved summary edges, but pkg has no 'edges'. "
-            "Run summaries with include_edges=True."
+            "EMD requires pkg['edges'], but it's missing/empty. "
+            "Rebuild summaries with include_edges=True."
         )
 
-    for e in edges.items():
+    for e in edges.values():  # IMPORTANT: values()
         u = int(e["src"])
         v = int(e["dst"])
-        w = int(e.get("count", 0))
+        w = int(e.get("count", 1))
         deg[u] = deg.get(u, 0) + w
         deg[v] = deg.get(v, 0) + w
 
