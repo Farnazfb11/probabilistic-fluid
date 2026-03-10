@@ -544,7 +544,6 @@ def earth_mover_distance_signature(
         elif delta < 0:
             V_d[sid] = -delta
 
-    # No change
     if not V_d and not V_i:
         return 0.0
 
@@ -555,10 +554,11 @@ def earth_mover_distance_signature(
     source = "SOURCE"
     target = "TARGET"
 
+    # ONLY source and target carry node demands
     F.add_node(source, demand=-total_supply)
     F.add_node(target, demand=total_demand)
 
-    # balance if needed, same pattern as before
+    # If imbalance exists, add dummy node exactly like before
     if total_supply < total_demand:
         dummy_supply = "DUMMY_SUPPLY"
         missing = total_demand - total_supply
@@ -574,13 +574,13 @@ def earth_mover_distance_signature(
     # source -> supply nodes
     for sid, supply in V_d.items():
         nd = f"d_{sid}"
-        F.add_node(nd, demand=-int(supply))
+        F.add_node(nd)  # no demand here
         F.add_edge(source, nd, weight=0, capacity=int(supply))
 
     # demand nodes -> target
     for sid, demand in V_i.items():
         ni = f"i_{sid}"
-        F.add_node(ni, demand=int(demand))
+        F.add_node(ni)  # no demand here
         F.add_edge(ni, target, weight=0, capacity=int(demand))
 
     # supply -> demand with summary-field distance cost
