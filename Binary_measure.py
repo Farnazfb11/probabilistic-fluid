@@ -1,8 +1,7 @@
 import math
-from typing import Dict, Any, Set, Tuple, List
+from typing import Dict, Any, Set, Tuple, List, Optional
 
 import networkx as nx
-from typing import Optional
 
 from Unary_measure import (
     _entity_ids,       # V^E(S)
@@ -85,20 +84,6 @@ def graph_edit_distance_structural(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any
             class_edits += 1
 
     return edge_edits + class_edits
-
-
-
-def _get_incident_edges(graph: nx.DiGraph, sid: int) -> Set[Tuple[int, int]]:
-    """Get all edges where sid is either source or target."""
-    edges = set()
-    if sid in graph:
-        # Outgoing edges
-        for succ in graph.successors(sid):
-            edges.add((sid, succ))
-        # Incoming edges  
-        for pred in graph.predecessors(sid):
-            edges.add((pred, sid))
-    return edges
 
 
 # 3) Symmetric KL divergence - FIXED support sets to match paper
@@ -194,7 +179,7 @@ def symmetric_kl_divergence(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> f
     return D_t_tp1 + D_tp1_t
 
 
-# 4) Earth Mover's Distance - ENHANCED with proper flow network
+# 4) Earth Mover's Distance - ENHANCED with proper flow network - degree-based structural edit costs
 
 
 
@@ -368,3 +353,251 @@ def _emd_simplified(V_d: Dict[int, int], V_i: Dict[int, int]) -> float:
     
     # Each movement counted twice (leaving source, entering destination)
     return total_moved / 2.0
+
+# 5) signiture based EMD
+def _vcp_map(pkg: Dict[str, Any]) -> Dict[int, int]:
+    """
+    sid -> vcp (payload size)
+    """
+    nodes = pkg.get("nodes") or {}
+    return {int(sid): int(node.get("vcp", 0)) for sid, node in nodes.items()}
+
+
+def _safe_set(x: Any) -> Set[str]:
+    """
+    Convert JSON field to a clean set of strings.
+    """
+    if not x:
+        return set()
+    if isinstance(x, set):
+        return {str(v) for v in x}
+    if isinstance(x, (list, tuple)):
+        return {str(v) for v in x}
+    return {str(x)}
+
+
+def _pred_to_dst_types_set(node: Dict[str, Any]) -> Set[Tuple[str, str]]:
+    """
+    Convert
+      pred_to_dst_types = { pred: [dst1, dst2, ...], ... }
+    into a set of pairs:
+      { (pred, dst1), (pred, dst2), ... }
+
+    This lets us compare pred_to_dst_types like a normal set.
+    """
+    p2d = node.get("pred_to_dst_types") or {}
+    out: Set[Tuple[str, str]] = set()
+
+    if isinstance(p2d, dict):
+        for pred, dsts in p2d.items():
+            for dst in _safe_set(dsts):
+                out.add((str(pred), str(dst)))
+
+    return out
+
+
+def _node_field_sets(node: Dict[str, Any]) -> Dict[str, Set[Any]]:
+    """
+    Extract the 3 comparable set-valued fields from one summary node.
+    """
+    return {
+        "predicates": _safe_set(node.get("predicates")),
+        "types": _safe_set(node.get("types")),
+        "pred_to_dst_types": _pred_to_dst_types_set(node),
+    }
+
+
+def _symdiff_count(A: Set[Any], B: Set[Any]) -> int:
+    """
+    Difference count between two sets.
+    This is the size of the symmetric difference.
+    """
+    return len(A ^ B)
+
+
+def summary_field_distance(
+    node_i: Dict[str, Any],
+    node_j: Dict[str, Any],
+) -> float:
+    """
+    Your requested distance:
+
+    - Compare the corresponding fields:
+        predicates
+        types
+        pred_to_dst_types
+    - For each field, distance = |set_i - set_j| interpreted as symmetric difference count
+    - If only 1 field is active: d = that one difference count
+    - If 2 fields are active: d = average of the 2 difference counts
+    - If 3 fields are active: d = average of the 3 difference counts
+
+    "Active" means the field is non-empty in at least one of the two nodes.
+    If all 3 are empty on both sides, returns 0.
+    """
+    fi = _node_field_sets(node_i)
+    fj = _node_field_sets(node_j)
+
+    diffs = []
+
+    for key in ("pred_to_dst_types", "predicates", "types"):
+        A = fi[key]
+        B = fj[key]
+
+        # ignore fields that are empty on both sides
+        if not A and not B:
+            continue
+
+        diffs.append(_symdiff_count(A, B))
+
+    if not diffs:
+        return 0.0
+
+    return sum(diffs) / float(len(diffs))
+
+
+def _summary_field_distance_scaled(
+    node_i: Dict[str, Any],
+    node_j: Dict[str, Any],
+) -> int:
+    """
+    Integer scaled version of summary_field_distance for network_simplex.
+
+    Since the average is over 1, 2, or 3 fields, multiplying by 6 makes
+    the result integral in all cases.
+
+    scaled_cost = 6 * d
+    final EMD = flow_cost / 6
+    """
+    fi = _node_field_sets(node_i)
+    fj = _node_field_sets(node_j)
+
+    diffs = []
+
+    for key in ("pred_to_dst_types", "predicates", "types"):
+        A = fi[key]
+        B = fj[key]
+
+        if not A and not B:
+            continue
+
+        diffs.append(_symdiff_count(A, B))
+
+    if not diffs:
+        return 0
+
+    k = len(diffs)         # 1, 2, or 3
+    sumdiff = sum(diffs)
+
+    # 6 * average = 6 * sumdiff / k
+    return (6 * sumdiff) // k
+
+
+def _node_map(pkg: Dict[str, Any]) -> Dict[int, Dict[str, Any]]:
+    """
+    sid -> node_json
+    """
+    nodes = pkg.get("nodes") or {}
+    return {int(sid): node for sid, node in nodes.items()}
+
+
+def earth_mover_distance_signature(
+    pkg_t: Dict[str, Any],
+    pkg_tp1: Dict[str, Any],
+) -> float:
+    """
+    EMD using summary fields as distance.
+
+    Supply / demand:
+      derived from vcp differences, just like your previous EMD
+
+    Distance d(i,j):
+      average difference count across active fields among
+        predicates
+        types
+        pred_to_dst_types
+
+    Flow:
+      same min-cost-flow idea as before
+
+    IMPORTANT:
+      This requires FULL summaries (only_id=False),
+      because only_id summaries do not store the needed fields.
+    """
+    size_t = _vcp_map(pkg_t)
+    size_tp1 = _vcp_map(pkg_tp1)
+
+    nodes_t = _node_map(pkg_t)
+    nodes_tp1 = _node_map(pkg_tp1)
+
+    # Build supply and demand sets from payload change
+    V_d: Dict[int, int] = {}
+    V_i: Dict[int, int] = {}
+
+    all_sids = set(size_t.keys()) | set(size_tp1.keys())
+    for sid in all_sids:
+        s_t = size_t.get(sid, 0)
+        s_tp1 = size_tp1.get(sid, 0)
+        delta = s_tp1 - s_t
+
+        if delta > 0:
+            V_i[sid] = delta
+        elif delta < 0:
+            V_d[sid] = -delta
+
+    # No change
+    if not V_d and not V_i:
+        return 0.0
+
+    total_supply = int(sum(V_d.values()))
+    total_demand = int(sum(V_i.values()))
+
+    F = nx.DiGraph()
+    source = "SOURCE"
+    target = "TARGET"
+
+    F.add_node(source, demand=-total_supply)
+    F.add_node(target, demand=total_demand)
+
+    # balance if needed, same pattern as before
+    if total_supply < total_demand:
+        dummy_supply = "DUMMY_SUPPLY"
+        missing = total_demand - total_supply
+        F.add_node(dummy_supply, demand=-missing)
+        F.add_edge(dummy_supply, target, weight=1, capacity=missing)
+
+    elif total_demand < total_supply:
+        dummy_demand = "DUMMY_DEMAND"
+        extra = total_supply - total_demand
+        F.add_node(dummy_demand, demand=extra)
+        F.add_edge(source, dummy_demand, weight=1, capacity=extra)
+
+    # source -> supply nodes
+    for sid, supply in V_d.items():
+        nd = f"d_{sid}"
+        F.add_node(nd, demand=-int(supply))
+        F.add_edge(source, nd, weight=0, capacity=int(supply))
+
+    # demand nodes -> target
+    for sid, demand in V_i.items():
+        ni = f"i_{sid}"
+        F.add_node(ni, demand=int(demand))
+        F.add_edge(ni, target, weight=0, capacity=int(demand))
+
+    # supply -> demand with summary-field distance cost
+    cap = max(1, total_supply)
+
+    for sid_i in V_d.keys():
+        nd = f"d_{sid_i}"
+        node_i = nodes_t.get(sid_i, {})
+
+        for sid_j in V_i.keys():
+            ni = f"i_{sid_j}"
+            node_j = nodes_tp1.get(sid_j, {})
+
+            scaled_cost = _summary_field_distance_scaled(node_i, node_j)
+            F.add_edge(nd, ni, weight=scaled_cost, capacity=cap)
+
+    flow_cost, _ = nx.network_simplex(F)
+
+    # undo the x6 scaling
+    return float(flow_cost) / 6.0

@@ -14,8 +14,9 @@ from Binary_measure import (
     jaccard_edges,
     graph_edit_distance_structural,
     symmetric_kl_divergence,
-    earth_mover_distance_degree,  # ADDED: Import EMD
-    _degree_map_weighted_from_pkg
+    earth_mover_distance_degree,
+    earth_mover_distance_signature,
+    _degree_map_weighted_from_pkg,
 )
 
 
@@ -69,22 +70,21 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
 
 # collect pairwise (t, t+1) metrics
 
-def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str, Any]]:
+def collect_pairs(
+    input_dir: Path,
+    *,
+    compute_jac_v: bool = True,
+    compute_jac_e: bool = True,
+    compute_ged: bool = True,
+    compute_kld: bool = True,
+    emd_mode: str = "degree",   # "degree", "signature", "both", "none"
+) -> List[Dict[str, Any]]:
     files = sorted(input_dir.rglob("*.json"), key=_sort_key)
-    """
-    Stream through summaries in date order and compute binary metrics
-    only for consecutive pairs S_t, S_{t+1}, keeping at most two
-    packages in memory at any time.
-    """
+
     rows: List[Dict[str, Any]] = []
     prev_pkg: Optional[Dict[str, Any]] = None
     prev_label: Optional[str] = None
-
-    # CHANGED: cache degree maps so we do not recompute per pair
-    # WHY: you want degree based EMD without reconstructing graphs repeatedly
     prev_deg: Optional[Dict[int, int]] = None
-
-    # CHANGED: counter for consecutive pairs
     pair_idx = 0
 
     for fp in files:
@@ -96,9 +96,8 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
             print(f"[warn] skip {fp}: {e}")
             continue
 
-        # CHANGED: compute degree map once for this week, only if EMD enabled
         curr_deg: Optional[Dict[int, int]] = None
-        if compute_emd:
+        if emd_mode in ("degree", "both"):
             try:
                 curr_deg = _degree_map_weighted_from_pkg(pkg)
             except Exception as e:
@@ -110,20 +109,49 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
             try:
                 row = {
                     "label": label,
-                    "jac_v": float(jaccard_vertices(prev_pkg, pkg)),
-                    "jac_e": float(jaccard_edges(prev_pkg, pkg)),
-                    "ged":   float(graph_edit_distance_structural(prev_pkg, pkg)),
-                    "kld":   float(symmetric_kl_divergence(prev_pkg, pkg)),
                 }
 
-                if compute_emd:
-                    # CHANGED: pass cached degrees
-                    # WHY: avoid rebuilding or recomputing anything per pair
-                    print(f"[emd] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
+                if compute_jac_v:
+                    row["jac_v"] = float(jaccard_vertices(prev_pkg, pkg))
+
+                if compute_jac_e:
+                    row["jac_e"] = float(jaccard_edges(prev_pkg, pkg))
+
+                if compute_ged:
+                    row["ged"] = float(graph_edit_distance_structural(prev_pkg, pkg))
+
+                if compute_kld:
+                    row["kld"] = float(symmetric_kl_divergence(prev_pkg, pkg))
+
+                if emd_mode in ("degree", "both"):
+                    print(f"[emd-degree] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
                     t0 = time.perf_counter()
-                    row["emd"] = float(earth_mover_distance_degree(prev_pkg, pkg, deg_t=prev_deg, deg_tp1=curr_deg))
+                    row["emd_degree"] = float(
+                        earth_mover_distance_degree(
+                            prev_pkg, pkg,
+                            deg_t=prev_deg,
+                            deg_tp1=curr_deg
+                        )
+                    )
                     dt = time.perf_counter() - t0
-                    print(f"[emd] DONE  pair {pair_idx}: {prev_label} -> {label} | emd={row['emd']} | {dt:.1f}s", flush=True)
+                    print(
+                        f"[emd-degree] DONE  pair {pair_idx}: {prev_label} -> {label} "
+                        f"| emd_degree={row['emd_degree']} | {dt:.1f}s",
+                        flush=True
+                    )
+
+                if emd_mode in ("signature", "both"):
+                    print(f"[emd-signature] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
+                    t0 = time.perf_counter()
+                    row["emd_signature"] = float(
+                        earth_mover_distance_signature(prev_pkg, pkg)
+                    )
+                    dt = time.perf_counter() - t0
+                    print(
+                        f"[emd-signature] DONE  pair {pair_idx}: {prev_label} -> {label} "
+                        f"| emd_signature={row['emd_signature']} | {dt:.1f}s",
+                        flush=True
+                    )
 
                 rows.append(row)
 
@@ -132,7 +160,7 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
 
         prev_pkg = pkg
         prev_label = label
-        prev_deg = curr_deg  # CHANGED: carry forward cached degree map
+        prev_deg = curr_deg
 
     return rows
 
@@ -144,9 +172,20 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
         return
     csv_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fieldnames = ["label", "jac_v", "jac_e", "ged", "kld"]
-    if rows and "emd" in rows[0]:
-        fieldnames.append("emd")
+    fieldnames = ["label"]
+
+    if any("jac_v" in r for r in rows):
+        fieldnames.append("jac_v")
+    if any("jac_e" in r for r in rows):
+        fieldnames.append("jac_e")
+    if any("ged" in r for r in rows):
+        fieldnames.append("ged")
+    if any("kld" in r for r in rows):
+        fieldnames.append("kld")
+    if any("emd_degree" in r for r in rows):
+        fieldnames.append("emd_degree")
+    if any("emd_signature" in r for r in rows):
+        fieldnames.append("emd_signature")
 
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
@@ -235,9 +274,21 @@ def main():
         help="PDF filename for symmetric KL divergence.",
     )
     ap.add_argument(
-        "--emd-pdf",
-        default="emd_payload.pdf",
-        help="PDF filename for Earth Mover's Distance.",
+        "--emd-degree-pdf",
+        default="emd_degree.pdf",
+        help="PDF filename for degree-based EMD.",
+    )
+    ap.add_argument(
+        "--emd-signature-pdf",
+        default="emd_signature.pdf",
+        help="PDF filename for signature-based EMD.",
+    )
+
+    ap.add_argument(
+        "--emd-mode",
+        choices=["none", "degree", "signature", "both"],
+        default="degree",
+        help="Which EMD variant to compute.",
     )
 
     # titles
@@ -262,9 +313,14 @@ def main():
         help="Title for KLD plot.",
     )
     ap.add_argument(
-        "--title-emd",
-        default="Earth Mover's Distance over EQC Payloads (δ²_EMD)",
-        help="Title for EMD plot.",
+        "--title-emd-degree",
+        default="Earth Mover's Distance over EQC Payloads (Degree-based)",
+        help="Title for degree-based EMD plot.",
+    )
+    ap.add_argument(
+        "--title-emd-signature",
+        default="Earth Mover's Distance over EQC Payloads (Signature-based)",
+        help="Title for signature-based EMD plot.",
     )
 
     ap.add_argument(
@@ -276,7 +332,7 @@ def main():
 
     ap.add_argument(
         "--csv",
-        help="(Optional) write a CSV with label, jac_v, jac_e, ged, kld, emd.",
+        help="(Optional) write a CSV with label, jac_v, jac_e, ged, kld, emd_degree, emd_signature.",
     )
 
     # optional skip flags
@@ -284,11 +340,20 @@ def main():
     ap.add_argument("--no-jac-e", action="store_true", help="Skip Jaccard-edges PDF.")
     ap.add_argument("--no-ged",   action="store_true", help="Skip GED PDF.")
     ap.add_argument("--no-kld",   action="store_true", help="Skip KLD PDF.")
-    ap.add_argument("--no-emd",   action="store_true", help="Skip EMD PDF.")
+    ap.add_argument("--no-emd",   action="store_true", help="Skip all EMD PDFs.")
 
     args = ap.parse_args()
 
-    rows = collect_pairs(Path(args.input_dir), compute_emd=(not args.no_emd))
+    emd_mode = "none" if args.no_emd else args.emd_mode
+
+    rows = collect_pairs(
+        Path(args.input_dir),
+        compute_jac_v=(not args.no_jac_v),
+        compute_jac_e=(not args.no_jac_e),
+        compute_ged=(not args.no_ged),
+        compute_kld=(not args.no_kld),
+        emd_mode=emd_mode,
+    )
     if not rows:
         print("[info] Not enough summaries or all pairs failed to compute.")
         return
@@ -338,15 +403,29 @@ def main():
             max_xticks=args.max_xticks,
         )
 
-    if not args.no_emd:
-        _plot_metric(
-            rows,
-            key="emd",
-            ylabel="δ²_EMD (entity movement cost)",
-            title=args.title_emd,
-            out_pdf=out_dir / args.emd_pdf,
-            max_xticks=args.max_xticks,
-        )
+    has_emd_degree = any("emd_degree" in r for r in rows)
+    has_emd_signature = any("emd_signature" in r for r in rows)
+
+    if not args.no_emd and rows:
+        if has_emd_degree:
+            _plot_metric(
+                rows,
+                key="emd_degree",
+                ylabel="δ²_EMD (degree-based cost)",
+                title=args.title_emd_degree,
+                out_pdf=out_dir / args.emd_degree_pdf,
+                max_xticks=args.max_xticks,
+            )
+
+        if has_emd_signature:
+            _plot_metric(
+                rows,
+                key="emd_signature",
+                ylabel="δ²_EMD (signature-field cost)",
+                title=args.title_emd_signature,
+                out_pdf=out_dir / args.emd_signature_pdf,
+                max_xticks=args.max_xticks,
+            )
 
     print(f"\n[done] All metrics computed for {len(rows)} consecutive pairs.")
 
