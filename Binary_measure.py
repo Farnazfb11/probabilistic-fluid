@@ -198,7 +198,7 @@ def symmetric_kl_divergence(pkg_t: Dict[str, Any], pkg_tp1: Dict[str, Any]) -> f
 
 
 
-def earth_mover_distance(
+def earth_mover_distance_degree(
     pkg_t: Dict[str, Any],
     pkg_tp1: Dict[str, Any],
     *,
@@ -233,15 +233,6 @@ def earth_mover_distance(
         return _emd_min_cost_flow(V_d, V_i, pkg_t, pkg_tp1, deg_t=deg_t, deg_tp1=deg_tp1)
     except (nx.NetworkXError, nx.NetworkXUnfeasible, Exception):
         return _emd_simplified(V_d, V_i)
-
-
-
-def _degree_map_weighted(G: nx.DiGraph) -> Dict[int, int]:
-    # total degree = in + out (weighted)
-    deg: Dict[int, int] = {}
-    for n in G.nodes:
-        deg[int(n)] = int(G.in_degree(n, weight="weight") + G.out_degree(n, weight="weight"))
-    return deg
 
 def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
     """

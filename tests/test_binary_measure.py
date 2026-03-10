@@ -6,7 +6,7 @@ from Binary_measure import (
     jaccard_edges,
     graph_edit_distance_structural,
     symmetric_kl_divergence,
-    earth_mover_distance,
+    earth_mover_distance_degree,
 )
 
 
@@ -386,12 +386,12 @@ class TestEarthMoverDistance:
     
     def test_identical_distributions(self, pkg_two_classes_no_edges):
         """Identical distributions → EMD = 0."""
-        result = earth_mover_distance(pkg_two_classes_no_edges, pkg_two_classes_no_edges)
+        result = earth_mover_distance_degree(pkg_two_classes_no_edges, pkg_two_classes_no_edges)
         assert result == 0.0
     
     def test_no_change(self, pkg_single_class):
         """No change in sizes → EMD = 0."""
-        result = earth_mover_distance(pkg_single_class, pkg_single_class)
+        result = earth_mover_distance_degree(pkg_single_class, pkg_single_class)
         assert result == 0.0
     
     def test_payload_shift_same_class(self):
@@ -404,7 +404,7 @@ class TestEarthMoverDistance:
             "nodes": {"1": {"vcp": 100}},  # Same size
             "edges": []
         }
-        result = earth_mover_distance(pkg_t, pkg_tp1)
+        result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         assert result == 0.0
     
     def test_payload_moved_between_classes(self):
@@ -417,7 +417,7 @@ class TestEarthMoverDistance:
             "nodes": {"1": {"vcp": 60}, "2": {"vcp": 40}},
             "edges": []
         }
-        result = earth_mover_distance(pkg_t, pkg_tp1)
+        result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 1 to class 2
         # With simplified uniform distance: should be 20
         assert result == 20.0
@@ -432,7 +432,7 @@ class TestEarthMoverDistance:
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
             "edges": []
         }
-        result = earth_mover_distance(pkg_t, pkg_tp1)
+        result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 1 to new class 2
         assert result == 20.0
     
@@ -446,7 +446,7 @@ class TestEarthMoverDistance:
             "nodes": {"1": {"vcp": 100}},
             "edges": []
         }
-        result = earth_mover_distance(pkg_t, pkg_tp1)
+        result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 2 to class 1
         assert result == 20.0
     
@@ -468,7 +468,7 @@ class TestEarthMoverDistance:
             },
             "edges": []
         }
-        result = earth_mover_distance(pkg_t, pkg_tp1)
+        result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # Total movement: 20 entities redistributed
         assert result == 20.0
     
@@ -482,8 +482,8 @@ class TestEarthMoverDistance:
             "nodes": {"1": {"vcp": 40}, "2": {"vcp": 60}},
             "edges": []
         }
-        emd_forward = earth_mover_distance(pkg_t, pkg_tp1)
-        emd_backward = earth_mover_distance(pkg_tp1, pkg_t)
+        emd_forward = earth_mover_distance_degree(pkg_t, pkg_tp1)
+        emd_backward = earth_mover_distance_degree(pkg_tp1, pkg_t)
         assert abs(emd_forward - emd_backward) < 1e-9
 
 
@@ -501,7 +501,7 @@ class TestIntegration:
         assert jaccard_edges(pkg, pkg) == 0.0
         assert graph_edit_distance_structural(pkg, pkg) == 0
         assert symmetric_kl_divergence(pkg, pkg) == 0.0
-        assert earth_mover_distance(pkg, pkg) == 0.0
+        assert earth_mover_distance_degree(pkg, pkg) == 0.0
     
     def test_metrics_increase_with_change(self):
         """As changes increase, most metrics should increase."""
@@ -531,8 +531,8 @@ class TestIntegration:
         assert jac_large > jac_small
         
         # EMD
-        emd_small = earth_mover_distance(pkg_t, pkg_small)
-        emd_large = earth_mover_distance(pkg_t, pkg_large)
+        emd_small = earth_mover_distance_degree(pkg_t, pkg_small)
+        emd_large = earth_mover_distance_degree(pkg_t, pkg_large)
         assert emd_large > emd_small
 
 

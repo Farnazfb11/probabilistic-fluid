@@ -14,7 +14,7 @@ from Binary_measure import (
     jaccard_edges,
     graph_edit_distance_structural,
     symmetric_kl_divergence,
-    earth_mover_distance,  # ADDED: Import EMD
+    earth_mover_distance_degree,  # ADDED: Import EMD
     _degree_map_weighted_from_pkg
 )
 
@@ -121,7 +121,7 @@ def collect_pairs(input_dir: Path, *, compute_emd: bool = True) -> List[Dict[str
                     # WHY: avoid rebuilding or recomputing anything per pair
                     print(f"[emd] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
                     t0 = time.perf_counter()
-                    row["emd"] = float(earth_mover_distance(prev_pkg, pkg, deg_t=prev_deg, deg_tp1=curr_deg))
+                    row["emd"] = float(earth_mover_distance_degree(prev_pkg, pkg, deg_t=prev_deg, deg_tp1=curr_deg))
                     dt = time.perf_counter() - t0
                     print(f"[emd] DONE  pair {pair_idx}: {prev_label} -> {label} | emd={row['emd']} | {dt:.1f}s", flush=True)
 
