@@ -7,6 +7,7 @@ from Binary_measure import (
     graph_edit_distance_structural,
     symmetric_kl_divergence,
     earth_mover_distance_degree,
+    earth_mover_distance_signature,
 )
 
 
@@ -571,3 +572,377 @@ class TestEdgeCases:
         assert jaccard_vertices(pkg, pkg) == 0.0
         assert graph_edit_distance_structural(pkg, pkg) == 0
         assert symmetric_kl_divergence(pkg, pkg) == 0.0
+
+# ============================================================================
+# SIGNATURE-BASED EARTH MOVER'S DISTANCE TESTS
+# ============================================================================
+
+class TestEarthMoverDistanceSignature:
+
+    def test_identical_signatures_zero(self):
+        """Identical full summaries -> signature EMD = 0."""
+        pkg = {
+            "nodes": {
+                "1": {
+                    "vcp": 50,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"], "p2": ["Y"]},
+                },
+                "2": {
+                    "vcp": 50,
+                    "predicates": ["p3"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg, pkg)
+        assert result == 0.0
+
+    def test_payload_moves_between_identical_signatures_zero_cost(self):
+        """
+        Payload moves from class 1 to class 2, but both classes have identical signatures.
+        So transport cost is 0.
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert result == 0.0
+
+    def test_payload_moves_between_different_signatures_nonzero_cost(self):
+        """
+        Class 1 loses 20, class 2 gains 20.
+
+        class1 sig:
+          predicates = {p1,p2}
+          types = {T1}
+          p2d = {(p1,X)}
+
+        class2 sig:
+          predicates = {p3}
+          types = {}
+          p2d = {}
+
+        Field diffs:
+          p2d diff = 1
+          predicates diff = 3
+          types diff = 1
+
+        average distance = (1 + 3 + 1) / 3 = 5/3
+        moved payload = 20
+        expected EMD = 20 * 5/3 = 100/3
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": ["p3"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": ["p3"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert abs(result - (100.0 / 3.0)) < 1e-9
+
+    def test_one_active_field_predicates_only(self):
+        """
+        Only predicates are active.
+
+        {p1,p2} vs {p1,p3} -> symmetric diff = {p2,p3} -> 2
+        moved payload = 20
+        expected EMD = 20 * 2 = 40
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": ["p1", "p2"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": ["q"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": ["p1", "p2"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": ["p1", "p3"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert result == 40.0
+
+    def test_two_active_fields_average_cost(self):
+        """
+        Predicates and types are active, p2d empty on both sides.
+
+        predicates: {p1,p2} vs {p1,p3} -> diff = 2
+        types:      {T1}    vs {T2}    -> diff = 2
+
+        average distance = (2 + 2) / 2 = 2
+        moved payload = 20
+        expected EMD = 40
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": ["q"],
+                    "types": ["QType"],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": ["p1", "p3"],
+                    "types": ["T2"],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert result == 40.0
+
+    def test_three_active_fields_average_cost(self):
+        """
+        All 3 fields active.
+
+        predicates:
+          {p1,p2} vs {p1,p3} -> diff = 2
+
+        types:
+          {T1} vs {T2} -> diff = 2
+
+        pred_to_dst_types:
+          {(p1,X)} vs {(p1,Y),(p2,Z)} -> diff = 3
+
+        average distance = (2 + 2 + 3) / 3 = 7/3
+        moved payload = 20
+        expected EMD = 20 * 7/3
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": ["q"],
+                    "types": ["QType"],
+                    "pred_to_dst_types": {"q": ["QDst"]},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": ["p1", "p3"],
+                    "types": ["T2"],
+                    "pred_to_dst_types": {"p1": ["Y"], "p2": ["Z"]},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert abs(result - (20.0 * 7.0 / 3.0)) < 1e-9
+
+    def test_empty_fields_on_both_sides_give_zero_field_cost(self):
+        """
+        All fields empty on both sides -> field distance 0.
+        So payload movement between these buckets costs 0.
+        """
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 80,
+                    "predicates": [],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 20,
+                    "predicates": [],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 60,
+                    "predicates": [],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+                "2": {
+                    "vcp": 40,
+                    "predicates": [],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        result = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        assert result == 0.0
+
+    def test_symmetry_property(self):
+        """Signature EMD should be symmetric."""
+        pkg_t = {
+            "nodes": {
+                "1": {
+                    "vcp": 70,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 30,
+                    "predicates": ["q1"],
+                    "types": [],
+                    "pred_to_dst_types": {},
+                },
+            },
+            "edges": {},
+        }
+
+        pkg_tp1 = {
+            "nodes": {
+                "1": {
+                    "vcp": 40,
+                    "predicates": ["p1", "p2"],
+                    "types": ["T1"],
+                    "pred_to_dst_types": {"p1": ["X"]},
+                },
+                "2": {
+                    "vcp": 60,
+                    "predicates": ["p3"],
+                    "types": ["T2"],
+                    "pred_to_dst_types": {"p3": ["Y"]},
+                },
+            },
+            "edges": {},
+        }
+
+        emd_forward = earth_mover_distance_signature(pkg_t, pkg_tp1)
+        emd_backward = earth_mover_distance_signature(pkg_tp1, pkg_t)
+        assert abs(emd_forward - emd_backward) < 1e-9

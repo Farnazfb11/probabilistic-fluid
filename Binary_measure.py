@@ -1,6 +1,6 @@
 import math
 from typing import Dict, Any, Set, Tuple, List, Optional
-
+from typing import FrozenSet
 import networkx as nx
 
 from Unary_measure import (
@@ -355,6 +355,13 @@ def _emd_simplified(V_d: Dict[int, int], V_i: Dict[int, int]) -> float:
     return total_moved / 2.0
 
 # 5) signiture based EMD
+EMPTY_SIG = {
+    "predicates": frozenset(),
+    "types": frozenset(),
+    "pred_to_dst_types": frozenset(),
+}
+
+
 def _vcp_map(pkg: Dict[str, Any]) -> Dict[int, int]:
     """
     sid -> vcp (payload size)
@@ -382,8 +389,6 @@ def _pred_to_dst_types_set(node: Dict[str, Any]) -> Set[Tuple[str, str]]:
       pred_to_dst_types = { pred: [dst1, dst2, ...], ... }
     into a set of pairs:
       { (pred, dst1), (pred, dst2), ... }
-
-    This lets us compare pred_to_dst_types like a normal set.
     """
     p2d = node.get("pred_to_dst_types") or {}
     out: Set[Tuple[str, str]] = set()
@@ -396,108 +401,65 @@ def _pred_to_dst_types_set(node: Dict[str, Any]) -> Set[Tuple[str, str]]:
     return out
 
 
-def _node_field_sets(node: Dict[str, Any]) -> Dict[str, Set[Any]]:
+def _build_signature_sets(
+    node: Dict[str, Any],
+) -> Dict[str, FrozenSet[Any]]:
     """
-    Extract the 3 comparable set-valued fields from one summary node.
+    CHANGED: build normalized set-valued signature fields once.
+    WHY: avoid rebuilding the same sets in every pairwise comparison.
     """
     return {
-        "predicates": _safe_set(node.get("predicates")),
-        "types": _safe_set(node.get("types")),
-        "pred_to_dst_types": _pred_to_dst_types_set(node),
+        "predicates": frozenset(_safe_set(node.get("predicates"))),
+        "types": frozenset(_safe_set(node.get("types"))),
+        "pred_to_dst_types": frozenset(_pred_to_dst_types_set(node)),
     }
 
 
-def _symdiff_count(A: Set[Any], B: Set[Any]) -> int:
+def _build_signature_key(
+    sig_sets: Dict[str, FrozenSet[Any]],
+) -> Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]]:
     """
-    Difference count between two sets.
-    This is the size of the symmetric difference.
+    CHANGED: canonical immutable key for grouping equal signatures.
+    WHY: lets us aggregate flow by signature instead of by sid.
     """
-    return len(A ^ B)
+    return (
+        sig_sets["predicates"],
+        sig_sets["types"],
+        sig_sets["pred_to_dst_types"],
+    )
 
 
-def summary_field_distance(
-    node_i: Dict[str, Any],
-    node_j: Dict[str, Any],
-) -> float:
-    """
-    Your requested distance:
-
-    - Compare the corresponding fields:
-        predicates
-        types
-        pred_to_dst_types
-    - For each field, distance = |set_i - set_j| interpreted as symmetric difference count
-    - If only 1 field is active: d = that one difference count
-    - If 2 fields are active: d = average of the 2 difference counts
-    - If 3 fields are active: d = average of the 3 difference counts
-
-    "Active" means the field is non-empty in at least one of the two nodes.
-    If all 3 are empty on both sides, returns 0.
-    """
-    fi = _node_field_sets(node_i)
-    fj = _node_field_sets(node_j)
-
-    diffs = []
-
-    for key in ("pred_to_dst_types", "predicates", "types"):
-        A = fi[key]
-        B = fj[key]
-
-        # ignore fields that are empty on both sides
-        if not A and not B:
-            continue
-
-        diffs.append(_symdiff_count(A, B))
-
-    if not diffs:
-        return 0.0
-
-    return sum(diffs) / float(len(diffs))
-
-
-def _summary_field_distance_scaled(
-    node_i: Dict[str, Any],
-    node_j: Dict[str, Any],
+def _summary_field_distance_scaled_cached(
+    sig_i: Dict[str, FrozenSet[Any]],
+    sig_j: Dict[str, FrozenSet[Any]],
 ) -> int:
     """
-    Integer scaled version of summary_field_distance for network_simplex.
+    Integer scaled version of the summary field distance.
 
-    Since the average is over 1, 2, or 3 fields, multiplying by 6 makes
-    the result integral in all cases.
+    Same logic as before:
+    - compare predicates, types, pred_to_dst_types
+    - ignore fields empty on both sides
+    - average over active fields
+    - multiply by 6 so result is integral
 
-    scaled_cost = 6 * d
-    final EMD = flow_cost / 6
+    CHANGED: accepts already-built signature sets.
+    WHY: avoid repeated JSON -> set conversion inside the O(|V_d|*|V_i|) loop.
     """
-    fi = _node_field_sets(node_i)
-    fj = _node_field_sets(node_j)
-
     diffs = []
 
     for key in ("pred_to_dst_types", "predicates", "types"):
-        A = fi[key]
-        B = fj[key]
+        A = sig_i[key]
+        B = sig_j[key]
 
         if not A and not B:
             continue
 
-        diffs.append(_symdiff_count(A, B))
+        diffs.append(len(A ^ B))
 
     if not diffs:
         return 0
 
-    k = len(diffs)         # 1, 2, or 3
-    sumdiff = sum(diffs)
-
-    # 6 * average = 6 * sumdiff / k
-    return (6 * sumdiff) // k
-
-
-def _node_map(pkg: Dict[str, Any]) -> Dict[int, Dict[str, Any]]:
-    """
-    sid -> node_json
-    """
-    nodes = pkg.get("nodes") or {}
-    return {int(sid): node for sid, node in nodes.items()}
+    return (6 * sum(diffs)) // len(diffs)
 
 
 def earth_mover_distance_signature(
@@ -505,99 +467,193 @@ def earth_mover_distance_signature(
     pkg_tp1: Dict[str, Any],
 ) -> float:
     """
-    EMD using summary fields as distance.
+    Faster signature-based EMD.
 
-    Supply / demand:
-      derived from vcp differences, just like your previous EMD
+    SAME METRIC IDEA:
+    - supply / demand comes from vcp differences
+    - transport cost comes from average fieldwise signature difference
+    - min cost flow still computes the optimal transport
 
-    Distance d(i,j):
-      average difference count across active fields among
-        predicates
-        types
-        pred_to_dst_types
+    CHANGED:
+    1) precompute signatures once
+    2) aggregate by signature
+    3) cancel zero-cost identical-signature transport before flow
+    4) cache pairwise signature costs
 
-    Flow:
-      same min-cost-flow idea as before
-
-    IMPORTANT:
-      This requires FULL summaries (only_id=False),
-      because only_id summaries do not store the needed fields.
+    WHY:
+    The old version built a dense sid-to-sid flow problem and recomputed
+    the same signature fields many times. This version shrinks the flow
+    graph to unique changed signatures only.
     """
     size_t = _vcp_map(pkg_t)
     size_tp1 = _vcp_map(pkg_tp1)
 
-    nodes_t = _node_map(pkg_t)
-    nodes_tp1 = _node_map(pkg_tp1)
+    raw_nodes_t = pkg_t.get("nodes") or {}
+    raw_nodes_tp1 = pkg_tp1.get("nodes") or {}
 
-    # Build supply and demand sets from payload change
-    V_d: Dict[int, int] = {}
-    V_i: Dict[int, int] = {}
+    # CHANGED: precompute normalized signature sets and immutable keys once
+    # WHY: repeated extraction inside the nested loop was costly
+    sig_sets_t: Dict[int, Dict[str, FrozenSet[Any]]] = {}
+    sig_key_t: Dict[int, Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]]] = {}
+
+    for sid_str, node in raw_nodes_t.items():
+        sid = int(sid_str)
+        sig = _build_signature_sets(node)
+        sig_sets_t[sid] = sig
+        sig_key_t[sid] = _build_signature_key(sig)
+
+    sig_sets_tp1: Dict[int, Dict[str, FrozenSet[Any]]] = {}
+    sig_key_tp1: Dict[int, Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]]] = {}
+
+    for sid_str, node in raw_nodes_tp1.items():
+        sid = int(sid_str)
+        sig = _build_signature_sets(node)
+        sig_sets_tp1[sid] = sig
+        sig_key_tp1[sid] = _build_signature_key(sig)
+
+    # CHANGED: aggregate changed mass by signature key instead of sid
+    # WHY: many sids may share the exact same signature, so they are
+    # indistinguishable for this transport cost
+    supply_by_sig: Dict[
+        Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]], int
+    ] = {}
+    demand_by_sig: Dict[
+        Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]], int
+    ] = {}
+
+    # Representative signature-sets per key, used for cost computation
+    rep_sig_t: Dict[
+        Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]],
+        Dict[str, FrozenSet[Any]]
+    ] = {}
+    rep_sig_tp1: Dict[
+        Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]],
+        Dict[str, FrozenSet[Any]]
+    ] = {}
 
     all_sids = set(size_t.keys()) | set(size_tp1.keys())
+
     for sid in all_sids:
         s_t = size_t.get(sid, 0)
         s_tp1 = size_tp1.get(sid, 0)
         delta = s_tp1 - s_t
 
-        if delta > 0:
-            V_i[sid] = delta
-        elif delta < 0:
-            V_d[sid] = -delta
+        if delta < 0:
+            key_t = sig_key_t.get(sid)
+            if key_t is None:
+                key_t = _build_signature_key(EMPTY_SIG)
+                rep_sig_t[key_t] = EMPTY_SIG
+            else:
+                rep_sig_t[key_t] = sig_sets_t[sid]
 
-    if not V_d and not V_i:
+            supply_by_sig[key_t] = supply_by_sig.get(key_t, 0) + (-delta)
+
+        elif delta > 0:
+            key_tp1 = sig_key_tp1.get(sid)
+            if key_tp1 is None:
+                key_tp1 = _build_signature_key(EMPTY_SIG)
+                rep_sig_tp1[key_tp1] = EMPTY_SIG
+            else:
+                rep_sig_tp1[key_tp1] = sig_sets_tp1[sid]
+
+            demand_by_sig[key_tp1] = demand_by_sig.get(key_tp1, 0) + delta
+
+    if not supply_by_sig and not demand_by_sig:
         return 0.0
 
-    total_supply = int(sum(V_d.values()))
-    total_demand = int(sum(V_i.values()))
+    # CHANGED: cancel identical signatures first
+    # WHY: transport between exactly equal signatures has cost 0, so we
+    # should remove that mass before building the expensive flow graph
+    common_keys = set(supply_by_sig.keys()) & set(demand_by_sig.keys())
+    for key in list(common_keys):
+        matched = min(supply_by_sig[key], demand_by_sig[key])
+
+        if matched > 0:
+            supply_by_sig[key] -= matched
+            demand_by_sig[key] -= matched
+
+            if supply_by_sig[key] == 0:
+                del supply_by_sig[key]
+            if demand_by_sig[key] == 0:
+                del demand_by_sig[key]
+
+    if not supply_by_sig and not demand_by_sig:
+        return 0.0
+
+    total_supply = int(sum(supply_by_sig.values()))
+    total_demand = int(sum(demand_by_sig.values()))
 
     F = nx.DiGraph()
     source = "SOURCE"
     target = "TARGET"
 
-    # ONLY source and target carry node demands
     F.add_node(source, demand=-total_supply)
     F.add_node(target, demand=total_demand)
 
-    # If imbalance exists, add dummy node exactly like before
+    # Keep same imbalance handling logic, but scaled consistently by 6
     if total_supply < total_demand:
         dummy_supply = "DUMMY_SUPPLY"
         missing = total_demand - total_supply
         F.add_node(dummy_supply, demand=-missing)
-        F.add_edge(dummy_supply, target, weight=1, capacity=missing)
+
+        # CHANGED: weight=6 instead of 1
+        # WHY: all real transport costs are scaled by 6, so dummy penalty
+        # should live on the same scale before dividing final cost by 6
+        F.add_edge(dummy_supply, target, weight=6, capacity=missing)
 
     elif total_demand < total_supply:
         dummy_demand = "DUMMY_DEMAND"
         extra = total_supply - total_demand
         F.add_node(dummy_demand, demand=extra)
-        F.add_edge(source, dummy_demand, weight=1, capacity=extra)
+
+        # CHANGED: weight=6 instead of 1
+        # WHY: same reason as above
+        F.add_edge(source, dummy_demand, weight=6, capacity=extra)
+
+    supply_keys = list(supply_by_sig.keys())
+    demand_keys = list(demand_by_sig.keys())
 
     # source -> supply nodes
-    for sid, supply in V_d.items():
-        nd = f"d_{sid}"
-        F.add_node(nd)  # no demand here
-        F.add_edge(source, nd, weight=0, capacity=int(supply))
+    for idx, sig_key in enumerate(supply_keys):
+        nd = f"d_{idx}"
+        F.add_node(nd)
+        F.add_edge(source, nd, weight=0, capacity=int(supply_by_sig[sig_key]))
 
     # demand nodes -> target
-    for sid, demand in V_i.items():
-        ni = f"i_{sid}"
-        F.add_node(ni)  # no demand here
-        F.add_edge(ni, target, weight=0, capacity=int(demand))
+    for idx, sig_key in enumerate(demand_keys):
+        ni = f"i_{idx}"
+        F.add_node(ni)
+        F.add_edge(ni, target, weight=0, capacity=int(demand_by_sig[sig_key]))
 
-    # supply -> demand with summary-field distance cost
-    cap = max(1, total_supply)
+    # CHANGED: much smaller bipartite graph, now unique-signature to unique-signature
+    # WHY: this is the main runtime win
+    cap = max(1, min(total_supply, total_demand))
 
-    for sid_i in V_d.keys():
-        nd = f"d_{sid_i}"
-        node_i = nodes_t.get(sid_i, {})
+    # CHANGED: pairwise cost cache
+    # WHY: compute each unique signature-pair distance only once
+    cost_cache: Dict[
+        Tuple[
+            Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]],
+            Tuple[FrozenSet[Any], FrozenSet[Any], FrozenSet[Any]],
+        ],
+        int
+    ] = {}
 
-        for sid_j in V_i.keys():
-            ni = f"i_{sid_j}"
-            node_j = nodes_tp1.get(sid_j, {})
+    for i, skey in enumerate(supply_keys):
+        nd = f"d_{i}"
+        sig_i = rep_sig_t.get(skey, EMPTY_SIG)
 
-            scaled_cost = _summary_field_distance_scaled(node_i, node_j)
-            F.add_edge(nd, ni, weight=scaled_cost, capacity=cap)
+        for j, dkey in enumerate(demand_keys):
+            ni = f"i_{j}"
+
+            pair = (skey, dkey)
+            if pair not in cost_cache:
+                sig_j = rep_sig_tp1.get(dkey, EMPTY_SIG)
+                cost_cache[pair] = _summary_field_distance_scaled_cached(sig_i, sig_j)
+
+            F.add_edge(nd, ni, weight=cost_cache[pair], capacity=cap)
 
     flow_cost, _ = nx.network_simplex(F)
 
-    # undo the x6 scaling
+    # undo x6 scaling
     return float(flow_cost) / 6.0
