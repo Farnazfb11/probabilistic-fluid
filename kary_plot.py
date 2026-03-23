@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 from typing import List, Tuple
 
@@ -69,9 +68,11 @@ def add_kary_columns(
 ) -> pd.DataFrame:
     """
     CHANGED: derive k-ary columns from existing binary scores
-    WHY: your Excel already has pairwise Jaccard scores, so no need to recompute from JSONs
+    WHY: your input table already has pairwise metric scores, so no need to recompute from JSONs
 
     For k snapshots, we aggregate over k-1 consecutive binary distances.
+    The rolling mean is backward-looking:
+    at row i, it uses the current row and the previous window-1 rows.
     """
     out = df.copy()
 
@@ -121,7 +122,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.2,
         label="Binary",
-        color = "#ffc508",
+        color="#ffc508",
     )
 
     sns.lineplot(
@@ -130,7 +131,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.4,
         label="k=4 softening",
-        color = "#37c71a",
+        color="#37c71a",
     )
 
     sns.lineplot(
@@ -139,7 +140,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.4,
         label="k=12 trend",
-        color = "#091be0",
+        color="#091be0",
     )
 
     ax.set_title(title, fontsize=14, fontweight="bold")
@@ -178,6 +179,32 @@ def _write_table(df: pd.DataFrame, out_path: Path):
     print(f"[ok] Table: {out_path}")
 
 
+def _metric_title(metric: str) -> str:
+    """
+    CHANGED: automatic titles for each metric
+    WHY: lets one run create all requested plots without manually repeating titles
+    """
+    mapping = {
+        "jac_v": "Binary and k-ary Jaccard Distance over Entity Vertices",
+        "jac_e": "Binary and k-ary Jaccard Distance over Superedges",
+        "emd": "Binary and k-ary Earth Mover's Distance",
+    }
+    return mapping.get(metric, f"Binary and k-ary {metric}")
+
+
+def _metric_ylabel(metric: str) -> str:
+    """
+    CHANGED: automatic y-axis labels for each metric
+    WHY: keeps output plots readable and metric-specific
+    """
+    mapping = {
+        "jac_v": "δ²_JacV",
+        "jac_e": "δ²_JacE",
+        "emd": "δ²_EMD",
+    }
+    return mapping.get(metric, metric)
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Create k-ary softening/trend curves from an existing Excel/CSV table of binary scores."
@@ -185,18 +212,23 @@ def main():
     ap.add_argument(
         "-i", "--input",
         required=True,
-        help="Excel or CSV file containing at least a label column and a binary score column."
+        help="Excel or CSV file containing at least a label column and one or more binary score columns."
     )
     ap.add_argument(
         "--label-col",
         default="label",
         help="Column containing timestep labels, e.g. dates."
     )
+
+    # CHANGED: list of metrics instead of a single score column
+    # WHY: you want jac_v, jac_e, and emd in one run
     ap.add_argument(
-        "--score-col",
-        default="jac_v",
-        help="Column containing the binary score to aggregate, e.g. jac_v."
+        "--score-cols",
+        nargs="+",
+        default=["jac_v", "jac_e", "emd"],
+        help="One or more binary score columns to aggregate, e.g. jac_v jac_e emd."
     )
+
     ap.add_argument(
         "--k-soft",
         type=int,
@@ -211,24 +243,18 @@ def main():
     )
     ap.add_argument(
         "--out-table",
-        default="results_kary/jaccard_with_kary.xlsx",
-        help="Output Excel/CSV file with added k-ary columns."
+        default="results_kary/kary_metrics.csv",
+        help="Output Excel/CSV file with added k-ary columns for all selected metrics."
     )
+
+    # CHANGED: output directory instead of one PDF path
+    # WHY: one run now creates one PDF per metric
     ap.add_argument(
-        "--out-pdf",
-        default="results_kary/jaccard_kary.pdf",
-        help="Output PDF plot."
+        "--out-dir",
+        default="results_kary",
+        help="Output directory for generated PDFs."
     )
-    ap.add_argument(
-        "--title",
-        default="Binary and k-ary Jaccard Distance over Entity Vertices",
-        help="Plot title."
-    )
-    ap.add_argument(
-        "--ylabel",
-        default="δ_JacV",
-        help="Y-axis label."
-    )
+
     ap.add_argument(
         "--max-xticks",
         type=int,
@@ -240,40 +266,52 @@ def main():
 
     in_path = Path(args.input)
     out_table = Path(args.out_table)
-    out_pdf = Path(args.out_pdf)
+    out_dir = Path(args.out_dir)
 
     df = _read_table(in_path)
 
     if args.label_col not in df.columns:
         raise ValueError(f"Missing label column: {args.label_col}")
-    if args.score_col not in df.columns:
-        raise ValueError(f"Missing score column: {args.score_col}")
 
-    df2 = add_kary_columns(
-        df,
-        score_col=args.score_col,
-        k_soft=args.k_soft,
-        k_trend=args.k_trend,
-    )
+    # CHANGED: validate all requested score columns first
+    # WHY: fail early if one metric name is wrong
+    missing = [col for col in args.score_cols if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing score column(s): {missing}")
 
-    soft_col = f"{args.score_col}_k{args.k_soft}_soft"
-    trend_col = f"{args.score_col}_k{args.k_trend}_trend"
+    df2 = df.copy()
+
+    # CHANGED: process all requested metrics in one run
+    # WHY: this is the main feature you asked for
+    for score_col in args.score_cols:
+        df2 = add_kary_columns(
+            df2,
+            score_col=score_col,
+            k_soft=args.k_soft,
+            k_trend=args.k_trend,
+        )
 
     _write_table(df2, out_table)
 
-    _plot_kary_metric(
-        df2,
-        label_col=args.label_col,
-        raw_col=args.score_col,
-        soft_col=soft_col,
-        trend_col=trend_col,
-        title=args.title,
-        ylabel=args.ylabel,
-        out_pdf=out_pdf,
-        max_xticks=args.max_xticks,
-    )
+    # CHANGED: create one PDF per metric
+    # WHY: keeps each plot readable and consistent with your original plotting style
+    for score_col in args.score_cols:
+        soft_col = f"{score_col}_k{args.k_soft}_soft"
+        trend_col = f"{score_col}_k{args.k_trend}_trend"
 
-    print("[done] k-ary table and plot created.")
+        _plot_kary_metric(
+            df2,
+            label_col=args.label_col,
+            raw_col=score_col,
+            soft_col=soft_col,
+            trend_col=trend_col,
+            title=_metric_title(score_col),
+            ylabel=_metric_ylabel(score_col),
+            out_pdf=out_dir / f"{score_col}_kary.pdf",
+            max_xticks=args.max_xticks,
+        )
+
+    print("[done] k-ary tables and plots created for all requested metrics.")
 
 
 if __name__ == "__main__":
