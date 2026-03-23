@@ -121,6 +121,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.2,
         label="Binary",
+        color = "orange",
     )
 
     sns.lineplot(
@@ -129,6 +130,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.4,
         label="k=4 softening",
+        color = "green",
     )
 
     sns.lineplot(
@@ -137,6 +139,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.4,
         label="k=12 trend",
+        color = "blue",
     )
 
     ax.set_title(title, fontsize=14, fontweight="bold")
