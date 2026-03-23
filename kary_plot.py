@@ -121,7 +121,7 @@ def _plot_kary_metric(
         ax=ax,
         linewidth=1.2,
         label="Binary",
-        color = "orange",
+        color = "yellow",
     )
 
     sns.lineplot(
