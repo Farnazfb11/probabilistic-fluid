@@ -14,14 +14,17 @@ from save import save_summary_for_strategy, load_summary_package
 
 # To get both files or a list and treat them as one
 def infer_week_tag(input_paths: list[str]) -> str:
-    # If multiple files are given, try to infer from parent directory or first matching YYYY-MM-DD
+    # CHANGED: removed \b because filenames like
+    # 2012-09-23_life_science_filtered.nq.gz do not have a word boundary before "_"
+    # WHY: otherwise all filtered_onefile runs fall back to parent dir name and overwrite each other
     for path in input_paths:
-        m = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", path)
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", path)
         if m:
             return m.group(1)
-    # fallback: use parent dir name of first file, else stem of first file
+
+    # fallback: use stem of first file before parent dir
     p = Path(input_paths[0])
-    return p.parent.name or p.stem
+    return p.stem or p.parent.name
 
 def ensure_out_path(
     out_arg: str,
