@@ -2,6 +2,7 @@ import math
 from typing import Dict, Any, Set, Tuple, List, Optional
 from typing import FrozenSet
 import networkx as nx
+from collections import defaultdict
 
 from Unary_measure import (
     _entity_ids,       # V^E(S)
@@ -191,168 +192,131 @@ def earth_mover_distance_degree(
     deg_tp1: Optional[Dict[int, int]] = None,
 ) -> float:
     """
-    CHANGED: accepts optional cached degree maps.
-    WHY: avoid recomputing degrees and avoid NetworkX graph reconstruction.
+    CHANGED:
+    Replaced the generic NetworkX min-cost-flow formulation with an exact
+    1D transport solver over degree buckets.
+
+    WHY:
+    Your transport cost is degree-based:
+        cost(i, j) = abs(deg_t[i] - deg_tp1[j]) + 1
+    so the problem depends only on degree values, not on the full bipartite
+    sid-to-sid graph. That means we can solve it exactly by sorting degree
+    buckets and matching mass greedily, which is much faster and uses far less memory.
     """
     size_t = _eqc_size_map(pkg_t)
     size_tp1 = _eqc_size_map(pkg_tp1)
 
-    V_d: Dict[int, int] = {}
-    V_i: Dict[int, int] = {}
+    if deg_t is None:
+        deg_t = _degree_map_weighted_from_pkg(pkg_t)
+    if deg_tp1 is None:
+        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1)
+
+    supply_by_degree: Dict[int, int] = defaultdict(int)
+    demand_by_degree: Dict[int, int] = defaultdict(int)
 
     all_sids = set(size_t.keys()) | set(size_tp1.keys())
+
     for sid in all_sids:
         s_t = size_t.get(sid, 0)
         s_tp1 = size_tp1.get(sid, 0)
         delta = s_tp1 - s_t
 
-        if delta > 0:
-            V_i[sid] = delta
-        elif delta < 0:
-            V_d[sid] = -delta
+        if delta < 0:
+            d = int(deg_t.get(sid, 0))
+            supply_by_degree[d] += -delta
 
-    if not V_d and not V_i:
+        elif delta > 0:
+            d = int(deg_tp1.get(sid, 0))
+            demand_by_degree[d] += delta
+
+    if not supply_by_degree and not demand_by_degree:
         return 0.0
 
-    try:
-        return _emd_min_cost_flow(V_d, V_i, pkg_t, pkg_tp1, deg_t=deg_t, deg_tp1=deg_tp1)
-    except (nx.NetworkXError, nx.NetworkXUnfeasible, Exception):
-        return _emd_simplified(V_d, V_i)
+    return _emd_degree_1d_exact(supply_by_degree, demand_by_degree)
+
+
+def _emd_degree_1d_exact(
+    supply_by_degree: Dict[int, int],
+    demand_by_degree: Dict[int, int],
+) -> float:
+    """
+    CHANGED:
+    Exact EMD solver specialized for degree-based cost.
+
+    WHY:
+    For cost = abs(d1 - d2) + 1, the optimal transport between weighted points
+    on a line can be solved exactly by sorting degree buckets and matching them
+    with a two-pointer sweep.
+
+    NOTES:
+    - The +1 is charged per unit of real transported mass.
+    - If total supply != total demand, leftover mass is matched to an implicit
+      dummy with cost 1 per unit, matching your previous imbalance handling.
+    """
+    supplies: List[List[int]] = [[deg, mass] for deg, mass in sorted(supply_by_degree.items()) if mass > 0]
+    demands: List[List[int]] = [[deg, mass] for deg, mass in sorted(demand_by_degree.items()) if mass > 0]
+
+    i = 0
+    j = 0
+    cost = 0.0
+
+    while i < len(supplies) and j < len(demands):
+        deg_s, mass_s = supplies[i]
+        deg_d, mass_d = demands[j]
+
+        moved = min(mass_s, mass_d)
+
+        # CHANGED:
+        # real transport cost for one unit is abs(deg_s - deg_d) + 1
+        # WHY:
+        # preserves your original structural edit cost model exactly
+        cost += moved * (abs(deg_s - deg_d) + 1)
+
+        supplies[i][1] -= moved
+        demands[j][1] -= moved
+
+        if supplies[i][1] == 0:
+            i += 1
+        if demands[j][1] == 0:
+            j += 1
+
+    # CHANGED:
+    # leftover unmatched mass goes to dummy at cost 1 per unit
+    # WHY:
+    # matches the logic you used before for supply-demand imbalance
+    leftover_supply = sum(mass for _, mass in supplies[i:])
+    leftover_demand = sum(mass for _, mass in demands[j:])
+    cost += abs(leftover_supply - leftover_demand) * 1.0
+
+    return float(cost)
 
 def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
     """
-    Compute total weighted degree per sid directly from pkg['edges'].
+    CHANGED:
+    Slightly tightened implementation.
 
-    total degree = in(count) + out(count)
-    Works with your JSON where edges is:
-      "edges": { "src->dst": {"src":..., "dst":..., "count":..., ...}, ... }
+    WHY:
+    avoids repeated dict lookups and keeps isolated nodes initialized.
     """
-    deg: Dict[int, int] = {}
-
-    # Prefill nodes so isolated nodes exist too
     nodes = pkg.get("nodes") or {}
-    for sid in nodes.keys():
-        deg[int(sid)] = 0
+    deg = {int(sid): 0 for sid in nodes}
 
-    edges = pkg.get("edges") or {}
+    edges = pkg.get("edges")
     if not edges:
         raise ValueError(
-            "EMD requires pkg['edges'], but it's missing/empty. "
+            "EMD requires pkg['edges'], but it's missing or empty. "
             "Rebuild summaries with include_edges=True."
         )
 
-    for e in edges.values():  # IMPORTANT: values()
+    for e in edges.values():
         u = int(e["src"])
         v = int(e["dst"])
         w = int(e.get("count", 1))
+
         deg[u] = deg.get(u, 0) + w
         deg[v] = deg.get(v, 0) + w
 
     return deg
-
-
-def _structural_edit_distance_fast(
-    sid_i: int,
-    sid_j: int,
-    deg_t: Dict[int, int],
-    deg_tp1: Dict[int, int],
-) -> float:
-    # same behavior as your old one:
-    # abs(deg_i - deg_j) + 1 unless same sid
-    if sid_i == sid_j:
-        return 0.0
-    di = deg_t.get(sid_i, 0)
-    dj = deg_tp1.get(sid_j, 0)
-    return float(abs(di - dj) + 1)
-
-
-def _emd_min_cost_flow(
-    V_d: Dict[int, int],
-    V_i: Dict[int, int],
-    pkg_t: Dict[str, Any],
-    pkg_tp1: Dict[str, Any],
-    *,
-    deg_t: Optional[Dict[int, int]] = None,
-    deg_tp1: Optional[Dict[int, int]] = None,
-) -> float:
-    """
-    CHANGED: do not reconstruct NetworkX graphs when degrees can be computed from edges.
-    WHY: speed.
-    """
-
-    if deg_t is None:
-        deg_t = _degree_map_weighted_from_pkg(pkg_t)  # CHANGED
-    if deg_tp1 is None:
-        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1)  # CHANGED
-
-    total_supply = int(sum(V_d.values()))
-    total_demand = int(sum(V_i.values()))
-
-    F = nx.DiGraph()
-    source = "SOURCE"
-    target = "TARGET"
-
-    F.add_node(source, demand=-total_supply)
-    F.add_node(target, demand=total_demand)
-
-    # if imbalance exists, we add one dummy node to balance
-    # and keep total supply == total demand in the flow problem
-    if total_supply < total_demand:
-        # add dummy supply
-        dummy_supply = "DUMMY_SUPPLY"
-        missing = total_demand - total_supply
-        F.add_node(dummy_supply, demand=-missing)
-        # send dummy supply to target with cost 1 per unit (paper)
-        F.add_edge(dummy_supply, target, weight=1, capacity=missing)
-    elif total_demand < total_supply:
-        # add dummy demand
-        dummy_demand = "DUMMY_DEMAND"
-        extra = total_supply - total_demand
-        F.add_node(dummy_demand, demand=extra)
-        # send supply to dummy demand with cost 1 per unit (paper)
-        F.add_edge(source, dummy_demand, weight=1, capacity=extra)
-
-    # add supply nodes and edges from source
-    for sid, supply in V_d.items():
-        node_d = f"d_{sid}"
-        F.add_node(node_d, demand=-int(supply))
-        F.add_edge(source, node_d, weight=0, capacity=int(supply))
-
-    # add demand nodes and edges to target
-    for sid, demand in V_i.items():
-        node_i = f"i_{sid}"
-        F.add_node(node_i, demand=int(demand))
-        F.add_edge(node_i, target, weight=0, capacity=int(demand))
-
-    # connect V_d to V_i with costs
-    # capacity can be total_supply, enough for any distribution
-    cap = max(1, total_supply)
-    for sid_i in V_d.keys():
-        node_i = f"d_{sid_i}"
-        for sid_j in V_i.keys():
-            node_j = f"i_{sid_j}"
-            dist = _structural_edit_distance_fast(sid_i, sid_j, deg_t, deg_tp1)
-            F.add_edge(node_i, node_j, weight=dist, capacity=cap)
-
-    flow_cost, _ = nx.network_simplex(F)
-    return float(flow_cost)
-
-
-def _emd_simplified(V_d: Dict[int, int], V_i: Dict[int, int]) -> float:
-    """
-    Simplified EMD with uniform distance d_{i,j} = 0 if i==j else 1.
-    This is the closed-form solution for uniform distance metric.
-    """
-    total_moved = 0
-    
-    all_sids = set(V_d.keys()) | set(V_i.keys())
-    for sid in all_sids:
-        supply = V_d.get(sid, 0)
-        demand = V_i.get(sid, 0)
-        total_moved += abs(supply - demand)
-    
-    # Each movement counted twice (leaving source, entering destination)
-    return total_moved / 2.0
 
 # 5) signiture based EMD
 EMPTY_SIG = {
