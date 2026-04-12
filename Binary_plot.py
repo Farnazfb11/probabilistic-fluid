@@ -78,13 +78,14 @@ def collect_pairs(
     compute_ged: bool = True,
     compute_kld: bool = True,
     emd_mode: str = "degree",   # "degree", "signature", "both", "none"
+    degree_mode: str = "log_weighted_out",
 ) -> List[Dict[str, Any]]:
     files = sorted(input_dir.rglob("*.json"), key=_sort_key)
 
     rows: List[Dict[str, Any]] = []
     prev_pkg: Optional[Dict[str, Any]] = None
     prev_label: Optional[str] = None
-    prev_deg: Optional[Dict[int, int]] = None
+    prev_deg: Optional[Dict[int, float]] = None
     pair_idx = 0
 
     for fp in files:
@@ -96,10 +97,13 @@ def collect_pairs(
             print(f"[warn] skip {fp}: {e}")
             continue
 
-        curr_deg: Optional[Dict[int, int]] = None
+        curr_deg: Optional[Dict[int, float]] = None
         if emd_mode in ("degree", "both"):
             try:
-                curr_deg = _degree_map_weighted_from_pkg(pkg)
+                                # ---------------- CHANGED ----------------
+                # WHY CHANGED:
+                # Degree proxy is now configurable from the CLI.
+                curr_deg = _degree_map_weighted_from_pkg(pkg, mode=degree_mode)
             except Exception as e:
                 curr_deg = None
                 print(f"[warn] degree map failed for {label}: {e}")
@@ -124,7 +128,11 @@ def collect_pairs(
                     row["kld"] = float(symmetric_kl_divergence(prev_pkg, pkg))
 
                 if emd_mode in ("degree", "both"):
-                    print(f"[emd-degree] START pair {pair_idx}: {prev_label} -> {label}", flush=True)
+                    print(
+                        f"[emd-degree] START pair {pair_idx}: {prev_label} -> {label} "
+                        f"| degree_mode={degree_mode}",
+                        flush=True
+                    )
                     t0 = time.perf_counter()
                     row["emd_degree"] = float(
                         earth_mover_distance_degree(
@@ -290,7 +298,18 @@ def main():
         default="degree",
         help="Which EMD variant to compute.",
     )
-
+    ap.add_argument(
+        "--degree-mode",
+        choices=[
+            "weighted_total",
+            "weighted_out",
+            "unweighted_out",
+            "log_weighted_out",
+            "log_weighted_total",
+        ],
+        default="log_weighted_out",
+        help="Degree proxy for degree-based EMD.",
+    )
     # titles
     ap.add_argument(
         "--title-jac-v",
@@ -353,6 +372,7 @@ def main():
         compute_ged=(not args.no_ged),
         compute_kld=(not args.no_kld),
         emd_mode=emd_mode,
+        degree_mode=args.degree_mode,
     )
     if not rows:
         print("[info] Not enough summaries or all pairs failed to compute.")

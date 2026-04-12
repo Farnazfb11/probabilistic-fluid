@@ -188,8 +188,8 @@ def earth_mover_distance_degree(
     pkg_t: Dict[str, Any],
     pkg_tp1: Dict[str, Any],
     *,
-    deg_t: Optional[Dict[int, int]] = None,
-    deg_tp1: Optional[Dict[int, int]] = None,
+    deg_t: Optional[Dict[int, float]] = None,
+    deg_tp1: Optional[Dict[int, float]] = None,
 ) -> float:
     """
     CHANGED:
@@ -206,13 +206,19 @@ def earth_mover_distance_degree(
     size_t = _eqc_size_map(pkg_t)
     size_tp1 = _eqc_size_map(pkg_tp1)
 
+    # ---------------- CHANGED ----------------
+    # WHY CHANGED:
+    # Default to log-weighted out-degree to avoid scale explosion.
     if deg_t is None:
-        deg_t = _degree_map_weighted_from_pkg(pkg_t)
+        deg_t = _degree_map_weighted_from_pkg(pkg_t, mode="log_weighted_out")
     if deg_tp1 is None:
-        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1)
+        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1, mode="log_weighted_out")
 
-    supply_by_degree: Dict[int, int] = defaultdict(int)
-    demand_by_degree: Dict[int, int] = defaultdict(int)
+    # ---------------- CHANGED ----------------
+    # WHY CHANGED:
+    # Degree buckets may now be float values after log1p compression.
+    supply_by_degree: Dict[float, int] = defaultdict(int)
+    demand_by_degree: Dict[float, int] = defaultdict(int)
 
     all_sids = set(size_t.keys()) | set(size_tp1.keys())
 
@@ -221,12 +227,16 @@ def earth_mover_distance_degree(
         s_tp1 = size_tp1.get(sid, 0)
         delta = s_tp1 - s_t
 
+        # ---------------- CHANGED ----------------
+        # WHY CHANGED:
+        # Keep degree values as floats. Casting to int would throw away the
+        # effect of log compression and make many classes collapse into the same bucket.
         if delta < 0:
-            d = int(deg_t.get(sid, 0))
+            d = float(deg_t.get(sid, 0.0))
             supply_by_degree[d] += -delta
 
         elif delta > 0:
-            d = int(deg_tp1.get(sid, 0))
+            d = float(deg_tp1.get(sid, 0.0))
             demand_by_degree[d] += delta
 
     if not supply_by_degree and not demand_by_degree:
@@ -236,8 +246,8 @@ def earth_mover_distance_degree(
 
 
 def _emd_degree_1d_exact(
-    supply_by_degree: Dict[int, int],
-    demand_by_degree: Dict[int, int],
+    supply_by_degree: Dict[float, int],
+    demand_by_degree: Dict[float, int],
 ) -> float:
     """
     CHANGED:
@@ -290,16 +300,36 @@ def _emd_degree_1d_exact(
 
     return float(cost)
 
-def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
+def _degree_map_weighted_from_pkg(
+    pkg: Dict[str, Any],
+    *,
+    mode: str = "log_weighted_out",
+) -> Dict[int, float]:
     """
     CHANGED:
-    Slightly tightened implementation.
+    Degree map now supports multiple degree variants and defaults to
+    log-weighted OUT-degree.
 
-    WHY:
-    avoids repeated dict lookups and keeps isolated nodes initialized.
+    WHY CHANGED:
+    Your previous version used weighted in-degree + weighted out-degree with
+    raw rolled edge counts. That can explode badly and dominate the EMD scale.
+    The new default keeps edge weights, but compresses them with log1p and only
+    uses outgoing superedges, which is much more stable and easier to interpret.
+
+    Supported modes:
+    - "weighted_total":
+        raw weighted in-degree + out-degree
+    - "weighted_out":
+        raw weighted out-degree only
+    - "unweighted_out":
+        number of distinct outgoing superedges
+    - "log_weighted_out":   [DEFAULT]
+        log(1 + weighted out-degree)
+    - "log_weighted_total":
+        log(1 + weighted total degree)
     """
     nodes = pkg.get("nodes") or {}
-    deg = {int(sid): 0 for sid in nodes}
+    deg: Dict[int, float] = {int(sid): 0.0 for sid in nodes}
 
     edges = pkg.get("edges")
     if not edges:
@@ -308,13 +338,46 @@ def _degree_map_weighted_from_pkg(pkg: Dict[str, Any]) -> Dict[int, int]:
             "Rebuild summaries with include_edges=True."
         )
 
+    # ---------------- CHANGED ----------------
+    # WHY CHANGED:
+    # Compute several degree notions from the same summary package so you can
+    # compare them without rewriting the metric again.
     for e in edges.values():
         u = int(e["src"])
         v = int(e["dst"])
-        w = int(e.get("count", 1))
+        w = float(e.get("count", 1))
 
-        deg[u] = deg.get(u, 0) + w
-        deg[v] = deg.get(v, 0) + w
+        if mode == "weighted_total":
+            deg[u] = deg.get(u, 0.0) + w
+            deg[v] = deg.get(v, 0.0) + w
+
+        elif mode == "weighted_out":
+            deg[u] = deg.get(u, 0.0) + w
+
+        elif mode == "unweighted_out":
+            deg[u] = deg.get(u, 0.0) + 1.0
+
+        elif mode == "log_weighted_out":
+            # First accumulate weighted out-degree, then compress below
+            deg[u] = deg.get(u, 0.0) + w
+
+        elif mode == "log_weighted_total":
+            # First accumulate weighted total degree, then compress below
+            deg[u] = deg.get(u, 0.0) + w
+            deg[v] = deg.get(v, 0.0) + w
+
+        else:
+            raise ValueError(
+                f"Unknown degree mode '{mode}'. "
+                f"Choose from weighted_total, weighted_out, unweighted_out, "
+                f"log_weighted_out, log_weighted_total."
+            )
+
+    # ---------------- CHANGED ----------------
+    # WHY CHANGED:
+    # Apply logarithmic compression only after accumulation.
+    if mode in ("log_weighted_out", "log_weighted_total"):
+        deg = {sid: math.log1p(val) for sid, val in deg.items()}
 
     return deg
 
