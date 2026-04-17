@@ -327,14 +327,28 @@ def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> 
 
 # 8) connected_components_count
 
-def connected_components_count(pkg: Dict[str, Any], *, weak: bool = True) -> int:
+# 8) connected_components_count
 
-    # Count connected components in the summary graph of supernodes.
-    # Parameters:
-    #   weak (bool):
-    #     - True  (default): weakly connected components (ignore edge directions).
-    #     - False          : strongly connected components (respect directions).
-    # Re: int: number of components
+def connected_components_count(
+    pkg: Dict[str, Any],
+    *,
+    weak: bool = True,
+    min_entity_nodes: int = 1,
+) -> int:
+    """
+    Count connected components in the summary graph of supernodes.
+
+    Parameters:
+      weak (bool):
+        - True  : weakly connected components (ignore edge directions)
+        - False : strongly connected components (respect directions)
+
+      min_entity_nodes (int):
+        Minimum number of entity EQCs a component must contain to be counted.
+        Example:
+          - 1 -> current behavior
+          - 3 -> count only components with at least 3 entity EQCs
+    """
     G = _build_digraph(pkg)
     V_E = _entity_ids(pkg)
 
@@ -347,27 +361,20 @@ def connected_components_count(pkg: Dict[str, Any], *, weak: bool = True) -> int
     else:
         comps = nx.strongly_connected_components(G)
 
-    # count only components that contain at least one entity EQC
-    return sum(1 for C in comps if any((n in V_E) for n in C))
+    # CHANGED: threshold by number of entity EQCs inside each component
+    # WHY CHANGED: lets you ignore tiny fragments such as isolated nodes
+    return sum(
+        1
+        for C in comps
+        if sum(1 for n in C if n in V_E) >= min_entity_nodes
+    )
 
 # Convenience: one-look summary
+# Convenience: one-look summary
 def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
-
-    # Produce a compact dictionary with the core unary metrics (1–8),
-    # using weighted degrees and weak connectivity by default.
-    # This is handy for quick logging or tabular reporting.
-
-    # Returns keys:
-    #   - eqc_count
-    #   - avg_eqc_size
-    #   - std_eqc_size
-    #   - edge_count_unweighted
-    #   - edge_count_weighted
-    #   - avg_out_degree_weighted
-    #   - tmh_weighted
-    #   - components_weak
-    #   - components_strong (if needed, can be added)
-    #   - n_sizes  (sanity: how many classes contributed to size stats)
+    """
+    Produce a compact dictionary with the core unary metrics.
+    """
     sizes = eqc_size_list(pkg)
     return {
         "eqc_count": count_equivalence_classes(pkg),
@@ -377,13 +384,24 @@ def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
         "edge_count_unweighted": len(edge_set(pkg, include_weights=False)),
         "edge_count_weighted": sum(w for *_, w in edge_set(pkg, include_weights=True)),
 
-        # CHANGED: over V^E(S) only
         "avg_out_degree_weighted": average_out_degree(pkg, weighted=True),
         "tmh_weighted": tmh_tendency_to_make_hubs(pkg, weighted=True),
 
-        # CHANGED: components that include at least one entity EQC
-        "components_weak": connected_components_count(pkg, weak=True),
-        "components_strong": connected_components_count(pkg, weak=False),
+        # current behavior
+        "components_weak": connected_components_count(pkg, weak=True, min_entity_nodes=1),
+        "components_strong": connected_components_count(pkg, weak=False, min_entity_nodes=1),
+
+        # CHANGED: add thresholded weak counts
+        # WHY CHANGED: lets you inspect how much the count is driven by tiny components
+        "components_weak_ge_3": connected_components_count(pkg, weak=True, min_entity_nodes=3),
+        "components_weak_ge_5": connected_components_count(pkg, weak=True, min_entity_nodes=5),
+        "components_weak_ge_7": connected_components_count(pkg, weak=True, min_entity_nodes=7),
+
+        # CHANGED: add thresholded strong counts too
+        # WHY CHANGED: same analysis, but for directed mutual reachability
+        "components_strong_ge_3": connected_components_count(pkg, weak=False, min_entity_nodes=3),
+        "components_strong_ge_5": connected_components_count(pkg, weak=False, min_entity_nodes=5),
+        "components_strong_ge_7": connected_components_count(pkg, weak=False, min_entity_nodes=7),
 
         "n_sizes": len(sizes),
     }
