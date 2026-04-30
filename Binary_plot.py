@@ -16,6 +16,8 @@ from Binary_measure import (
     symmetric_kl_divergence,
     earth_mover_distance_degree,
     earth_mover_distance_signature,
+    earth_mover_distance_sid_then_degree,   # CHANGED
+    sid_overlap_stats,                      # CHANGED
     _degree_map_weighted_from_pkg,
 )
 
@@ -77,7 +79,7 @@ def collect_pairs(
     compute_jac_e: bool = True,
     compute_ged: bool = True,
     compute_kld: bool = True,
-    emd_mode: str = "degree",   # "degree", "signature", "both", "none"
+    emd_mode: str = "degree",   # "degree", "signature", "both", "sid_degree", "none"
     degree_mode: str = "log_weighted_out",
 ) -> List[Dict[str, Any]]:
     files = sorted(input_dir.rglob("*.json"), key=_sort_key)
@@ -98,7 +100,7 @@ def collect_pairs(
             continue
 
         curr_deg: Optional[Dict[int, float]] = None
-        if emd_mode in ("degree", "both"):
+        if emd_mode in ("degree", "both", "sid_degree"):
             try:
                                 # ---------------- CHANGED ----------------
                 # WHY CHANGED:
@@ -126,6 +128,46 @@ def collect_pairs(
 
                 if compute_kld:
                     row["kld"] = float(symmetric_kl_divergence(prev_pkg, pkg))
+
+                if emd_mode == "sid_degree":
+                    stats = sid_overlap_stats(prev_pkg, pkg)
+
+                    print(
+                        f"[sid-check] pair {pair_idx}: {prev_label} -> {label} "
+                        f"| shared_sids={stats['shared_sids']} "
+                        f"| unchanged_payload={stats['unchanged_payload']} "
+                        f"| residual_supply={stats['residual_supply']} "
+                        f"| residual_demand={stats['residual_demand']}",
+                        flush=True
+                    )
+
+                    print(
+                        f"[emd-sid-degree] START pair {pair_idx}: {prev_label} -> {label} "
+                        f"| degree_mode={degree_mode}",
+                        flush=True
+                    )
+                    t0 = time.perf_counter()
+
+                    row["emd_sid_degree"] = float(
+                        earth_mover_distance_sid_then_degree(
+                            prev_pkg, pkg,
+                            deg_t=prev_deg,
+                            deg_tp1=curr_deg
+                        )
+                    )
+
+                    dt = time.perf_counter() - t0
+
+                    row["shared_sids"] = stats["shared_sids"]
+                    row["unchanged_payload"] = stats["unchanged_payload"]
+                    row["residual_supply"] = stats["residual_supply"]
+                    row["residual_demand"] = stats["residual_demand"]
+
+                    print(
+                        f"[emd-sid-degree] DONE  pair {pair_idx}: {prev_label} -> {label} "
+                        f"| emd_sid_degree={row['emd_sid_degree']} | {dt:.1f}s",
+                        flush=True
+                    )
 
                 if emd_mode in ("degree", "both"):
                     print(
@@ -194,6 +236,16 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
         fieldnames.append("emd_degree")
     if any("emd_signature" in r for r in rows):
         fieldnames.append("emd_signature")
+    if any("emd_sid_degree" in r for r in rows):
+        fieldnames.append("emd_sid_degree")
+    if any("shared_sids" in r for r in rows):
+        fieldnames.append("shared_sids")
+    if any("unchanged_payload" in r for r in rows):
+        fieldnames.append("unchanged_payload")
+    if any("residual_supply" in r for r in rows):
+        fieldnames.append("residual_supply")
+    if any("residual_demand" in r for r in rows):
+        fieldnames.append("residual_demand")
 
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
@@ -291,12 +343,17 @@ def main():
         default="emd_signature.pdf",
         help="PDF filename for signature-based EMD.",
     )
+    ap.add_argument(
+    "--emd-sid-degree-pdf",
+    default="emd_sid_degree.pdf",
+    help="PDF filename for exact-SID-plus-degree-fallback EMD.",
+    )
 
     ap.add_argument(
-        "--emd-mode",
-        choices=["none", "degree", "signature", "both"],
-        default="degree",
-        help="Which EMD variant to compute.",
+    "--emd-mode",
+    choices=["none", "degree", "signature", "both", "sid_degree"],
+    default="sid_degree",
+    help="Which EMD variant to compute.",
     )
     ap.add_argument(
         "--degree-mode",
@@ -340,6 +397,11 @@ def main():
         "--title-emd-signature",
         default="Earth Mover's Distance over EQC Payloads (Signature-based)",
         help="Title for signature-based EMD plot.",
+    )
+    ap.add_argument(
+    "--title-emd-sid-degree",
+    default="Earth Mover's Distance over EQC Payloads (Exact SID + Degree Fallback)",
+    help="Title for exact-SID-plus-degree-fallback EMD plot.",
     )
 
     ap.add_argument(

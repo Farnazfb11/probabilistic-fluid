@@ -684,3 +684,184 @@ def earth_mover_distance_signature(
 
     # undo x6 scaling
     return float(flow_cost) / 6.0
+
+    # 6 Sid-degree EMD
+def sid_overlap_stats(
+    pkg_t: Dict[str, Any],
+    pkg_tp1: Dict[str, Any],
+) -> Dict[str, int]:
+        
+    """
+    Report exact-SID overlap statistics between two summaries.
+
+    Returns:
+        - sids_t: number of SIDs in S_t
+        - sids_tp1: number of SIDs in S_{t+1}
+        - shared_sids: number of SIDs appearing in both snapshots
+        - unchanged_payload: payload mass preserved exactly by shared SIDs
+        - residual_supply: payload mass left on the t side after exact SID cancellation
+        - residual_demand: payload mass left on the t+1 side after exact SID cancellation
+    """
+
+    size_t = _eqc_size_map(pkg_t)
+    size_tp1 = _eqc_size_map(pkg_tp1)
+
+    shared = set(size_t.keys()) & set(size_tp1.keys())
+
+    unchanged_payload = 0
+    for sid in shared:
+        unchanged_payload += min(size_t[sid], size_tp1[sid])
+
+    total_t = sum(size_t.values())
+    total_tp1 = sum(size_tp1.values())
+
+    residual_supply = total_t - unchanged_payload
+    residual_demand = total_tp1 - unchanged_payload
+
+    return {
+        "sids_t": len(size_t),
+        "sids_tp1": len(size_tp1),
+        "shared_sids": len(shared),
+        "unchanged_payload": int(unchanged_payload),
+        "residual_supply": int(residual_supply),
+        "residual_demand": int(residual_demand),
+    }
+
+def earth_mover_distance_sid_then_degree(
+    pkg_t: Dict[str, Any],
+    pkg_tp1: Dict[str, Any],
+    *,
+    deg_t: Optional[Dict[int, float]] = None,
+    deg_tp1: Optional[Dict[int, float]] = None,
+) -> float:
+    """
+    Hybrid EMD:
+    1) First, match payload with identical SIDs exactly at zero cost.
+    2) Then, transport the remaining unmatched payload between EQCs using
+       degree-based cost.
+
+    WHY THIS:
+    Considers weighted degree-based structural edits, to preserve structural strength
+    stable cost, meaning fallback costs. 
+    This preserves exact SID overlap whenever possible, and only uses
+    degree-based fallback transport for the residual unmatched mass.
+    """
+    size_t = _eqc_size_map(pkg_t)
+    size_tp1 = _eqc_size_map(pkg_tp1)
+
+    if deg_t is None:
+        deg_t = _degree_map_weighted_from_pkg(pkg_t, mode="log_weighted_out")
+    if deg_tp1 is None:
+        deg_tp1 = _degree_map_weighted_from_pkg(pkg_tp1, mode="log_weighted_out")
+
+    # CHANGED: cancel exact shared SID payload first
+    # WHY CHANGED: identical SIDs should preserve common mass at zero cost
+    residual_t: Dict[int, int] = {}
+    residual_tp1: Dict[int, int] = {}
+
+    all_sids = set(size_t.keys()) | set(size_tp1.keys())
+    for sid in all_sids:
+        a = size_t.get(sid, 0)
+        b = size_tp1.get(sid, 0)
+        common = min(a, b)
+
+        rt = a - common
+        rp = b - common
+
+        if rt > 0:
+            residual_t[sid] = rt
+        if rp > 0:
+            residual_tp1[sid] = rp
+
+    V_d: Dict[int, int] = {}
+    V_i: Dict[int, int] = {}
+
+    all_residual_sids = set(residual_t.keys()) | set(residual_tp1.keys())
+    for sid in all_residual_sids:
+        a = residual_t.get(sid, 0)
+        b = residual_tp1.get(sid, 0)
+        delta = b - a
+
+        if delta > 0:
+            V_i[sid] = delta
+        elif delta < 0:
+            V_d[sid] = -delta
+
+    if not V_d and not V_i:
+        return 0.0
+
+    return _emd_min_cost_flow_degree_nodes(V_d, V_i, deg_t, deg_tp1)
+
+def _emd_min_cost_flow_degree_nodes(
+    V_d: Dict[int, int],
+    V_i: Dict[int, int],
+    deg_t: Dict[int, float],
+    deg_tp1: Dict[int, float],
+) -> float:
+    """
+    Node-level min-cost flow over residual EQCs.
+
+    Cost:
+        0 if same SID
+        abs(deg_t[i] - deg_tp1[j]) + 1 otherwise
+
+    NOTE:
+    After exact SID overlap cancellation, same-SID transport is usually no longer
+    needed, but we keep the rule for completeness.
+    """
+    F = nx.DiGraph()
+
+    total_supply = int(sum(V_d.values()))
+    total_demand = int(sum(V_i.values()))
+
+    source = "SOURCE"
+    target = "TARGET"
+
+    F.add_node(source, demand=-total_supply)
+    F.add_node(target, demand=total_demand)
+
+    if total_supply < total_demand:
+        dummy_supply = "DUMMY_SUPPLY"
+        missing = total_demand - total_supply
+        F.add_node(dummy_supply, demand=-missing)
+        F.add_edge(dummy_supply, target, weight=1000, capacity=missing)
+
+    elif total_demand < total_supply:
+        dummy_demand = "DUMMY_DEMAND"
+        extra = total_supply - total_demand
+        F.add_node(dummy_demand, demand=extra)
+        F.add_edge(source, dummy_demand, weight=1000, capacity=extra)
+
+    # source -> supply nodes
+    for sid, mass in V_d.items():
+        nd = f"d_{sid}"
+        F.add_node(nd)
+        F.add_edge(source, nd, weight=0, capacity=int(mass))
+
+    # demand nodes -> target
+    for sid, mass in V_i.items():
+        ni = f"i_{sid}"
+        F.add_node(ni)
+        F.add_edge(ni, target, weight=0, capacity=int(mass))
+
+    cap = max(1, min(total_supply, total_demand)) if total_supply and total_demand else 1
+
+    for sid_i in V_d.keys():
+        nd = f"d_{sid_i}"
+        di = float(deg_t.get(sid_i, 0.0))
+
+        for sid_j in V_i.keys():
+            ni = f"i_{sid_j}"
+            dj = float(deg_tp1.get(sid_j, 0.0))
+
+            if sid_i == sid_j:
+                cost = 0.0
+            else:
+                cost = abs(di - dj) + 1.0
+
+            # integer weights for network_simplex
+            weight = int(round(cost * 1000))
+            F.add_edge(nd, ni, weight=weight, capacity=cap)
+
+    flow_cost, _ = nx.network_simplex(F)
+    return float(flow_cost) / 1000.0

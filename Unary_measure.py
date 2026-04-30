@@ -96,6 +96,20 @@ def _entity_ids(pkg: Dict[str, Any]) -> Set[int]:
     """
     return {int(s) for s in (pkg.get("nodes") or {}).keys()}
 
+def _entity_ids_min_payload(pkg: Dict[str, Any], min_payload: int = 1) -> Set[int]:
+    """
+    Return entity EQC ids whose payload size vcp is at least min_payload.
+    """
+    nodes = pkg.get("nodes") or {}
+    out: Set[int] = set()
+
+    for sid_str, node in nodes.items():
+        vcp = int(node.get("vcp", 0))
+        if vcp >= min_payload:
+            out.add(int(sid_str))
+
+    return out
+
 #helpers for calculating out degree
 def _weighted_out_degrees_over_entities(G: nx.DiGraph, V_E: Set[int]) -> List[int]:
     """
@@ -327,13 +341,12 @@ def tmh_tendency_to_make_hubs(pkg: Dict[str, Any], *, weighted: bool = True) -> 
 
 # 8) connected_components_count
 
-# 8) connected_components_count
-
 def connected_components_count(
     pkg: Dict[str, Any],
     *,
     weak: bool = True,
     min_entity_nodes: int = 1,
+    min_payload: int = 1,
 ) -> int:
     """
     Count connected components in the summary graph of supernodes.
@@ -345,36 +358,39 @@ def connected_components_count(
 
       min_entity_nodes (int):
         Minimum number of entity EQCs a component must contain to be counted.
+
+      min_payload (int):
+        Minimum payload size (vcp) an entity EQC must have to be included at all.
         Example:
-          - 1 -> current behavior
-          - 3 -> count only components with at least 3 entity EQCs
+          - 1  -> current behavior
+          - 40 -> ignore EQCs with vcp < 40 before computing components
     """
     G = _build_digraph(pkg)
-    V_E = _entity_ids(pkg)
+
+    # CHANGED: filter entity vertices by payload
+    # WHY CHANGED: ignore tiny EQCs before computing components
+    V_E = _entity_ids_min_payload(pkg, min_payload=min_payload)
 
     if G.number_of_nodes() == 0 or len(V_E) == 0:
         return 0
 
+    # CHANGED: restrict graph to the surviving entity vertices only
+    # WHY CHANGED: components should be computed after filtering vertices out
+    H = G.subgraph(V_E).copy()
+
+    if H.number_of_nodes() == 0:
+        return 0
+
     if weak:
-        UG = G.to_undirected(as_view=True)
+        UG = H.to_undirected(as_view=True)
         comps = nx.connected_components(UG)
     else:
-        comps = nx.strongly_connected_components(G)
+        comps = nx.strongly_connected_components(H)
 
-    # CHANGED: threshold by number of entity EQCs inside each component
-    # WHY CHANGED: lets you ignore tiny fragments such as isolated nodes
-    return sum(
-        1
-        for C in comps
-        if sum(1 for n in C if n in V_E) >= min_entity_nodes
-    )
+    return sum(1 for C in comps if len(C) >= min_entity_nodes)
 
-# Convenience: one-look summary
 # Convenience: one-look summary
 def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Produce a compact dictionary with the core unary metrics.
-    """
     sizes = eqc_size_list(pkg)
     return {
         "eqc_count": count_equivalence_classes(pkg),
@@ -387,21 +403,31 @@ def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
         "avg_out_degree_weighted": average_out_degree(pkg, weighted=True),
         "tmh_weighted": tmh_tendency_to_make_hubs(pkg, weighted=True),
 
-        # current behavior
-        "components_weak": connected_components_count(pkg, weak=True, min_entity_nodes=1),
-        "components_strong": connected_components_count(pkg, weak=False, min_entity_nodes=1),
+        # original counts
+        "components_weak": connected_components_count(pkg, weak=True, min_entity_nodes=1, min_payload=1),
+        "components_strong": connected_components_count(pkg, weak=False, min_entity_nodes=1, min_payload=1),
 
-        # CHANGED: add thresholded weak counts
-        # WHY CHANGED: lets you inspect how much the count is driven by tiny components
-        "components_weak_ge_3": connected_components_count(pkg, weak=True, min_entity_nodes=3),
-        "components_weak_ge_5": connected_components_count(pkg, weak=True, min_entity_nodes=5),
-        "components_weak_ge_7": connected_components_count(pkg, weak=True, min_entity_nodes=7),
+        # original size-threshold counts
+        "components_weak_ge_3": connected_components_count(pkg, weak=True, min_entity_nodes=3, min_payload=1),
+        "components_weak_ge_5": connected_components_count(pkg, weak=True, min_entity_nodes=5, min_payload=1),
+        "components_weak_ge_7": connected_components_count(pkg, weak=True, min_entity_nodes=7, min_payload=1),
 
-        # CHANGED: add thresholded strong counts too
-        # WHY CHANGED: same analysis, but for directed mutual reachability
-        "components_strong_ge_3": connected_components_count(pkg, weak=False, min_entity_nodes=3),
-        "components_strong_ge_5": connected_components_count(pkg, weak=False, min_entity_nodes=5),
-        "components_strong_ge_7": connected_components_count(pkg, weak=False, min_entity_nodes=7),
+        "components_strong_ge_3": connected_components_count(pkg, weak=False, min_entity_nodes=3, min_payload=1),
+        "components_strong_ge_5": connected_components_count(pkg, weak=False, min_entity_nodes=5, min_payload=1),
+        "components_strong_ge_7": connected_components_count(pkg, weak=False, min_entity_nodes=7, min_payload=1),
+
+        # CHANGED: payload-filtered counts (vcp >= 40)
+        # WHY CHANGED: ignore very small EQCs before connectivity analysis
+        "components_weak_vcp_ge_40": connected_components_count(pkg, weak=True, min_entity_nodes=1, min_payload=40),
+        "components_strong_vcp_ge_40": connected_components_count(pkg, weak=False, min_entity_nodes=1, min_payload=40),
+
+        "components_weak_vcp_ge_40_ge_3": connected_components_count(pkg, weak=True, min_entity_nodes=3, min_payload=40),
+        "components_weak_vcp_ge_40_ge_5": connected_components_count(pkg, weak=True, min_entity_nodes=5, min_payload=40),
+        "components_weak_vcp_ge_40_ge_7": connected_components_count(pkg, weak=True, min_entity_nodes=7, min_payload=40),
+
+        "components_strong_vcp_ge_40_ge_3": connected_components_count(pkg, weak=False, min_entity_nodes=3, min_payload=40),
+        "components_strong_vcp_ge_40_ge_5": connected_components_count(pkg, weak=False, min_entity_nodes=5, min_payload=40),
+        "components_strong_vcp_ge_40_ge_7": connected_components_count(pkg, weak=False, min_entity_nodes=7, min_payload=40),
 
         "n_sizes": len(sizes),
     }
