@@ -17,6 +17,7 @@ from Unary_measure import (
     tmh_tendency_to_make_hubs,
     count_equivalence_classes,
     edge_set,
+    connected_components_count,
     connected_components_count_payload_filtered,
 )
 
@@ -67,6 +68,13 @@ def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[st
                     w for *_, w in edge_set(pkg, include_weights=True)
                 ),
 
+                "comp_weak": int(
+                    connected_components_count(pkg, weak=True)
+                ),
+                "comp_strong": int(
+                    connected_components_count(pkg, weak=False)
+                ),
+
                 # NEW: payload-filtered components
                 "comp_weak_payload_filtered": int(
                     connected_components_count_payload_filtered(
@@ -78,6 +86,7 @@ def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[st
                         pkg, weak=False, min_payload=component_min_payload
                     )
                 ),
+                
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -102,6 +111,8 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
                 "tmh_u",
                 "edges_unweighted",
                 "edges_weighted",
+                "comp_weak",
+                "comp_strong",
                 "comp_weak_payload_filtered",
                 "comp_strong_payload_filtered",
             ]
@@ -328,6 +339,55 @@ def plot_tmh(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+def plot_components_unfiltered(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    max_xticks: int,
+):
+    labels = [r["label"] for r in rows]
+    xs = list(range(len(labels)))
+    weak_vals = [r["comp_weak"] for r in rows]
+    strong_vals = [r["comp_strong"] for r in rows]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    sns.lineplot(
+        x=xs,
+        y=weak_vals,
+        ax=ax,
+        color=BLUE,
+        linewidth=1.2,
+        label="Weakly connected",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=strong_vals,
+        ax=ax,
+        color=ORANGE_DARK,
+        linestyle=":",
+        linewidth=1.2,
+        label="Strongly connected",
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("Timestep")
+    ax.set_ylabel("Number of components")
+    ax.grid(False)
+
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xlabels, rotation=0)
+
+    ax.legend(loc="upper left")
+
+    fig.tight_layout()
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_pdf, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+    print(f"[ok] PDF: {out_pdf}")
+
 def plot_components_payload_filtered(
     rows: List[Dict[str, Any]],
     out_pdf: Path,
@@ -468,6 +528,23 @@ def main():
         action="store_true",
         help="Skip payload-filtered weak/strong components PDF.",
     )
+    ap.add_argument(
+        "--components-unfiltered-pdf",
+        default="components_unfiltered.pdf",
+        help="Filename for weak/strong connected components plot.",
+    )
+
+    ap.add_argument(
+        "--title-components-unfiltered",
+        default="Weakly vs Strongly Connected Components",
+        help="Title for unfiltered components plot.",
+    )
+
+    ap.add_argument(
+        "--no-components-unfiltered",
+        action="store_true",
+        help="Skip unfiltered weak/strong components PDF.",
+    )
 
     args = ap.parse_args()
 
@@ -521,6 +598,13 @@ def main():
             args.title_components_payload_filtered,
             args.max_xticks,
             args.component_min_payload,
+        )
+    if not args.no_components_unfiltered:
+        plot_components_unfiltered(
+            rows,
+            out_dir / args.components_unfiltered_pdf,
+            args.title_components_unfiltered,
+            args.max_xticks,
         )
 
     # NEW: extra plot for weighted TMH in 2015–2020 only
