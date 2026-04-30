@@ -17,6 +17,7 @@ from Unary_measure import (
     tmh_tendency_to_make_hubs,
     count_equivalence_classes,
     edge_set,
+    connected_components_count_payload_filtered,
 )
 
 # NEW: set a global seaborn theme ready for paper
@@ -46,7 +47,7 @@ def _sort_key(p: Path) -> Tuple[int, str]:
     m = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", p.stem)
     return (int(f"{m.group(1)}{m.group(2)}{m.group(3)}"), p.stem) if m else (10**10, p.stem)
 
-def collect(input_dir: Path) -> List[Dict[str, Any]]:
+def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for fp in sorted(input_dir.rglob("*.json"), key=_sort_key):
         try:
@@ -54,19 +55,28 @@ def collect(input_dir: Path) -> List[Dict[str, Any]]:
             rows.append({
                 "file": str(fp),
                 "label": _label(fp),
-                # CHANGED: add eqc count for second y-axis
-                # WHY: Figure 10 plots avg EQC size vs. number of EQCs.
-                "eqc": int(count_equivalence_classes(pkg)),          # CHANGED
+
+                "eqc": int(count_equivalence_classes(pkg)),
                 "avg": float(average_eqc_size(pkg)),
                 "std": float(std_eqc_size(pkg, population=False)),
                 "tmh_w": float(tmh_tendency_to_make_hubs(pkg, weighted=True)),
                 "tmh_u": float(tmh_tendency_to_make_hubs(pkg, weighted=False)),
-                # add edge counts
-                # unweighted = number of superedges
+
                 "edges_unweighted": len(edge_set(pkg, include_weights=False)),
-                # weighted   = sum of rolled edge counts
                 "edges_weighted": sum(
                     w for *_, w in edge_set(pkg, include_weights=True)
+                ),
+
+                # NEW: payload-filtered components
+                "comp_weak_payload_filtered": int(
+                    connected_components_count_payload_filtered(
+                        pkg, weak=True, min_payload=component_min_payload
+                    )
+                ),
+                "comp_strong_payload_filtered": int(
+                    connected_components_count_payload_filtered(
+                        pkg, weak=False, min_payload=component_min_payload
+                    )
                 ),
             })
         except Exception as e:
@@ -82,7 +92,19 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
         # WHY: previous code wrote a non-existent 'tmh' column.
         w = csv.DictWriter(
             f,
-            fieldnames=["label", "file", "eqc", "avg", "std", "tmh_w", "tmh_u", "edges_unweighted", "edges_weighted",],  # CHANGED
+            fieldnames=[
+                "label",
+                "file",
+                "eqc",
+                "avg",
+                "std",
+                "tmh_w",
+                "tmh_u",
+                "edges_unweighted",
+                "edges_weighted",
+                "comp_weak_payload_filtered",
+                "comp_strong_payload_filtered",
+            ]
         )
         w.writeheader()
         w.writerows(rows)
@@ -306,6 +328,56 @@ def plot_tmh(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+def plot_components_payload_filtered(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    max_xticks: int,
+    min_payload: int,
+):
+    labels = [r["label"] for r in rows]
+    xs = list(range(len(labels)))
+    weak_vals = [r["comp_weak_payload_filtered"] for r in rows]
+    strong_vals = [r["comp_strong_payload_filtered"] for r in rows]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    sns.lineplot(
+        x=xs,
+        y=weak_vals,
+        ax=ax,
+        color=BLUE,
+        linewidth=1.2,
+        label=f"Weakly connected (payload ≥ {min_payload})",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=strong_vals,
+        ax=ax,
+        color=ORANGE_DARK,
+        linestyle=":",
+        linewidth=1.2,
+        label=f"Strongly connected (payload ≥ {min_payload})",
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("Timestep")
+    ax.set_ylabel("Number of components")
+    ax.grid(False)
+
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xlabels, rotation=0)
+
+    ax.legend(loc="upper left")
+
+    fig.tight_layout()
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_pdf, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+    print(f"[ok] PDF: {out_pdf}")
+
 # ---------- main ----------
 
 def main():
@@ -372,10 +444,37 @@ def main():
         action="store_true",
         help="Skip weighted TMH PDF for 2015–2020.",
     )
+    ap.add_argument(
+    "--components-payload-filtered-pdf",
+    default="components_payload_filtered.pdf",
+    help="Filename for weak/strong connected components plot after payload filtering.",
+    )
+
+    ap.add_argument(
+        "--title-components-payload-filtered",
+        default="Weakly vs Strongly Connected Components (payload filtered)",
+        help="Title for payload-filtered components plot.",
+    )
+
+    ap.add_argument(
+        "--component-min-payload",
+        type=int,
+        default=40,
+        help="Minimum payload (vcp) required to keep a vertex for the component plot.",
+    )
+
+    ap.add_argument(
+        "--no-components-payload-filtered",
+        action="store_true",
+        help="Skip payload-filtered weak/strong components PDF.",
+    )
 
     args = ap.parse_args()
 
-    rows = collect(Path(args.input_dir))
+    rows = collect(
+        Path(args.input_dir),
+        component_min_payload=args.component_min_payload,
+    )
     if not rows:
         print("[info] No summaries found or all failed to parse.")
         return
@@ -414,6 +513,14 @@ def main():
             args.title_tmh_u,
             key="tmh_u",
             max_xticks=args.max_xticks,
+        )
+    if not args.no_components_payload_filtered:
+        plot_components_payload_filtered(
+            rows,
+            out_dir / args.components_payload_filtered_pdf,
+            args.title_components_payload_filtered,
+            args.max_xticks,
+            args.component_min_payload,
         )
 
     # NEW: extra plot for weighted TMH in 2015–2020 only

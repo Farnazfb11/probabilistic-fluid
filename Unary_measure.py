@@ -389,6 +389,49 @@ def connected_components_count(
 
     return sum(1 for C in comps if len(C) >= min_entity_nodes)
 
+def connected_components_count_payload_filtered(
+    pkg: Dict[str, Any],
+    *,
+    weak: bool = True,
+    min_payload: int = 40,
+) -> int:
+    """
+    Count components after filtering out EQC vertices whose payload (vcp) is below min_payload.
+
+    Parameters:
+      weak:
+        - True  -> weakly connected components
+        - False -> strongly connected components
+      min_payload:
+        Keep only vertices with vcp >= min_payload.
+
+    Returns:
+      int: number of connected components in the induced subgraph of retained EQCs.
+    """
+    G = _build_digraph(pkg)
+    nodes = pkg.get("nodes") or {}
+
+    # keep only entity EQCs with enough payload
+    keep: Set[int] = set()
+    for sid_str, node in nodes.items():
+        vcp = int(node.get("vcp", 0))
+        if vcp >= min_payload:
+            keep.add(int(sid_str))
+
+    if not keep:
+        return 0
+
+    # induced subgraph on retained nodes only
+    H = G.subgraph(keep).copy()
+
+    if H.number_of_nodes() == 0:
+        return 0
+
+    if weak:
+        return nx.number_connected_components(H.to_undirected(as_view=True))
+    else:
+        return nx.number_strongly_connected_components(H)
+
 # Convenience: one-look summary
 def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
     sizes = eqc_size_list(pkg)
