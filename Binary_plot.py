@@ -28,6 +28,16 @@ sns.set_theme(style="white")
 
 # helpers to find / label snapshots
 
+def _sid_degree_label(degree_mode: str) -> str:
+    mapping = {
+        "log_weighted_out": "δ²_EMD (exact SID + log-weighted out-degree fallback)",
+        "log_weighted_total": "δ²_EMD (exact SID + log-weighted total-degree fallback)",
+        "weighted_out": "δ²_EMD (exact SID + weighted out-degree fallback)",
+        "weighted_total": "δ²_EMD (exact SID + weighted total-degree fallback)",
+        "unweighted_out": "δ²_EMD (exact SID + unweighted out-degree fallback)",
+    }
+    return mapping.get(degree_mode, "δ²_EMD (exact SID + degree fallback)")
+
 def _label(p: Path) -> str:
     m = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", p.stem)
     return m.group(1) if m else p.stem
@@ -399,9 +409,9 @@ def main():
         help="Title for signature-based EMD plot.",
     )
     ap.add_argument(
-    "--title-emd-sid-degree",
-    default="Earth Mover's Distance over EQC Payloads (Exact SID + Degree Fallback)",
-    help="Title for exact-SID-plus-degree-fallback EMD plot.",
+        "--title-emd-sid-degree",
+        default="Earth Mover's Distance over EQC Payloads (Exact SID + Log-Weighted Out-Degree Fallback)",
+        help="Title for exact-SID-plus-degree-fallback EMD plot.",
     )
 
     ap.add_argument(
@@ -514,7 +524,7 @@ def main():
             _plot_metric(
                 rows,
                 key="emd_sid_degree",
-                ylabel="δ²_EMD (exact SID + degree fallback)",
+                ylabel=_sid_degree_label(args.degree_mode),
                 title=args.title_emd_sid_degree,
                 out_pdf=out_dir / args.emd_sid_degree_pdf,
                 max_xticks=args.max_xticks,
