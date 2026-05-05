@@ -487,6 +487,7 @@ def main():
 
     has_emd_degree = any("emd_degree" in r for r in rows)
     has_emd_signature = any("emd_signature" in r for r in rows)
+    has_emd_sid_degree = any("emd_sid_degree" in r for r in rows)
 
     if not args.no_emd and rows:
         if has_emd_degree:
@@ -506,6 +507,16 @@ def main():
                 ylabel="δ²_EMD (signature-field cost)",
                 title=args.title_emd_signature,
                 out_pdf=out_dir / args.emd_signature_pdf,
+                max_xticks=args.max_xticks,
+            )
+
+        if has_emd_sid_degree:
+            _plot_metric(
+                rows,
+                key="emd_sid_degree",
+                ylabel="δ²_EMD (exact SID + degree fallback)",
+                title=args.title_emd_sid_degree,
+                out_pdf=out_dir / args.emd_sid_degree_pdf,
                 max_xticks=args.max_xticks,
             )
 
