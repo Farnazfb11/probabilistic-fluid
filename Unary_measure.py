@@ -432,6 +432,36 @@ def connected_components_count_payload_filtered(
     else:
         return nx.number_strongly_connected_components(H)
 
+def connected_components_count_no_isolated_out(
+    pkg: Dict[str, Any],
+    *,
+    weak: bool = True,
+) -> int:
+    """
+    Count connected components after removing all EQCs with out-degree 0.
+    """
+    G = _build_digraph(pkg)
+    V_E = _entity_ids(pkg)
+
+    if G.number_of_nodes() == 0 or len(V_E) == 0:
+        return 0
+
+    # keep only entity EQCs that have at least one outgoing edge
+    keep = {n for n in V_E if n in G and G.out_degree(n) > 0}
+
+    if not keep:
+        return 0
+
+    H = G.subgraph(keep).copy()
+
+    if H.number_of_nodes() == 0:
+        return 0
+
+    if weak:
+        return nx.number_connected_components(H.to_undirected(as_view=True))
+    else:
+        return nx.number_strongly_connected_components(H)
+
 # Convenience: one-look summary
 def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
     sizes = eqc_size_list(pkg)
@@ -464,6 +494,9 @@ def summarize_unary_metrics(pkg: Dict[str, Any]) -> Dict[str, Any]:
         "components_weak_vcp_ge_40": connected_components_count(pkg, weak=True, min_entity_nodes=1, min_payload=40),
         "components_strong_vcp_ge_40": connected_components_count(pkg, weak=False, min_entity_nodes=1, min_payload=40),
 
+        "components_weak_no_isolated_out": connected_components_count_no_isolated_out(pkg, weak=True),
+        "components_strong_no_isolated_out": connected_components_count_no_isolated_out(pkg, weak=False),
+        
         "components_weak_vcp_ge_40_ge_3": connected_components_count(pkg, weak=True, min_entity_nodes=3, min_payload=40),
         "components_weak_vcp_ge_40_ge_5": connected_components_count(pkg, weak=True, min_entity_nodes=5, min_payload=40),
         "components_weak_vcp_ge_40_ge_7": connected_components_count(pkg, weak=True, min_entity_nodes=7, min_payload=40),

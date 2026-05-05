@@ -19,6 +19,7 @@ from Unary_measure import (
     edge_set,
     connected_components_count,
     connected_components_count_payload_filtered,
+    connected_components_count_no_isolated_out,
 )
 
 # NEW: set a global seaborn theme ready for paper
@@ -110,6 +111,22 @@ def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[st
                 "comp_strong_ge_7": int(
                     connected_components_count(pkg, weak=False, min_entity_nodes=7, min_payload=1)
                 ),
+
+                "comp_weak": int(
+                    connected_components_count(pkg, weak=True)
+                ),
+                "comp_strong": int(
+                    connected_components_count(pkg, weak=False)
+                ),
+
+                # CHANGED: components after removing EQCs with out-degree 0
+                # WHY CHANGED: this matches your new metric definition
+                "comp_weak_no_isolated_out": int(
+                    connected_components_count_no_isolated_out(pkg, weak=True)
+                ),
+                "comp_strong_no_isolated_out": int(
+                    connected_components_count_no_isolated_out(pkg, weak=False)
+                ),
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -136,6 +153,8 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
                 "edges_weighted",
                 "comp_weak",
                 "comp_strong",
+                "comp_weak_no_isolated_out",      # CHANGED
+                "comp_strong_no_isolated_out",    # CHANGED
                 "comp_weak_payload_filtered",
                 "comp_strong_payload_filtered",
                 "comp_weak_ge_3",
@@ -541,6 +560,55 @@ def plot_components_thresholded(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+def plot_components_no_isolated_out(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    max_xticks: int,
+):
+    labels = [r["label"] for r in rows]
+    xs = list(range(len(labels)))
+    weak_vals = [r["comp_weak_no_isolated_out"] for r in rows]
+    strong_vals = [r["comp_strong_no_isolated_out"] for r in rows]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    sns.lineplot(
+        x=xs,
+        y=weak_vals,
+        ax=ax,
+        color=BLUE,
+        linewidth=1.2,
+        label="Weakly connected (out-degree > 0)",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=strong_vals,
+        ax=ax,
+        color=ORANGE_DARK,
+        linestyle=":",
+        linewidth=1.2,
+        label="Strongly connected (out-degree > 0)",
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("Timestep")
+    ax.set_ylabel("Number of components")
+    ax.grid(False)
+
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xlabels, rotation=0)
+
+    ax.legend(loc="upper left")
+
+    fig.tight_layout()
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_pdf, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+    print(f"[ok] PDF: {out_pdf}")
+
 # ---------- main ----------
 
 def main():
@@ -685,6 +753,24 @@ def main():
         help="Skip strongly connected components threshold plot.",
     )
 
+    ap.add_argument(
+        "--components-no-isolated-out-pdf",
+        default="components_no_isolated_out.pdf",
+        help="Filename for weak/strong connected components plot after removing EQCs with out-degree 0.",
+    )
+
+    ap.add_argument(
+        "--title-components-no-isolated-out",
+        default="Weakly vs Strongly Connected Components (out-degree > 0)",
+        help="Title for components plot after removing EQCs with out-degree 0.",
+    )
+
+    ap.add_argument(
+        "--no-components-no-isolated-out",
+        action="store_true",
+        help="Skip weak/strong components plot after removing EQCs with out-degree 0.",
+    )
+
     args = ap.parse_args()
 
     rows = collect(
@@ -763,6 +849,14 @@ def main():
             args.max_xticks,
             prefix="comp_strong",
             ylabel="Number of strong components",
+        )
+
+    if not args.no_components_no_isolated_out:
+        plot_components_no_isolated_out(
+            rows,
+            out_dir / args.components_no_isolated_out_pdf,
+            args.title_components_no_isolated_out,
+            args.max_xticks,
         )
 
     # NEW: extra plot for weighted TMH in 2015–2020 only
