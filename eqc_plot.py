@@ -86,7 +86,30 @@ def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[st
                         pkg, weak=False, min_payload=component_min_payload
                     )
                 ),
-                
+                # CHANGED: thresholded weak components
+                # WHY CHANGED: lets you compare how many weak components remain
+                # when tiny 1-node / 2-node fragments are ignored
+                "comp_weak_ge_3": int(
+                    connected_components_count(pkg, weak=True, min_entity_nodes=3, min_payload=1)
+                ),
+                "comp_weak_ge_5": int(
+                    connected_components_count(pkg, weak=True, min_entity_nodes=5, min_payload=1)
+                ),
+                "comp_weak_ge_7": int(
+                    connected_components_count(pkg, weak=True, min_entity_nodes=7, min_payload=1)
+                ),
+
+                # CHANGED: thresholded strong components
+                # WHY CHANGED: same idea, but for strongly connected components
+                "comp_strong_ge_3": int(
+                    connected_components_count(pkg, weak=False, min_entity_nodes=3, min_payload=1)
+                ),
+                "comp_strong_ge_5": int(
+                    connected_components_count(pkg, weak=False, min_entity_nodes=5, min_payload=1)
+                ),
+                "comp_strong_ge_7": int(
+                    connected_components_count(pkg, weak=False, min_entity_nodes=7, min_payload=1)
+                ),
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -115,6 +138,12 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
                 "comp_strong",
                 "comp_weak_payload_filtered",
                 "comp_strong_payload_filtered",
+                "comp_weak_ge_3",
+                "comp_weak_ge_5",
+                "comp_weak_ge_7",
+                "comp_strong_ge_3",
+                "comp_strong_ge_5",
+                "comp_strong_ge_7",
             ]
         )
         w.writeheader()
@@ -438,6 +467,80 @@ def plot_components_payload_filtered(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+def plot_components_thresholded(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    max_xticks: int,
+    *,
+    prefix: str,
+    ylabel: str,
+):
+    labels = [r["label"] for r in rows]
+    xs = list(range(len(labels)))
+
+    raw_vals = [r[prefix] for r in rows]
+    ge3_vals = [r[f"{prefix}_ge_3"] for r in rows]
+    ge5_vals = [r[f"{prefix}_ge_5"] for r in rows]
+    ge7_vals = [r[f"{prefix}_ge_7"] for r in rows]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    # CHANGED: four curves on one plot, similar idea to your k-ary multi-line view
+    # WHY CHANGED: easier comparison between raw and thresholded versions
+    sns.lineplot(
+        x=xs,
+        y=raw_vals,
+        ax=ax,
+        linewidth=1.2,
+        label="Unfiltered",
+        color="#ffc508",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=ge3_vals,
+        ax=ax,
+        linewidth=1.2,
+        label="≥ 3 nodes",
+        color="#37c71a",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=ge5_vals,
+        ax=ax,
+        linewidth=1.2,
+        label="≥ 5 nodes",
+        color="#091be0",
+    )
+
+    sns.lineplot(
+        x=xs,
+        y=ge7_vals,
+        ax=ax,
+        linewidth=1.2,
+        label="≥ 7 nodes",
+        color="#d95f02",
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("Timestep")
+    ax.set_ylabel(ylabel)
+    ax.grid(False)
+
+    xticks, xlabels = _year_ticks(labels, max_xticks)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xlabels, rotation=0)
+
+    ax.legend(loc="upper left")
+
+    fig.tight_layout()
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_pdf, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+    print(f"[ok] PDF: {out_pdf}")
+
 # ---------- main ----------
 
 def main():
@@ -546,6 +649,42 @@ def main():
         help="Skip unfiltered weak/strong components PDF.",
     )
 
+    ap.add_argument(
+    "--components-weak-thresholded-pdf",
+    default="components_weak_thresholded.pdf",
+    help="Filename for weakly connected components plot with node-count thresholds.",
+    )
+
+    ap.add_argument(
+        "--components-strong-thresholded-pdf",
+        default="components_strong_thresholded.pdf",
+        help="Filename for strongly connected components plot with node-count thresholds.",
+    )
+
+    ap.add_argument(
+        "--title-components-weak-thresholded",
+        default="Weakly Connected Components with Node Thresholds",
+        help="Title for thresholded weak components plot.",
+    )
+
+    ap.add_argument(
+        "--title-components-strong-thresholded",
+        default="Strongly Connected Components with Node Thresholds",
+        help="Title for thresholded strong components plot.",
+    )
+
+    ap.add_argument(
+        "--no-components-weak-thresholded",
+        action="store_true",
+        help="Skip weakly connected components threshold plot.",
+    )
+
+    ap.add_argument(
+        "--no-components-strong-thresholded",
+        action="store_true",
+        help="Skip strongly connected components threshold plot.",
+    )
+
     args = ap.parse_args()
 
     rows = collect(
@@ -605,6 +744,25 @@ def main():
             out_dir / args.components_unfiltered_pdf,
             args.title_components_unfiltered,
             args.max_xticks,
+        )
+    if not args.no_components_weak_thresholded:
+        plot_components_thresholded(
+            rows,
+            out_dir / args.components_weak_thresholded_pdf,
+            args.title_components_weak_thresholded,
+            args.max_xticks,
+            prefix="comp_weak",
+            ylabel="Number of weak components",
+        )
+
+    if not args.no_components_strong_thresholded:
+        plot_components_thresholded(
+            rows,
+            out_dir / args.components_strong_thresholded_pdf,
+            args.title_components_strong_thresholded,
+            args.max_xticks,
+            prefix="comp_strong",
+            ylabel="Number of strong components",
         )
 
     # NEW: extra plot for weighted TMH in 2015–2020 only
