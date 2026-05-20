@@ -787,10 +787,21 @@ def earth_mover_distance_sid_then_degree(
         elif delta < 0:
             V_d[sid] = -delta
 
-    if not V_d and not V_i:
-        return 0.0
+        if not V_d and not V_i:
+            return 0.0
+        if not V_d and not V_i:
+            return 0.0
 
-    return _emd_min_cost_flow_degree_nodes(V_d, V_i, deg_t, deg_tp1)
+        supply_by_degree: Dict[float, int] = defaultdict(int)
+        demand_by_degree: Dict[float, int] = defaultdict(int)
+
+        for sid, mass in V_d.items():
+            supply_by_degree[float(deg_t.get(sid, 0.0))] += mass
+
+        for sid, mass in V_i.items():
+            demand_by_degree[float(deg_tp1.get(sid, 0.0))] += mass
+
+    return _emd_degree_1d_exact(supply_by_degree, demand_by_degree)
 
 def _emd_min_cost_flow_degree_nodes(
     V_d: Dict[int, int],
