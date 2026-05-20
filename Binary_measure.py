@@ -333,10 +333,11 @@ def _degree_map_weighted_from_pkg(
 
     edges = pkg.get("edges")
     if not edges:
-        raise ValueError(
-            "EMD requires pkg['edges'], but it's missing or empty. "
-            "Rebuild summaries with include_edges=True."
+        print(
+            "[warn] pkg['edges'] is missing or empty — all degrees set to 0. "
+            "If this is unexpected, rebuild summaries with include_edges=True."
         )
+        return deg
 
     # ---------------- CHANGED ----------------
     # WHY CHANGED:
@@ -800,77 +801,3 @@ def earth_mover_distance_sid_then_degree(
         demand_by_degree[float(deg_tp1.get(sid, 0.0))] += mass
 
     return _emd_degree_1d_exact(supply_by_degree, demand_by_degree)
-
-def _emd_min_cost_flow_degree_nodes(
-    V_d: Dict[int, int],
-    V_i: Dict[int, int],
-    deg_t: Dict[int, float],
-    deg_tp1: Dict[int, float],
-) -> float:
-    """
-    Node-level min-cost flow over residual EQCs.
-
-    Cost:
-        0 if same SID
-        abs(deg_t[i] - deg_tp1[j]) + 1 otherwise
-
-    NOTE:
-    After exact SID overlap cancellation, same-SID transport is usually no longer
-    needed, but we keep the rule for completeness.
-    """
-    F = nx.DiGraph()
-
-    total_supply = int(sum(V_d.values()))
-    total_demand = int(sum(V_i.values()))
-
-    source = "SOURCE"
-    target = "TARGET"
-
-    F.add_node(source, demand=-total_supply)
-    F.add_node(target, demand=total_demand)
-
-    if total_supply < total_demand:
-        dummy_supply = "DUMMY_SUPPLY"
-        missing = total_demand - total_supply
-        F.add_node(dummy_supply, demand=-missing)
-        F.add_edge(dummy_supply, target, weight=1000, capacity=missing)
-
-    elif total_demand < total_supply:
-        dummy_demand = "DUMMY_DEMAND"
-        extra = total_supply - total_demand
-        F.add_node(dummy_demand, demand=extra)
-        F.add_edge(source, dummy_demand, weight=1000, capacity=extra)
-
-    # source -> supply nodes
-    for sid, mass in V_d.items():
-        nd = f"d_{sid}"
-        F.add_node(nd)
-        F.add_edge(source, nd, weight=0, capacity=int(mass))
-
-    # demand nodes -> target
-    for sid, mass in V_i.items():
-        ni = f"i_{sid}"
-        F.add_node(ni)
-        F.add_edge(ni, target, weight=0, capacity=int(mass))
-
-    cap = max(1, min(total_supply, total_demand)) if total_supply and total_demand else 1
-
-    for sid_i in V_d.keys():
-        nd = f"d_{sid_i}"
-        di = float(deg_t.get(sid_i, 0.0))
-
-        for sid_j in V_i.keys():
-            ni = f"i_{sid_j}"
-            dj = float(deg_tp1.get(sid_j, 0.0))
-
-            if sid_i == sid_j:
-                cost = 0.0
-            else:
-                cost = abs(di - dj) + 1.0
-
-            # integer weights for network_simplex
-            weight = int(round(cost * 1000))
-            F.add_edge(nd, ni, weight=weight, capacity=cap)
-
-    flow_cost, _ = nx.network_simplex(F)
-    return float(flow_cost) / 1000.0

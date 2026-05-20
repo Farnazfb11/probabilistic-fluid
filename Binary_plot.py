@@ -410,7 +410,7 @@ def main():
     )
     ap.add_argument(
         "--title-emd-sid-degree",
-        default="Earth Mover's Distance over EQC Payloads (Exact SID + Log-Weighted Out-Degree Fallback)",
+        default="Earth Mover's Distance over EQC Payloads (SID Cancellation + Log-Weighted Out-Degree Transport)",
         help="Title for exact-SID-plus-degree-fallback EMD plot.",
     )
 

@@ -8,6 +8,7 @@ from Binary_measure import (
     symmetric_kl_divergence,
     earth_mover_distance_degree,
     earth_mover_distance_signature,
+    earth_mover_distance_sid_then_degree,
 )
 
 
@@ -104,11 +105,11 @@ class TestJaccardVertices:
         """No overlap in equivalence classes → distance 1."""
         pkg_t = {
             "nodes": {"1": {"vcp": 50}, "2": {"vcp": 50}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"3": {"vcp": 30}, "4": {"vcp": 70}},
-            "edges": []
+            "edges": {}
         }
         result = jaccard_vertices(pkg_t, pkg_tp1)
         assert result == 1.0
@@ -117,11 +118,11 @@ class TestJaccardVertices:
         """Partial overlap: {1,2} vs {2,3} → distance = 1 - 1/3."""
         pkg_t = {
             "nodes": {"1": {"vcp": 50}, "2": {"vcp": 50}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"2": {"vcp": 60}, "3": {"vcp": 40}},
-            "edges": []
+            "edges": {}
         }
         result = jaccard_vertices(pkg_t, pkg_tp1)
         # Intersection: {2}, Union: {1,2,3}
@@ -132,11 +133,11 @@ class TestJaccardVertices:
         """Adding one class: {1} vs {1,2} → distance = 1 - 1/2."""
         pkg_t = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         result = jaccard_vertices(pkg_t, pkg_tp1)
         assert result == 0.5
@@ -306,11 +307,11 @@ class TestSymmetricKLDivergence:
         """Same classes, different sizes → non-zero KLD."""
         pkg_t = {
             "nodes": {"1": {"vcp": 60}, "2": {"vcp": 40}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 40}, "2": {"vcp": 60}},
-            "edges": []
+            "edges": {}
         }
         result = symmetric_kl_divergence(pkg_t, pkg_tp1)
         # Should be positive and symmetric
@@ -323,11 +324,11 @@ class TestSymmetricKLDivergence:
         """New class appears → KLD > 0."""
         pkg_t = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         result = symmetric_kl_divergence(pkg_t, pkg_tp1)
         assert result > 0
@@ -336,11 +337,11 @@ class TestSymmetricKLDivergence:
         """Class disappears → KLD > 0."""
         pkg_t = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         result = symmetric_kl_divergence(pkg_t, pkg_tp1)
         assert result > 0
@@ -349,11 +350,11 @@ class TestSymmetricKLDivergence:
         """KLD should be symmetric."""
         pkg_t = {
             "nodes": {"1": {"vcp": 30}, "2": {"vcp": 70}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 60}, "3": {"vcp": 40}},
-            "edges": []
+            "edges": {}
         }
         kld_forward = symmetric_kl_divergence(pkg_t, pkg_tp1)
         kld_backward = symmetric_kl_divergence(pkg_tp1, pkg_t)
@@ -399,11 +400,11 @@ class TestEarthMoverDistance:
         """Payload changes within same class → EMD = 0 (distance to self = 0)."""
         pkg_t = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 100}},  # Same size
-            "edges": []
+            "edges": {}
         }
         result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         assert result == 0.0
@@ -412,11 +413,11 @@ class TestEarthMoverDistance:
         """Payload moves between different classes → EMD > 0."""
         pkg_t = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 60}, "2": {"vcp": 40}},
-            "edges": []
+            "edges": {}
         }
         result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 1 to class 2
@@ -427,11 +428,11 @@ class TestEarthMoverDistance:
         """New class appears → cost of creating entities."""
         pkg_t = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 1 to new class 2
@@ -441,11 +442,11 @@ class TestEarthMoverDistance:
         """Class disappears → cost of removing entities."""
         pkg_t = {
             "nodes": {"1": {"vcp": 80}, "2": {"vcp": 20}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 100}},
-            "edges": []
+            "edges": {}
         }
         result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # 20 entities moved from class 2 to class 1
@@ -459,7 +460,7 @@ class TestEarthMoverDistance:
                 "2": {"vcp": 30},
                 "3": {"vcp": 20}
             },
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {
@@ -467,7 +468,7 @@ class TestEarthMoverDistance:
                 "2": {"vcp": 40},  # +10
                 "3": {"vcp": 30}   # +10
             },
-            "edges": []
+            "edges": {}
         }
         result = earth_mover_distance_degree(pkg_t, pkg_tp1)
         # Total movement: 20 entities redistributed
@@ -477,11 +478,11 @@ class TestEarthMoverDistance:
         """EMD should be symmetric."""
         pkg_t = {
             "nodes": {"1": {"vcp": 70}, "2": {"vcp": 30}},
-            "edges": []
+            "edges": {}
         }
         pkg_tp1 = {
             "nodes": {"1": {"vcp": 40}, "2": {"vcp": 60}},
-            "edges": []
+            "edges": {}
         }
         emd_forward = earth_mover_distance_degree(pkg_t, pkg_tp1)
         emd_backward = earth_mover_distance_degree(pkg_tp1, pkg_t)
@@ -946,3 +947,89 @@ class TestEarthMoverDistanceSignature:
         emd_forward = earth_mover_distance_signature(pkg_t, pkg_tp1)
         emd_backward = earth_mover_distance_signature(pkg_tp1, pkg_t)
         assert abs(emd_forward - emd_backward) < 1e-9
+
+#######
+# Sid_degree EMD tests are more complex to set up, so we define a helper function to build minimal packages for those tests
+#######
+def _pkg(nodes: dict, edges: dict = None) -> dict:
+    """Helper: build a minimal summary package with a dummy self-loop so
+    _degree_map_weighted_from_pkg does not raise on empty edge sets."""
+    if edges is None:
+        # one dummy self-loop per node so the degree map doesn't crash
+        edges = {f"self_{sid}": {"src": int(sid), "dst": int(sid), "count": 0}
+                 for sid in nodes}
+    return {"nodes": nodes, "edges": edges}
+
+
+class TestHybridSidDegreeEMD:
+
+    def test_identical_packages_zero(self):
+        pkg = _pkg(
+            nodes={"1": {"vcp": 100}, "2": {"vcp": 50}},
+            edges={"e1": {"src": 1, "dst": 2, "count": 5}},
+        )
+        result = earth_mover_distance_sid_then_degree(pkg, pkg)
+        assert result == 0.0
+
+    def test_same_sids_payload_shift(self):
+        # SID 1 loses 20, SID 2 gains 20.
+        # Both have count=0 edges → deg = log(1+0) = 0.
+        # Cost per unit = |0-0| + 1 = 1. Total = 20.
+        pkg_t   = _pkg({"1": {"vcp": 80}, "2": {"vcp": 20}})
+        pkg_tp1 = _pkg({"1": {"vcp": 60}, "2": {"vcp": 40}})
+        result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
+        assert result == 20.0
+
+    def test_new_sid_appears(self):
+        # Supply=20, demand=30. 20 matched at cost 1, 10 dummy at cost 1.
+        # Total = 30.
+        pkg_t   = _pkg({"1": {"vcp": 100}})
+        pkg_tp1 = _pkg({"1": {"vcp": 80}, "2": {"vcp": 30}})
+        result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
+        assert result == 30.0
+
+    def test_sid_disappears(self):
+        # Supply=30, demand=20. 20 matched at cost 1, 10 dummy at cost 1.
+        # Total = 30.
+        pkg_t   = _pkg({"1": {"vcp": 80}, "2": {"vcp": 30}})
+        pkg_tp1 = _pkg({"1": {"vcp": 100}})
+        result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
+        assert result == 30.0
+
+    def test_degree_difference_increases_cost(self):
+        import math
+        pkg_t = _pkg(
+            nodes={"1": {"vcp": 80}, "2": {"vcp": 20}},
+            edges={"e1": {"src": 1, "dst": 2, "count": 10},
+                   "self_2": {"src": 2, "dst": 2, "count": 0}},
+        )
+        pkg_tp1 = _pkg(
+            nodes={"1": {"vcp": 60}, "2": {"vcp": 40}},
+            edges={"e1": {"src": 1, "dst": 2, "count": 10},
+                   "self_2": {"src": 2, "dst": 2, "count": 0}},
+        )
+        deg_supplier = math.log1p(10)  # SID 1 in pkg_t
+        deg_consumer = math.log1p(0)   # SID 2 in pkg_tp1
+        expected = 20 * (abs(deg_supplier - deg_consumer) + 1)
+        result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
+        assert abs(result - expected) < 1e-6
+
+    def test_symmetry(self):
+        pkg_t = _pkg(
+            nodes={"1": {"vcp": 70}, "2": {"vcp": 30}},
+            edges={"e1": {"src": 1, "dst": 2, "count": 5},
+                   "self_2": {"src": 2, "dst": 2, "count": 0}},
+        )
+        pkg_tp1 = _pkg(
+            nodes={"1": {"vcp": 40}, "2": {"vcp": 60}},
+            edges={"e1": {"src": 1, "dst": 2, "count": 5},
+                   "self_2": {"src": 2, "dst": 2, "count": 0}},
+        )
+        forward  = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
+        backward = earth_mover_distance_sid_then_degree(pkg_tp1, pkg_t)
+        assert abs(forward - backward) < 1e-6
+
+    def test_shared_mass_is_free(self):
+        pkg = _pkg({"1": {"vcp": 100}})
+        result = earth_mover_distance_sid_then_degree(pkg, pkg)
+        assert result == 0.0
