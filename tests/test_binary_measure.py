@@ -964,6 +964,10 @@ def _pkg(nodes: dict, edges: dict = None) -> dict:
 class TestHybridSidDegreeEMD:
 
     def test_identical_packages_zero(self):
+        # Math:
+        # For all SIDs: a = b, so common = min(a,b) = a → residual_t = residual_tp1 = 0
+        # V_d = {}, V_i = {} → early return 0.0
+        # Expected: 0.0
         pkg = _pkg(
             nodes={"1": {"vcp": 100}, "2": {"vcp": 50}},
             edges={"e1": {"src": 1, "dst": 2, "count": 5}},
@@ -972,32 +976,71 @@ class TestHybridSidDegreeEMD:
         assert result == 0.0
 
     def test_same_sids_payload_shift(self):
-        # SID 1 loses 20, SID 2 gains 20.
-        # Both have count=0 edges → deg = log(1+0) = 0.
-        # Cost per unit = |0-0| + 1 = 1. Total = 20.
+        # Math:
+        # Stage 1 cancellation:
+        #   SID 1: common = min(80, 60) = 60 → residual_t[1] = 20, residual_tp1[1] = 0
+        #   SID 2: common = min(20, 40) = 20 → residual_t[2] = 0,  residual_tp1[2] = 20
+        # V_d = {1: 20}, V_i = {2: 20}  →  supply = demand = 20  (balanced)
+        #
+        # Stage 2 degree-based transport:
+        #   Both packages have same edges → deg(1) = deg(2) = log(1 + 5) ≈ 1.792
+        #   cost per unit = |deg(1) - deg(2)| + 1 = |1.792 - 1.792| + 1 = 1
+        #   Total = 20 × 1 = 20.0
+        # Expected: 20.0
         pkg_t   = _pkg({"1": {"vcp": 80}, "2": {"vcp": 20}})
         pkg_tp1 = _pkg({"1": {"vcp": 60}, "2": {"vcp": 40}})
         result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
         assert result == 20.0
 
     def test_new_sid_appears(self):
-        # Supply=20, demand=30. 20 matched at cost 1, 10 dummy at cost 1.
-        # Total = 30.
+        # Math:
+        # Stage 1 cancellation:
+        #   SID 1: common = min(100, 80) = 80 → residual_t[1] = 20
+        #   SID 2: only in tp1   → residual_tp1[2] = 30
+        # V_d = {1: 20}, V_i = {2: 30}  →  supply = 20, demand = 30  (imbalanced)
+        #
+        # Stage 2 - 1D sweep:
+        #   Both degrees = log(1+0) = 0  (no outgoing edges)
+        #   20 units matched: cost = 20 × (|0 - 0| + 1) = 20
+        #   10 units unmatched demand → dummy cost = 10 × 1 = 10
+        #   Total = 20 + 10 = 30.0
+        # Expected: 30.0
         pkg_t   = _pkg({"1": {"vcp": 100}})
         pkg_tp1 = _pkg({"1": {"vcp": 80}, "2": {"vcp": 30}})
         result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
         assert result == 30.0
 
     def test_sid_disappears(self):
-        # Supply=30, demand=20. 20 matched at cost 1, 10 dummy at cost 1.
-        # Total = 30.
+        # Math:
+        # Stage 1 cancellation:
+        #   SID 1: common = min(80, 100) = 80 → residual_tp1[1] = 20
+        #   SID 2: only in t     → residual_t[2] = 30
+        # V_d = {2: 30}, V_i = {1: 20}  →  supply = 30, demand = 20  (imbalanced)
+        #
+        # Stage 2 - 1D sweep:
+        #   Both degrees = log(1+0) = 0  (no outgoing edges)
+        #   20 units matched: cost = 20 × (|0 - 0| + 1) = 20
+        #   10 units unmatched supply → dummy cost = 10 × 1 = 10
+        #   Total = 20 + 10 = 30.0
+        # Expected: 30.0
         pkg_t   = _pkg({"1": {"vcp": 80}, "2": {"vcp": 30}})
         pkg_tp1 = _pkg({"1": {"vcp": 100}})
         result = earth_mover_distance_sid_then_degree(pkg_t, pkg_tp1)
         assert result == 30.0
 
     def test_degree_difference_increases_cost(self):
-        import math
+        # Math:
+        # Stage 1 cancellation:
+        #   SID 1: common = min(80, 60) = 60 → residual_t[1] = 20
+        #   SID 2: common = min(20, 40) = 20 → residual_tp1[2] = 20
+        # V_d = {1: 20}, V_i = {2: 20}  →  supply = demand = 20  (balanced)
+        #
+        # Stage 2 degree-based transport:
+        #   deg_t(SID 1)   = log(1 + 10) ≈ 2.398  (has outgoing edge count=10)
+        #   deg_tp1(SID 2) = log(1 + 0)  = 0.0    (no outgoing edges)
+        #   cost per unit  = |2.398 - 0.0| + 1 ≈ 3.398
+        #   Total = 20 × 3.398 ≈ 67.97
+        # Expected: 20 × (log(11) + 1)
         pkg_t = _pkg(
             nodes={"1": {"vcp": 80}, "2": {"vcp": 20}},
             edges={"e1": {"src": 1, "dst": 2, "count": 10},
@@ -1015,6 +1058,18 @@ class TestHybridSidDegreeEMD:
         assert abs(result - expected) < 1e-6
 
     def test_symmetry(self):
+        # Math:
+        # Forward:  S_t → S_{t+1}
+        #   SID 1: residual_t[1] = 30  (supplier, deg from pkg_t)
+        #   SID 2: residual_tp1[2] = 30  (consumer, deg from pkg_tp1)
+        #
+        # Backward: S_{t+1} → S_t
+        #   SID 2: residual_t[2] = 30  (supplier, deg from pkg_tp1)
+        #   SID 1: residual_tp1[1] = 30  (consumer, deg from pkg_t)
+        #
+        # Cost function is symmetric: |deg(i) - deg(j)| + 1 = |deg(j) - deg(i)| + 1
+        # So forward cost = backward cost
+        # Expected: abs(forward - backward) < 1e-6
         pkg_t = _pkg(
             nodes={"1": {"vcp": 70}, "2": {"vcp": 30}},
             edges={"e1": {"src": 1, "dst": 2, "count": 5},
@@ -1030,6 +1085,12 @@ class TestHybridSidDegreeEMD:
         assert abs(forward - backward) < 1e-6
 
     def test_shared_mass_is_free(self):
+        # Math:
+        # Stage 1 cancellation:
+        #   SID 1: common = min(100, 100) = 100 → residual_t[1] = 0, residual_tp1[1] = 0
+        # V_d = {}, V_i = {}  →  early return 0.0
+        # No mass reaches Stage 2 at all.
+        # Expected: 0.0
         pkg = _pkg({"1": {"vcp": 100}})
         result = earth_mover_distance_sid_then_degree(pkg, pkg)
         assert result == 0.0
