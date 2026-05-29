@@ -329,11 +329,6 @@ def main():
         description="Binary metrics over consecutive summaries: Jaccard (V/E), GED, KLD, EMD."
     )
     ap.add_argument(
-        "-i", "--input-dir",
-        required=True,
-        help="Directory with summary JSONs (recursive).",
-    )
-    ap.add_argument(
         "--out-dir",
         default="results_binary",
         help="Output directory for PDFs (default: results_binary).",
