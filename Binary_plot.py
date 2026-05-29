@@ -30,13 +30,13 @@ sns.set_theme(style="white")
 
 def _sid_degree_label(degree_mode: str) -> str:
     mapping = {
-        "log_weighted_out": "Degree-based EMD",
-        "log_weighted_total": "Degree-based EMD",
-        "weighted_out": "Degree-based EMD",
-        "weighted_total": "Degree-based EMD",
-        "unweighted_out": "Degree-based EMD",
+        "log_weighted_out": "δ²_EMD (degree-based)",
+        "log_weighted_total": "δ²_EMD (degree-based)",
+        "weighted_out": "δ²_EMD (degree-based)",
+        "weighted_total": "δ²_EMD (degree-based)",
+        "unweighted_out": "δ²_EMD (degree-based)",
     }
-    return mapping.get(degree_mode, "Degree-based EMD")
+    return mapping.get(degree_mode, "δ²_EMD (degree-based)")
 
 def _label(p: Path) -> str:
     m = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", p.stem)
