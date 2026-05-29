@@ -30,13 +30,13 @@ sns.set_theme(style="white")
 
 def _sid_degree_label(degree_mode: str) -> str:
     mapping = {
-        "log_weighted_out": "δ²_EMD (exact SID + log-weighted out-degree fallback)",
-        "log_weighted_total": "δ²_EMD (exact SID + log-weighted total-degree fallback)",
-        "weighted_out": "δ²_EMD (exact SID + weighted out-degree fallback)",
-        "weighted_total": "δ²_EMD (exact SID + weighted total-degree fallback)",
-        "unweighted_out": "δ²_EMD (exact SID + unweighted out-degree fallback)",
+        "log_weighted_out": "Degree-based EMD",
+        "log_weighted_total": "Degree-based EMD",
+        "weighted_out": "Degree-based EMD",
+        "weighted_total": "Degree-based EMD",
+        "unweighted_out": "Degree-based EMD",
     }
-    return mapping.get(degree_mode, "δ²_EMD (exact SID + degree fallback)")
+    return mapping.get(degree_mode, "Degree-based EMD")
 
 def _label(p: Path) -> str:
     m = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", p.stem)
@@ -264,6 +264,23 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
 
     print(f"[ok] CSV: {csv_path}")
 
+def load_from_csv(csv_path: Path) -> List[Dict[str, Any]]:
+    """Load previously saved rows from a CSV instead of re-scanning JSON pairs."""
+    rows: List[Dict[str, Any]] = []
+    with csv_path.open("r", newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            for float_field in [
+                "jac_v", "jac_e", "ged", "kld",
+                "emd_degree", "emd_signature", "emd_sid_degree",
+                "shared_sids", "unchanged_payload",
+                "residual_supply", "residual_demand",
+            ]:
+                if float_field in row and row[float_field] != "":
+                    row[float_field] = float(row[float_field])
+            rows.append(row)
+    print(f"[ok] Loaded {len(rows)} rows from {csv_path}")
+    return rows
 
 # generic "one-curve" plot helper
 
@@ -410,7 +427,7 @@ def main():
     )
     ap.add_argument(
         "--title-emd-sid-degree",
-        default="Earth Mover's Distance over EQC Payloads (SID Cancellation + Log-Weighted Out-Degree Transport)",
+        default="Degree-based EMD",
         help="Title for exact-SID-plus-degree-fallback EMD plot.",
     )
 
@@ -432,20 +449,30 @@ def main():
     ap.add_argument("--no-ged",   action="store_true", help="Skip GED PDF.")
     ap.add_argument("--no-kld",   action="store_true", help="Skip KLD PDF.")
     ap.add_argument("--no-emd",   action="store_true", help="Skip all EMD PDFs.")
+    ap.add_argument("-i", "--input-dir", required=False, help="Directory with summary JSONs (recursive).")
+    ap.add_argument("--from-csv", help="Load rows from a previously saved CSV instead of scanning JSONs.")
 
     args = ap.parse_args()
 
     emd_mode = "none" if args.no_emd else args.emd_mode
 
-    rows = collect_pairs(
-        Path(args.input_dir),
-        compute_jac_v=(not args.no_jac_v),
-        compute_jac_e=(not args.no_jac_e),
-        compute_ged=(not args.no_ged),
-        compute_kld=(not args.no_kld),
-        emd_mode=emd_mode,
-        degree_mode=args.degree_mode,
-    )
+    if args.from_csv:
+        rows = load_from_csv(Path(args.from_csv))
+    elif args.input_dir:
+        emd_mode = "none" if args.no_emd else args.emd_mode
+        rows = collect_pairs(
+            Path(args.input_dir),
+            compute_jac_v=(not args.no_jac_v),
+            compute_jac_e=(not args.no_jac_e),
+            compute_ged=(not args.no_ged),
+            compute_kld=(not args.no_kld),
+            emd_mode=emd_mode,
+            degree_mode=args.degree_mode,
+        )
+    else:
+        print("[error] Provide either -i/--input-dir or --from-csv.")
+        return
+
     if not rows:
         print("[info] Not enough summaries or all pairs failed to compute.")
         return

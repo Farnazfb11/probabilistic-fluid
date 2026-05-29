@@ -20,6 +20,7 @@ from Unary_measure import (
     connected_components_count,
     connected_components_count_payload_filtered,
     connected_components_count_no_isolated_out,
+    total_payload,
 )
 
 # NEW: set a global seaborn theme ready for paper
@@ -127,6 +128,8 @@ def collect(input_dir: Path, *, component_min_payload: int = 40) -> List[Dict[st
                 "comp_strong_no_isolated_out": int(
                     connected_components_count_no_isolated_out(pkg, weak=False)
                 ),
+
+                "total_payload": int(total_payload(pkg)),
             })
         except Exception as e:
             print(f"[warn] skip {fp}: {e}")
@@ -609,6 +612,32 @@ def plot_components_no_isolated_out(
     plt.close(fig)
     print(f"[ok] PDF: {out_pdf}")
 
+def plot_total_payload(
+    rows: List[Dict[str, Any]],
+    out_pdf: Path,
+    title: str,
+    max_xticks: int = 40,
+) -> None:
+    labels = [r["label"] for r in rows]
+    values = [r["total_payload"] for r in rows]
+    xs = list(range(len(labels)))
+
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.plot(xs, values, color=BLUE, linewidth=0.8, label="Total payload (sum of vcp)")
+    ax.set_title(title)
+    ax.set_ylabel("Total payload (entity count)")
+    ax.set_xlabel("Timestep")
+
+    ticks, tick_labels = _year_ticks(labels, max_xticks)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(tick_labels)
+
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_pdf, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[ok] PDF: {out_pdf}")
+
 # ---------- main ----------
 
 def main():
@@ -770,6 +799,9 @@ def main():
         action="store_true",
         help="Skip weak/strong components plot after removing EQCs with out-degree 0.",
     )
+    ap.add_argument("--no-total-payload", action="store_true", help="Skip total payload PDF.")
+    ap.add_argument("--total-payload-pdf", default="total_payload.pdf")
+    ap.add_argument("--title-total-payload", default="Total Payload over Time")
 
     args = ap.parse_args()
 
@@ -872,6 +904,14 @@ def main():
                 key="tmh_w",
                 max_xticks=args.max_xticks,
             )
+    
+    if not args.no_total_payload:
+        plot_total_payload(
+            rows,
+            out_dir / args.total_payload_pdf,
+            args.title_total_payload,
+            args.max_xticks,
+        )
 
 if __name__ == "__main__":
     main()

@@ -164,6 +164,10 @@ def eqc_size_list(pkg: Dict[str, Any]) -> List[int]:
         "Cannot derive EQC sizes: 'nodes[].vcp' and 'membership' both missing."
     )
 
+def total_payload(pkg: Dict[str, Any]) -> int:
+    """Sum of all EQC payloads (vcp) — i.e. total number of entities across all classes."""
+    return sum(eqc_size_list(pkg))
+
 # 3) average_eqc_size
 def average_eqc_size(pkg: Dict[str, Any]) -> float:
     
