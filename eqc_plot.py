@@ -401,37 +401,26 @@ def plot_components_unfiltered(
     weak_vals = [r["comp_weak"] for r in rows]
     strong_vals = [r["comp_strong"] for r in rows]
 
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax1 = plt.subplots(figsize=(12, 5))
+    ax2 = ax1.twinx()
 
-    sns.lineplot(
-        x=xs,
-        y=weak_vals,
-        ax=ax,
-        color=BLUE,
-        linewidth=1.2,
-        label="Weakly connected",
-    )
+    ax1.plot(xs, weak_vals, color=BLUE, linewidth=1.2, label="Weakly connected")
+    ax2.plot(xs, strong_vals, color=ORANGE_DARK, linestyle=":", linewidth=1.2, label="Strongly connected")
 
-    sns.lineplot(
-        x=xs,
-        y=strong_vals,
-        ax=ax,
-        color=ORANGE_DARK,
-        linestyle=":",
-        linewidth=1.2,
-        label="Strongly connected",
-    )
-
-    ax.set_title(title)
-    ax.set_xlabel("Timestep")
-    ax.set_ylabel("Number of components")
-    ax.grid(False)
+    ax1.set_title(title)
+    ax1.set_xlabel("Timestep")
+    ax1.set_ylabel("Weakly connected components", color=BLUE)
+    ax2.set_ylabel("Strongly connected components", color=ORANGE_DARK)
+    ax1.tick_params(axis="y", labelcolor=BLUE)
+    ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(xlabels, rotation=0)
+    ax1.set_xticks(xticks)
+    ax1.set_xticklabels(xlabels, rotation=0)
 
-    ax.legend(loc="upper left")
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
@@ -451,37 +440,26 @@ def plot_components_payload_filtered(
     weak_vals = [r["comp_weak_payload_filtered"] for r in rows]
     strong_vals = [r["comp_strong_payload_filtered"] for r in rows]
 
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax1 = plt.subplots(figsize=(12, 5))
+    ax2 = ax1.twinx()
 
-    sns.lineplot(
-        x=xs,
-        y=weak_vals,
-        ax=ax,
-        color=BLUE,
-        linewidth=1.2,
-        label=f"Weakly connected (payload ≥ {min_payload})",
-    )
+    ax1.plot(xs, weak_vals, color=BLUE, linewidth=1.2, label=f"Weakly connected (payload ≥ {min_payload})")
+    ax2.plot(xs, strong_vals, color=ORANGE_DARK, linestyle=":", linewidth=1.2, label=f"Strongly connected (payload ≥ {min_payload})")
 
-    sns.lineplot(
-        x=xs,
-        y=strong_vals,
-        ax=ax,
-        color=ORANGE_DARK,
-        linestyle=":",
-        linewidth=1.2,
-        label=f"Strongly connected (payload ≥ {min_payload})",
-    )
-
-    ax.set_title(title)
-    ax.set_xlabel("Timestep")
-    ax.set_ylabel("Number of components")
-    ax.grid(False)
+    ax1.set_title(title)
+    ax1.set_xlabel("Timestep")
+    ax1.set_ylabel(f"Weakly connected components (payload ≥ {min_payload})", color=BLUE)
+    ax2.set_ylabel(f"Strongly connected components (payload ≥ {min_payload})", color=ORANGE_DARK)
+    ax1.tick_params(axis="y", labelcolor=BLUE)
+    ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
 
     xticks, xlabels = _year_ticks(labels, max_xticks)
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(xlabels, rotation=0)
+    ax1.set_xticks(xticks)
+    ax1.set_xticklabels(xlabels, rotation=0)
 
-    ax.legend(loc="upper left")
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
     fig.tight_layout()
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
