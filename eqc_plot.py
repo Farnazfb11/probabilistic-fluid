@@ -150,6 +150,7 @@ def maybe_write_csv(rows: List[Dict[str, Any]], csv_path: Optional[Path]):
                 "eqc",
                 "avg",
                 "std",
+                "total_payload",
                 "tmh_w",
                 "tmh_u",
                 "edges_unweighted",
