@@ -274,7 +274,7 @@ def plot_avg_and_eqc_count(
     ax2.tick_params(axis="y", labelcolor=ORANGE_DARK)
     ax2.grid(False)
 
-    fig.suptitle(title)
+    # fig.suptitle(title)
 
     # x axis ticks
     xticks, xlabels = _year_ticks(labels, max_xticks)
@@ -316,7 +316,7 @@ def plot_std_only(
         color=BLUE,
         linewidth=1.2,
     )
-    ax.set_title(title)
+    # ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Std. dev. of EQC size")
     ax.grid(False)
@@ -408,7 +408,7 @@ def plot_components_unfiltered(
     ax1.plot(xs, weak_vals, color=BLUE, linewidth=1.2, label="Weakly connected")
     ax2.plot(xs, strong_vals, color=ORANGE_DARK, linestyle=":", linewidth=1.2, label="Strongly connected")
 
-    ax1.set_title(title)
+    # ax1.set_title(title)
     ax1.set_xlabel("Timestep")
     ax1.set_ylabel("Weakly connected components", color=BLUE)
     ax2.set_ylabel("Strongly connected components", color=ORANGE_DARK)
@@ -447,7 +447,7 @@ def plot_components_payload_filtered(
     ax1.plot(xs, weak_vals, color=BLUE, linewidth=1.2, label=f"Weakly connected (payload ≥ {min_payload})")
     ax2.plot(xs, strong_vals, color=ORANGE_DARK, linestyle=":", linewidth=1.2, label=f"Strongly connected (payload ≥ {min_payload})")
 
-    ax1.set_title(title)
+    # ax1.set_title(title)
     ax1.set_xlabel("Timestep")
     ax1.set_ylabel(f"Weakly connected components (payload ≥ {min_payload})", color=BLUE)
     ax2.set_ylabel(f"Strongly connected components (payload ≥ {min_payload})", color=ORANGE_DARK)
@@ -525,7 +525,7 @@ def plot_components_thresholded(
         color="#d95f02",
     )
 
-    ax.set_title(title)
+    # ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel(ylabel)
     ax.grid(False)
@@ -574,7 +574,7 @@ def plot_components_no_isolated_out(
         label="Strongly connected (out-degree > 0)",
     )
 
-    ax.set_title(title)
+    # ax.set_title(title)
     ax.set_xlabel("Timestep")
     ax.set_ylabel("Number of components")
     ax.grid(False)
@@ -603,7 +603,7 @@ def plot_total_payload(
 
     fig, ax = plt.subplots(figsize=(12, 4))
     ax.plot(xs, values, color=BLUE, linewidth=0.8, label="Total payload (sum of vcp)")
-    ax.set_title(title)
+    # ax.set_title(title)
     ax.set_ylabel("Total payload (entity count)")
     ax.set_xlabel("Timestep")
 

@@ -143,7 +143,7 @@ def _plot_kary_metric(
         color="#091be0",
     )
 
-    ax.set_title(title, fontsize=14, fontweight="bold")
+    #ax.set_title(title, fontsize=14, fontweight="bold")
     ax.set_xlabel("Timestep", fontsize=12)
     ax.set_ylabel(ylabel, fontsize=12)
 

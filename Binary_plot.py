@@ -305,7 +305,7 @@ def _plot_metric(
         linewidth=1.2,
     )
 
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    # ax.set_title(title, fontsize=14, fontweight='bold')
     ax.set_xlabel("Timestep", fontsize=12)
     ax.set_ylabel(ylabel, fontsize=12)
     
