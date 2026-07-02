@@ -7,6 +7,7 @@ from typing import List, Tuple
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 
 # CHANGED: same plotting style as your existing binary plotting code
@@ -44,6 +45,21 @@ def _year_ticks(labels: List[str], max_ticks: int) -> Tuple[List[int], List[str]
         ]
 
     return positions, years_used
+
+def _window_slope(y: np.ndarray) -> float:
+    """
+    Least-squares slope (beta) of y against position index, per eq:kary_trend_slope.
+    x runs 1..len(y); the slope is invariant to that offset, so this matches
+    the paper's i = 1..11 indexing exactly.
+    """
+    n = len(y)
+    x = np.arange(1, n + 1, dtype=float)
+    xbar = x.mean()
+    ybar = y.mean()
+    denom = np.sum((x - xbar) ** 2)
+    if denom == 0:
+        return float("nan")
+    return float(np.sum((x - xbar) * (y - ybar)) / denom)
 
 
 def _read_table(path: Path) -> pd.DataFrame:
@@ -87,6 +103,14 @@ def add_kary_columns(
     out[f"{score_col}_k{k_soft}_soft"] = (
         out[score_col].rolling(window=soft_window, min_periods=soft_window).mean()
     )
+
+    # slope (beta) of a least-squares fit over the k_trend window
+    # positive beta = increasing structural change, negative = stabilization
+    # out[f"{score_col}_k{k_trend}_slope"] = (
+    #     out[score_col]
+    #     .rolling(window=trend_window, min_periods=trend_window)
+    #     .apply(_window_slope, raw=True)
+    # )
 
     # CHANGED: rolling mean for long-window trend level
     # WHY: k=12 means average over 11 consecutive binary scores
