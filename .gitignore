@@ -1,5 +1,23 @@
 # Ignore all YYYY-MM-DD folders
 20??-??-??/
-#ignore summary folder
-summaries/
+# Data and outputs (large, do not version)
 data/
+filtered_data/
+summaries/
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.venv*/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+RDFTest.ipynb
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
