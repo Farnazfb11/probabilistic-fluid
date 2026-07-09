@@ -1,4 +1,4 @@
-# graph-summaries-for-medical-temporal-kg
+# graph-summaries-metrics
 
 ## HiWi RDF Summarizer (FLUID-based)
 
