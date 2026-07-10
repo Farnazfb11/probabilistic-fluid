@@ -619,7 +619,7 @@ Based on FLUID Framework by Till Blume (2020): t-blume/fluid-framework
 
 ## License
 
-TBD (e.g., MIT or Apache-2.0)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
