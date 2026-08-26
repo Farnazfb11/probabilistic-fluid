@@ -131,21 +131,30 @@ class RDFParser:
 
     def _open_text_stream(self) -> TextIO:
         """
-        Open the file as a text stream, handling nested gzip automatically.
+        Open the file as a text stream, handling plain text, gzip, and nested
+        gzip automatically.
 
         Why this exists
-        Some files look like `.gz`, pass `gzip -t`, but when you decompress them
+        The input may be uncompressed (`.nt`, `.nq`) or gzip-compressed. Some
+        files look like `.gz`, pass `gzip -t`, but when you decompress them
         once, the output starts with gzip magic bytes again (`1f 8b`).
         That means: gzip inside gzip.
 
         Logic
-        - Open outer gzip in binary mode
-        - Peek at the next bytes of the decompressed stream
-        - If they start with gzip magic, wrap another gzip decompressor
+        - Sniff the first two bytes rather than trusting the file extension
+        - If they are not gzip magic, open as plain text
+        - Otherwise open the outer gzip and peek at the decompressed stream
+        - If that also starts with gzip magic, wrap another decompressor
 
         Returns
         A TextIO stream yielding decoded UTF-8 lines (invalid bytes replaced).
         """
+        with open(self.file_path, "rb") as probe:
+            magic = probe.read(2)
+
+        if magic != b"\x1f\x8b":
+            return io.open(self.file_path, "rt", encoding="utf-8", errors="replace")
+
         f1 = gzip.open(self.file_path, "rb")
 
         # `peek` returns bytes that would be read next from the decompressed stream.
