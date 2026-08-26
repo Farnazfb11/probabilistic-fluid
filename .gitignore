@@ -16,6 +16,7 @@ venv/
 .ipynb_checkpoints/
 RDFTest.ipynb
 
+
 # OS / editor
 .DS_Store
 *.swp
