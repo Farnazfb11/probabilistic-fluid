@@ -208,7 +208,7 @@ def equal_frequency(m: int, X: Sequence[float]) -> Binning:
     qs = [j / m for j in range(1, m)]
     interior = list(np.quantile(arr, qs)) if qs else []
 
-    boundaries = _dedupe_boundaries(interior)
+    boundaries = _dedupe_boundaries(interior, xmax=float(arr.max()))
     m_eff = len(boundaries) - 1
     if m_eff < m:
         print(f"[binning] equal_frequency: {m - m_eff} boundary/boundaries "
@@ -309,11 +309,20 @@ def load_binnings(path: str) -> dict:
 # internals
 # --------------------------------------------------------------------------- #
 
-def _dedupe_boundaries(interior: Sequence[float]) -> List[float]:
-    """Assemble 0 < t_1 < ... < 1, dropping duplicates and out-of-range cuts."""
+def _dedupe_boundaries(
+    interior: Sequence[float], xmax: Optional[float] = None
+) -> List[float]:
+    """Assemble 0 < t_1 < ... < 1, dropping duplicates and out-of-range cuts.
+
+    A boundary at or above max(X) is also dropped: since bins are left-open,
+    the bin above such a boundary can never receive a value, so it would be
+    empty by construction rather than by accident.
+    """
     seen = []
     for t in sorted(float(t) for t in interior):
         if t <= 0.0 or t >= 1.0:
+            continue
+        if xmax is not None and t >= xmax:
             continue
         if seen and abs(t - seen[-1]) < 1e-12:
             continue
