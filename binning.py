@@ -143,6 +143,18 @@ class Binning:
         with open(path, encoding="utf-8") as fh:
             return cls.from_json(fh.read())
 
+    def to_dict(self) -> dict:
+        """Plain-dict form, for collecting several binnings into one file."""
+        return {
+            "family": self.family,
+            "m": self.m,
+            "boundaries": self.boundaries,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Binning":
+        return cls(d["family"], d["m"], d["boundaries"])
+
     # -- diagnostics ------------------------------------------------------- #
 
     def occupancy(self, X: Sequence[float]) -> Counter:
@@ -249,6 +261,48 @@ def clustering(m: int, X: Sequence[float], seed: int = 0) -> Binning:
         print(f"[binning] clustering: m {m} -> {m_eff} after merging "
               f"coincident cluster boundaries")
     return Binning("clustering", m_eff, boundaries)
+
+
+def save_binnings(
+    binnings: dict, path: str, X: Optional[Sequence[float]] = None,
+    source: Optional[str] = None,
+) -> None:
+    """Write every binning of a run to one JSON file.
+
+    ``binnings`` maps a key such as "equal_width_m5" to a Binning.  The
+    observed weight distribution is summarised alongside them, since
+    equal-frequency and clustering boundaries are only reproducible with
+    respect to the graph they were derived from.
+    """
+    doc = {"binnings": {}}
+    if source is not None:
+        doc["source"] = source
+    if X is not None:
+        distinct = sorted(set(X))
+        doc["weights"] = {
+            "count": len(X),
+            "distinct": len(distinct),
+            "min": distinct[0],
+            "max": distinct[-1],
+        }
+    for key, b in binnings.items():
+        entry = b.to_dict()
+        if X is not None:
+            occ = b.occupancy(X)
+            entry["occupied"] = sum(
+                1 for j in range(1, b.m + 1) if occ.get(j, 0) > 0
+            )
+            entry["counts"] = {str(j): occ.get(j, 0) for j in range(1, b.m + 1)}
+        doc["binnings"][key] = entry
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=2)
+
+
+def load_binnings(path: str) -> dict:
+    """Read the file written by ``save_binnings`` back into Binning objects."""
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    return {k: Binning.from_dict(v) for k, v in doc["binnings"].items()}
 
 
 # --------------------------------------------------------------------------- #
@@ -360,8 +414,8 @@ if __name__ == "__main__":
     ap.add_argument("--m", type=int, nargs="+", default=[1, 5, 10, 25],
                     help="numbers of non-zero bins to try")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--outdir", default=None,
-                    help="if given, save each binning as JSON for reproducibility")
+    ap.add_argument("--out", default=None,
+                    help="write all binnings to this single JSON file")
     args = ap.parse_args()
 
     X = load_weights(args.weights)
@@ -371,13 +425,14 @@ if __name__ == "__main__":
     print()
 
     families = list(FAMILIES) if args.family == "all" else [args.family]
+    results = {}
     for family in families:
         for m in args.m:
-            B = make_binning(family, m, X, seed=args.seed)
-            B.report(X)
-            if args.outdir:
-                os.makedirs(args.outdir, exist_ok=True)
-                path = os.path.join(args.outdir, f"{family}_m{m}.json")
-                B.save(path)
-                print(f"  saved {path}")
+            b = make_binning(family, m, X, seed=args.seed)
+            b.report(X)
+            results[f"{family}_m{m}"] = b
             print()
+
+    if args.out:
+        save_binnings(results, args.out, X=X, source=args.weights)
+        print(f"[ok] wrote {args.out} ({len(results)} binnings)")
