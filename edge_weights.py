@@ -396,6 +396,24 @@ def save_graph_pickle(G: nx.MultiDiGraph, path: str) -> None:
 # --------------------------------------------------------------------------- #
 # end-to-end wiring
 # --------------------------------------------------------------------------- #
+def save_types(G: nx.MultiDiGraph, path: str) -> int:
+    """Write the type sets recorded by the builder, one line per typed vertex.
+
+    Type triples carry no probability mass and so do not appear in the
+    weighted-triple file, but the equivalence relations OC_type of Table 1
+    need them. Writing them here means summarisation can read the preprocessed
+    graph without re-parsing the source.
+    """
+    written = 0
+    with open(path, "w", encoding="utf-8") as fh:
+        for n, d in G.nodes(data=True):
+            types = d.get("types")
+            if not types:
+                continue
+            label = d.get("label", n)
+            fh.write(label + "\t" + "\t".join(sorted(types)) + "\n")
+            written += 1
+    return written
 
 def build_and_weight(
     file_path: str,
@@ -470,6 +488,10 @@ if __name__ == "__main__":
     wp = os.path.join(args.outdir, "graph_weighted.wnt")
     n = save_weighted_triples(G, wp, emit_self_loops=args.emit_self_loops)
     print(f"[ok] wrote {wp} ({n} triples)")
+    
+    yp = os.path.join(args.outdir, "vertex_types.tsv")
+    ny = save_types(G, yp)
+    print(f"[ok] wrote {yp} ({ny} typed vertices)")
 
     tp = os.path.join(args.outdir, "edges_weighted.tsv")
     save_weighted_edges_tsv(G, tp)
