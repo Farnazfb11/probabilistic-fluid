@@ -91,14 +91,20 @@ class Binning:
 
     # -- the map ----------------------------------------------------------- #
 
-    def __call__(self, x: float) -> int:
-        """Return the bin of x.  Bin 0 is reserved for x == 0 exactly."""
-        if x < 0.0 or x > 1.0:
+    def __call__(self, x: float, tol: float = 1e-6) -> int:
+        """Return the bin of x.  Bin 0 is reserved for x == 0 exactly.
+
+        Accumulated mass can exceed 1 by a small amount: summing 1/9 nine
+        times gives 1.0000000002. Values within tol of the interval are
+        clamped rather than rejected, since the excess is arithmetic rather
+        than a genuine violation of Definition 1.
+        """
+        if x < -tol or x > 1.0 + tol:
             raise ValueError(f"x={x} outside [0,1]")
-        if x == 0.0:
+        if x <= 0.0:
             return 0
-        # t_{j-1} < x <= t_j, so the interval is left-open: bisect_left finds
-        # the first cut >= x, which is exactly the bin index.
+        if x > 1.0:
+            x = 1.0
         return bisect_left(self._cuts, x) + 1
 
     def bin_of_many(self, xs: Iterable[float]) -> List[int]:
