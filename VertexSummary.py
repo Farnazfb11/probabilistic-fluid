@@ -25,6 +25,10 @@ class VertexSummary:
         self.payload: Set[str] = set()
         self.instances: Set[str] = set()
         self.labels: Set[str] = set()  # optional; you may ignore if unused
+        # mu(s, P, O): mass sent toward object class O via predicate class P.
+        # Summed here, binned once in seal(), never per edge.
+        self.mass: Dict[tuple, float] = defaultdict(float)
+        self.bins: Optional[Dict[tuple, int]] = None
 
     #adds rdf:type class to the summary
     def add_type(self, t: Optional[str]) -> None:
@@ -47,6 +51,11 @@ class VertexSummary:
         for t in dst_types:
             if t:
                 bucket.add(t)
+    def add_mass(self, pred_key, dst_key, prob: Optional[float]) -> None:
+        # Accumulate the probability mass of one triple into its (P, O) cell.
+        if pred_key is None or not prob:
+            return
+        self.mass[(pred_key, dst_key)] += prob
     #record source
     def add_payload(self, graph_iri: Optional[str]) -> None:
         if graph_iri:
@@ -75,6 +84,16 @@ class VertexSummary:
             self.neighbors[p] += c
         for p, dsts in other.neighbor_dst_types.items():
             self.neighbor_dst_types[p].update(dsts)
+        for k, v in other.mass.items():
+            self.mass[k] += v
+        return self
+
+    def seal(self, b) -> "VertexSummary":
+        # Apply the binning once all messages for this vertex are merged.
+        # Must not run per edge: b is not additive, so b(0.3) and b(0.3) say
+        # nothing about b(0.6). Not calling seal leaves the summary
+        # deterministic.
+        self.bins = {k: b(v) for k, v in self.mass.items()}
         return self
 
     #signature / ID
@@ -102,6 +121,11 @@ class VertexSummary:
                 parts.append(p)
                 parts.extend(sorted(self.neighbor_dst_types[p]))
 
+        if self.bins:
+            parts.append("|b|")
+            for key in sorted(self.bins, key=lambda k: (str(k[0]), str(k[1]))):
+                p, o = key
+                parts.append(f"{p}\u241E{o}\u241E{self.bins[key]}")
         signature = "\u241F".join(parts)  # reduce collisions
         return hash_id(signature)
 
@@ -115,6 +139,9 @@ class VertexSummary:
             "payload_graphs": sorted(self.payload),
             "instances": sorted(self.instances),
             "labels": sorted(self.labels),
+            "mass": {f"{p}|{o}": v for (p, o), v in self.mass.items()},
+            "bins": None if self.bins is None
+                    else {f"{p}|{o}": v for (p, o), v in self.bins.items()},
             "id": self.get_id(),
         }
 

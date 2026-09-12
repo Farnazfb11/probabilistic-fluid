@@ -27,7 +27,7 @@ class SEAttributeCollection(SchemaExtraction):
         g = edata.get("graph")
         if g is not None:
             vs.add_payload(g)
-
+        vs.add_mass(pred, "*", edata.get("prob"))
         # IMPORTANT: Do NOT add types (src or dst). Do NOT add dst types per predicate.
         return vs
 

@@ -20,6 +20,8 @@ class SEClassCollection(SchemaExtraction):
         # Add instance: the actual subject URI
         vs.add_instance(G.nodes[src].get("label"))
 
+        vs.add_mass("*", "*", edata.get("prob"))
+
         return vs
 
     # merge_messages just defaults to VertexSummary.merge via SchemaExtraction

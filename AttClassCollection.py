@@ -36,6 +36,7 @@ class SEAttributeClassCollection(SchemaExtraction):
 
         # Record instance label for payload convenience
         vs_src.add_instance(G.nodes[src].get("label"))
-
+        
+        vs_src.add_mass(predicate, "*", edata.get("prob"))
         return vs_src
     # merge_messages uses VertexSummary.merge() by default (set unions + count sums)

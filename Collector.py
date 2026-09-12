@@ -16,7 +16,7 @@ class SchemaCollector:
     def __init__(self, strategy: SchemaExtraction):
         self.strategy = strategy
 
-    def collect(self, G: nx.MultiDiGraph) -> Tuple[Dict[object, VertexSummary], Dict[object, int]]:
+    def collect(self, G: nx.MultiDiGraph, binning=None) -> Tuple[Dict[object, VertexSummary], Dict[object, int]]:
         mailboxes: Dict[object, list[VertexSummary]] = {}
 
         # 1) send (GraphX sendMessage)
@@ -39,7 +39,10 @@ class SchemaCollector:
             for m in msgs:
                 merged = self.strategy.merge_messages(merged, m)
 
-            per_vertex_summary[node] = merged                      # CHANGED: put result in dict
+            if binning is not None:
+                merged.seal(binning)
+
+            per_vertex_summary[node] = merged
             per_vertex_id[node] = merged.get_id()
 
         return per_vertex_summary, per_vertex_id
