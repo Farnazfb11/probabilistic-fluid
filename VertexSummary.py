@@ -21,7 +21,11 @@ class VertexSummary:
     def __init__(self, types: Optional[Iterable[str]] = None):
         self.types: Set[str] = set(types or [])
         self.neighbors: Dict[str, int] = defaultdict(int)
-        self.neighbor_dst_types: Dict[str, Set[str]] = defaultdict(set)
+        # predicate -> set of destination CLASSES, each a frozenset of types.
+        # A set of type sets, not a flat union: two objects typed {Person} and
+        # {Employee} are two classes under ~_o, and must not collapse into one
+        # object typed {Person, Employee}.
+        self.neighbor_dst_types: Dict[str, Set[frozenset]] = defaultdict(set)
         self.payload: Set[str] = set()
         self.instances: Set[str] = set()
         self.labels: Set[str] = set()  # optional; you may ignore if unused
@@ -45,12 +49,13 @@ class VertexSummary:
             self.neighbors[predicate_iri] += 1
     #for the given predicate (union in dst type)
     def add_dst_types(self, predicate_iri: Optional[str], dst_types: Iterable[str]) -> None:
+        # Record the destination's class as a whole. Called once per edge, so
+        # each call contributes one class.
         if not predicate_iri:
             return
-        bucket = self.neighbor_dst_types[predicate_iri]
-        for t in dst_types:
-            if t:
-                bucket.add(t)
+        self.neighbor_dst_types[predicate_iri].add(
+            frozenset(t for t in dst_types if t)
+        )
     def add_mass(self, pred_key, dst_key, prob: Optional[float]) -> None:
         # Accumulate the probability mass of one triple into its (P, O) cell.
         if pred_key is None or not prob:
@@ -119,7 +124,11 @@ class VertexSummary:
         if self.neighbor_dst_types:
             for p in sorted(self.neighbor_dst_types.keys()):
                 parts.append(p)
-                parts.extend(sorted(self.neighbor_dst_types[p]))
+                for cls in sorted(
+                    self.neighbor_dst_types[p],
+                    key=lambda c: tuple(sorted(c)),
+                ):
+                    parts.append("\u241D".join(sorted(cls)))
 
         if self.bins:
             parts.append("|b|")
@@ -135,7 +144,10 @@ class VertexSummary:
             "types": sorted(self.types),
             "predicates": sorted(self.neighbors.keys()),
             "predicate_counts": dict(self.neighbors),
-            "predicate_to_dst_types": {p: sorted(ts) for p, ts in self.neighbor_dst_types.items()},
+            "predicate_to_dst_types": {
+                p: [sorted(c) for c in sorted(ts, key=lambda c: tuple(sorted(c)))]
+                for p, ts in self.neighbor_dst_types.items()
+            },
             "payload_graphs": sorted(self.payload),
             "instances": sorted(self.instances),
             "labels": sorted(self.labels),
