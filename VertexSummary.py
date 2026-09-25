@@ -4,6 +4,12 @@ from collections import defaultdict
 from typing import Dict, Set, Iterable, Optional
 from hashing import hash_id
 
+# Destination types in the object slot. "union" keeps the union of the types of
+# all successors reached by a predicate, which is the behaviour of FluidSpark's
+# schema elements up to merge order; "sets" keeps one type set per successor,
+# the literal reading of Definition 4. See Appendix~\ref{app:dsttypes}.
+DST_TYPE_MODE = "union"
+
 
 class VertexSummary:
     #FLUID-style summarization
@@ -49,13 +55,15 @@ class VertexSummary:
             self.neighbors[predicate_iri] += 1
     #for the given predicate (union in dst type)
     def add_dst_types(self, predicate_iri: Optional[str], dst_types: Iterable[str]) -> None:
-        # Record the destination's class as a whole. Called once per edge, so
-        # each call contributes one class.
         if not predicate_iri:
             return
-        self.neighbor_dst_types[predicate_iri].add(
-            frozenset(t for t in dst_types if t)
-        )
+        bucket = self.neighbor_dst_types[predicate_iri]
+        if DST_TYPE_MODE == "sets":
+            bucket.add(frozenset(t for t in dst_types if t))
+        else:
+            for t in dst_types:
+                if t:
+                    bucket.add(t)
     def add_mass(self, pred_key, dst_key, prob: Optional[float]) -> None:
         # Accumulate the probability mass of one triple into its (P, O) cell.
         if pred_key is None or not prob:
@@ -100,7 +108,11 @@ class VertexSummary:
         # deterministic.
         self.bins = {k: b(v) for k, v in self.mass.items()}
         return self
-
+    def _dst_bucket_parts(self, bucket) -> list[str]:
+        # deterministic serialisation of one predicate's destination-type bucket
+        if DST_TYPE_MODE == "sets":
+            return sorted("\u241E".join(sorted(ts)) for ts in bucket)
+        return sorted(bucket)
     #signature / ID
     def get_id(self) -> int:
         # build signature string and hash it
@@ -124,12 +136,7 @@ class VertexSummary:
         if self.neighbor_dst_types:
             for p in sorted(self.neighbor_dst_types.keys()):
                 parts.append(p)
-                for cls in sorted(
-                    self.neighbor_dst_types[p],
-                    key=lambda c: tuple(sorted(c)),
-                ):
-                    parts.append("\u241D".join(sorted(cls)))
-
+                parts.extend(self._dst_bucket_parts(self.neighbor_dst_types[p]))
         if self.bins:
             parts.append("|b|")
             for key in sorted(self.bins, key=lambda k: (str(k[0]), str(k[1]))):
@@ -145,8 +152,8 @@ class VertexSummary:
             "predicates": sorted(self.neighbors.keys()),
             "predicate_counts": dict(self.neighbors),
             "predicate_to_dst_types": {
-                p: [sorted(c) for c in sorted(ts, key=lambda c: tuple(sorted(c)))]
-                for p, ts in self.neighbor_dst_types.items()
+                p: self._dst_bucket_parts(bucket)
+                for p, bucket in self.neighbor_dst_types.items()
             },
             "payload_graphs": sorted(self.payload),
             "instances": sorted(self.instances),
