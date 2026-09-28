@@ -6,7 +6,7 @@ from RDFparser import RDFParser
 path = sys.argv[1]
 p = RDFParser(path)
 if "--keep-lang" in sys.argv:
-    p._strip_lang_tag = re.compile(r"(?!x)x")      # never matches
+    p._strip_lang_tag = re.compile(r"(?!x)(x)(x)")     # never matches
 for _ in p.parse():
     pass
 print(f"{path}")
