@@ -337,7 +337,6 @@ def run_one(
             pkg = build_package(
                 G, summaries, ids,
                 strategy_name=model_name,
-                include_pred_counts=False,
                 meta={
                     "binning": label,
                     "binning_family": None if binning is None else binning.family,
