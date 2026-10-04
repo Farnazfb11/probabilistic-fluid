@@ -11,7 +11,8 @@ both phases.
         --types out/dyldo/vertex_types.tsv \
         --family all --m 1 5 10 25 \
         --model AC ACC SchemEX \
-        --out out/dyldo/summaries
+        --out out/dyldo/summaries \
+        --save-summaries out/dyldo/summaries/packages
 
 Two phases
 ----------
@@ -21,7 +22,7 @@ is what the model adds. The second computes the quotient under EQR_p, for
 which any partition refinement is adequate: once the mass is binned, the
 condition of Definition 12 is an ordinary equivalence over discrete labels.
 
-Passing --config deterministic runs the second phase alone, with no binning,
+Passing --deterministic runs the second phase alone, with no binning,
 which reproduces the deterministic FLUID summary. Together with the b_0
 configuration this is the check of Remark 17.
 
@@ -75,6 +76,7 @@ from binning import FAMILIES, load_binnings, load_weights, make_binning
 from pgraph_io import load_weighted_graph
 from Collector import SchemaCollector
 from Summarizer import group_by_signature, build_summary_graph
+from save import build_package, write_package
 
 from AttCollection import SEAttributeCollection
 from ClassCollection import SEClassCollection
@@ -270,6 +272,7 @@ def run_one(
     binning_phase: dict,
     trace: bool,
     want_rep_error: bool,
+    save_to: str | None = None,
 ) -> dict:
     """Summarise G under one model and one binning, returning the measures.
 
@@ -328,6 +331,26 @@ def run_one(
         phases["representative_error"] = ph_rep.as_dict()
     else:
         result["representative_error"] = None
+
+    if save_to:
+        with Phase("export", trace) as ph_exp:
+            pkg = build_package(
+                G, summaries, ids,
+                strategy_name=model_name,
+                include_pred_counts=False,
+                meta={
+                    "binning": label,
+                    "binning_family": None if binning is None else binning.family,
+                    "binning_effective_m": None if binning is None else binning.m,
+                    "binning_boundaries": None if binning is None else binning.boundaries,
+                    "classes": result["classes"],
+                    "input_vertices": result["input_vertices"],
+                    "input_triples": result["input_triples"],
+                },
+            )
+            write_package(pkg, save_to)
+        phases["export"] = ph_exp.as_dict()
+        result["summary_path"] = save_to
 
     if binning is not None:
         result["binning_family"] = binning.family
@@ -398,6 +421,9 @@ def main() -> int:
     ap.add_argument("--no-rep-error", action="store_true",
                     help="skip the representative error, which is the most "
                          "expensive measure on large graphs")
+    ap.add_argument("--save-summaries", default=None,
+                    help="directory for the summary packages, one per model "
+                         "and configuration")
     args = ap.parse_args()
 
     if not args.family and not args.binnings and not args.deterministic:
@@ -485,8 +511,13 @@ def main() -> int:
     results = []
     for label, b, binning_phase in configs:
         for model_name in args.model:
+            save_to = (
+                os.path.join(args.save_summaries,
+                             f"summary_{name}_{model_name}_{label}.json.gz")
+                if args.save_summaries else None
+            )
             r = run_one(G, model_name, b, label, binning_phase,
-                        args.tracemalloc, not args.no_rep_error)
+                        args.tracemalloc, not args.no_rep_error, save_to)
             results.append(r)
             p = r["phases"]
             log.write(
@@ -529,10 +560,11 @@ def main() -> int:
             "setup": setup,
             "seconds_shared_setup": round(shared_seconds, 3),
             "seconds_all_runs": round(total_run_seconds, 3),
-        "seconds_phase1_binning": round(binning_seconds, 3),
-        "seconds_phase2_summarisation": round(phase2_seconds, 3),
+            "seconds_phase1_binning": round(binning_seconds, 3),
+            "seconds_phase2_summarisation": round(phase2_seconds, 3),
             "process_peak_rss_mb": round(maxrss_mb(), 1),
             "results": results,
+            "save_summaries": bool(args.save_summaries),
         }
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(doc, fh, indent=2)
