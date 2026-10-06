@@ -8,6 +8,18 @@ from typing import Dict, Any, List, Optional, Set, Tuple
 
 import networkx as nx
 
+LITERAL_TYPE = "Literal"   # the type edge_weights.py puts on the collapsed literal vertex
+
+
+def _is_literal_class(node: Dict[str, Any]) -> bool:
+    """A class whose only type is the literal marker.
+
+    Preprocessing collapses every literal onto one canonical vertex, so this
+    class is a pure sink carrying all literal-valued edges. It is not an
+    entity equivalence class and is excluded from V^E.
+    """
+    return node.get("types") == [LITERAL_TYPE]
+
 def _eqc_sizes_from_nodes(pkg: Dict[str, Any]) -> Optional[List[int]]:
 
     # extract EQC sizes directly from the summary nodes:
@@ -52,6 +64,9 @@ def _build_digraph(pkg: Dict[str, Any]) -> nx.DiGraph:
     # Construct a directed graph of supernodes from the summary, where:
     # Node set = all supernode ids present in `nodes` (ensures isolated nodes).
     # Edge (u→v) has attribute 'weight' = rolled `count` between u and v.
+    cached = pkg.get("_digraph")
+    if cached is not None:
+        return cached
 
     G = nx.DiGraph()
 
@@ -85,16 +100,13 @@ def _build_digraph(pkg: Dict[str, Any]) -> nx.DiGraph:
         for sid in uniq_sids:
             if sid not in G:
                 G.add_node(sid)
-
+    pkg["_digraph"] = G
     return G
 
 # NEW: helper for V^E (entity EQCs) per Justin
 def _entity_ids(pkg: Dict[str, Any]) -> Set[int]:
-    """
-    # CHANGED: define entity summary vertices V^E(S) as the keys in pkg['nodes'].
-    # Justin counts metrics over entity EQCs; literal buckets are not part of V^E.
-    """
-    return {int(s) for s in (pkg.get("nodes") or {}).keys()}
+    nodes = pkg.get("nodes") or {}
+    return {int(s) for s, n in nodes.items() if not _is_literal_class(n)}
 
 def _entity_ids_min_payload(pkg: Dict[str, Any], min_payload: int = 1) -> Set[int]:
     """
@@ -104,6 +116,8 @@ def _entity_ids_min_payload(pkg: Dict[str, Any], min_payload: int = 1) -> Set[in
     out: Set[int] = set()
 
     for sid_str, node in nodes.items():
+        if _is_literal_class(node):
+            continue
         vcp = int(node.get("vcp", 0))
         if vcp >= min_payload:
             out.add(int(sid_str))
@@ -380,7 +394,16 @@ def connected_components_count(
 
     # CHANGED: restrict graph to the surviving entity vertices only
     # WHY CHANGED: components should be computed after filtering vertices out
-    H = G.subgraph(V_E).copy()
+    # With min_payload=1 every vertex survives, so the subgraph is G itself and
+    # copying would duplicate a multi-million-edge graph for nothing.
+    if min_payload <= 1:
+        H = pkg.get("_entity_graph")
+        if H is None:
+            H = (G if len(V_E) == G.number_of_nodes()
+                 else G.subgraph(V_E).copy())
+            pkg["_entity_graph"] = H
+    else:
+        H = G.subgraph(V_E).copy()
 
     if H.number_of_nodes() == 0:
         return 0
@@ -418,6 +441,8 @@ def connected_components_count_payload_filtered(
     # keep only entity EQCs with enough payload
     keep: Set[int] = set()
     for sid_str, node in nodes.items():
+        if _is_literal_class(node):
+            continue
         vcp = int(node.get("vcp", 0))
         if vcp >= min_payload:
             keep.add(int(sid_str))
