@@ -106,7 +106,7 @@ def build_package(
                             super_pred.get(su, {}).get(sv, {}).items()
                         )
                     }
-                edges[f"{su}->{sv}"] = entry
+                edges[str(len(edges))] = entry
     pkg_meta = {
         "strategy": strategy_name,
         "only_id": bool(only_id),
@@ -134,7 +134,7 @@ def write_package(pkg: Dict[str, Any], out_path: str) -> None:
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     opener = gzip.open if out_path.endswith(".gz") else open
     with opener(out_path, "wt", encoding="utf-8") as f:
-        json.dump(pkg, f, ensure_ascii=False, indent=2, sort_keys=True)
+        json.dump(pkg, f, ensure_ascii=False, sort_keys=True)
 
 
 def save_summary_for_strategy(
