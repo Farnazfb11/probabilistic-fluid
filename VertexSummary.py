@@ -68,6 +68,14 @@ class VertexSummary:
         # Accumulate the probability mass of one triple into its (P, O) cell.
         if pred_key is None or not prob:
             return
+        if DST_TYPE_MODE == "union":
+            # Under the union reading the destination types are a label on the
+            # subject -- part 3 of the signature -- and not a partition of the
+            # successors. The mass therefore aggregates per predicate class:
+            # mu(s, P, .) is the total mass s sends via P. Keying it by each
+            # successor's type set instead is the separate-sets reading, under
+            # which b_0 no longer reproduces the deterministic summary.
+            dst_key = "*"
         self.mass[(pred_key, dst_key)] += prob
     #record source
     def add_payload(self, graph_iri: Optional[str]) -> None:
