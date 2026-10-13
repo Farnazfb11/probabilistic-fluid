@@ -184,7 +184,6 @@ def save_summary_for_strategy(
 
 
 def load_summary_package(path: str) -> Dict[str, Any]:
-    # Load a previously saved summary JSON package back into a dict.
-    opener = gzip.open if path.endswith(".gz") else open
+    opener = gzip.open if str(path).endswith(".gz") else open
     with opener(path, "rt", encoding="utf-8") as f:
         return json.load(f)

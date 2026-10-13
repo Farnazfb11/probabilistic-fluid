@@ -256,7 +256,7 @@ def main() -> int:
 
         t0 = time.perf_counter()
         try:
-            pkg = load_summary_package(path)
+            pkg = load_summary_package(str(path))
             t_load = time.perf_counter() - t0
             t1 = time.perf_counter()
             row = measure(pkg, extra_components=args.extra_components,
