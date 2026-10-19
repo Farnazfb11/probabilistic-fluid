@@ -264,8 +264,8 @@ def clustering(m: int, X: Sequence[float], seed: int = 0) -> Binning:
     boundaries = _dedupe_boundaries(interior)
     m_eff = len(boundaries) - 1
     if m_eff < m:
-        print(f"[binning] clustering: m {m} -> {m_eff} after merging "
-              f"coincident cluster boundaries")
+        print(f"[binning] clustering: m {m} -> {m_eff}; "
+              f"{len(groups)} of {m} clusters non-empty")
     return Binning("clustering", m_eff, boundaries)
 
 
