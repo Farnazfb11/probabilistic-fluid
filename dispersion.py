@@ -179,16 +179,25 @@ def both_measures(summaries: dict, groups: dict) -> dict:
     }
 
 
-def load_expected(path: str | None) -> dict:
-    """Recorded representative errors, keyed by (model, binning)."""
-    if not path or not os.path.exists(path):
-        return {}
-    with open(path, encoding="utf-8") as fh:
-        doc = json.load(fh)
+def load_expected(paths) -> dict:
+    """Recorded representative errors, keyed by (model, binning).
+
+    Several measures files may cover one dataset, the SchemEX rerun having
+    gone to its own directory, so the first file supplying a value for a
+    given (model, binning) wins, as in build_tables.py.
+    """
     out = {}
-    for r in doc.get("results", []):
-        err = r.get("representative_error") or {}
-        out[(r["model"], r["binning"])] = err
+    for path in (paths or []):
+        if not os.path.exists(path):
+            print(f"[warn] no such measures file: {path}")
+            continue
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        for r in doc.get("results", []):
+            key = (r["model"], r["binning"])
+            err = r.get("representative_error") or {}
+            if key not in out and err.get("cells_compared"):
+                out[key] = err
     return out
 
 
@@ -202,8 +211,8 @@ def main() -> int:
     ap.add_argument("--config", nargs="+", default=["deterministic"])
     ap.add_argument("--model", nargs="+", default=["SchemEX"],
                     choices=list(MODELS))
-    ap.add_argument("--expect", default=None,
-                    help="measures_<dataset>.json to validate against")
+    ap.add_argument("--expect", nargs="+", default=None,
+                    help="measures_<dataset>.json files to validate against")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
