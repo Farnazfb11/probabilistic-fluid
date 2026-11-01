@@ -1,0 +1,73 @@
+dataset,weights,distinct_pi,d_min,d_max,family,m,effective_m,occupied,attainable,note
+bsbm1000,334478,38,4,53,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+bsbm1000,334478,38,4,53,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+bsbm1000,334478,38,4,53,clustering,1,1,1,,1/1 clusters non-empty
+bsbm1000,334478,38,4,53,equal_width,5,5,2,2,"attainable 2/5, occupied 2/5"
+bsbm1000,334478,38,4,53,equal_frequency,5,3,3,,"4 quantiles -> 2 distinct, 0 at/above max(X)"
+bsbm1000,334478,38,4,53,clustering,5,5,5,,5/5 clusters non-empty
+bsbm1000,334478,38,4,53,equal_width,10,10,3,3,"attainable 3/10, occupied 3/10"
+bsbm1000,334478,38,4,53,equal_frequency,10,4,4,,"9 quantiles -> 3 distinct, 0 at/above max(X)"
+bsbm1000,334478,38,4,53,clustering,10,8,8,,8/10 clusters non-empty
+bsbm1000,334478,38,4,53,equal_width,25,25,6,6,"attainable 6/25, occupied 6/25"
+bsbm1000,334478,38,4,53,equal_frequency,25,7,7,,"24 quantiles -> 7 distinct, 1 at/above max(X)"
+bsbm1000,334478,38,4,53,clustering,25,15,15,,15/25 clusters non-empty
+bsbm100m,89542510,50,4,57,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+bsbm100m,89542510,50,4,57,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+bsbm100m,89542510,50,4,57,clustering,1,1,1,,1/1 clusters non-empty
+bsbm100m,89542510,50,4,57,equal_width,5,5,2,2,"attainable 2/5, occupied 2/5"
+bsbm100m,89542510,50,4,57,equal_frequency,5,3,3,,"4 quantiles -> 2 distinct, 0 at/above max(X)"
+bsbm100m,89542510,50,4,57,clustering,5,5,5,,5/5 clusters non-empty
+bsbm100m,89542510,50,4,57,equal_width,10,10,3,3,"attainable 3/10, occupied 3/10"
+bsbm100m,89542510,50,4,57,equal_frequency,10,4,4,,"9 quantiles -> 3 distinct, 0 at/above max(X)"
+bsbm100m,89542510,50,4,57,clustering,10,9,9,,9/10 clusters non-empty
+bsbm100m,89542510,50,4,57,equal_width,25,25,6,6,"attainable 6/25, occupied 6/25"
+bsbm100m,89542510,50,4,57,equal_frequency,25,6,6,,"24 quantiles -> 5 distinct, 0 at/above max(X)"
+bsbm100m,89542510,50,4,57,clustering,25,16,16,,16/25 clusters non-empty
+btc150m,8977623,755,1,10740,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+btc150m,8977623,755,1,10740,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+btc150m,8977623,755,1,10740,clustering,1,1,1,,1/1 clusters non-empty
+btc150m,8977623,755,1,10740,equal_width,5,5,4,4,"attainable 4/5, occupied 4/5"
+btc150m,8977623,755,1,10740,equal_frequency,5,5,5,,"4 quantiles -> 4 distinct, 0 at/above max(X)"
+btc150m,8977623,755,1,10740,clustering,5,5,5,,5/5 clusters non-empty
+btc150m,8977623,755,1,10740,equal_width,10,10,6,6,"attainable 6/10, occupied 6/10"
+btc150m,8977623,755,1,10740,equal_frequency,10,10,10,,"9 quantiles -> 9 distinct, 0 at/above max(X)"
+btc150m,8977623,755,1,10740,clustering,10,10,10,,10/10 clusters non-empty
+btc150m,8977623,755,1,10740,equal_width,25,25,9,9,"attainable 9/25, occupied 9/25"
+btc150m,8977623,755,1,10740,equal_frequency,25,22,22,,"24 quantiles -> 21 distinct, 0 at/above max(X)"
+btc150m,8977623,755,1,10740,clustering,25,25,25,,25/25 clusters non-empty
+dbpedia39,24863259,243,1,821,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+dbpedia39,24863259,243,1,821,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+dbpedia39,24863259,243,1,821,clustering,1,1,1,,1/1 clusters non-empty
+dbpedia39,24863259,243,1,821,equal_width,5,5,4,4,"attainable 4/5, occupied 4/5"
+dbpedia39,24863259,243,1,821,equal_frequency,5,5,5,,"4 quantiles -> 4 distinct, 0 at/above max(X)"
+dbpedia39,24863259,243,1,821,clustering,5,5,5,,5/5 clusters non-empty
+dbpedia39,24863259,243,1,821,equal_width,10,10,6,6,"attainable 6/10, occupied 6/10"
+dbpedia39,24863259,243,1,821,equal_frequency,10,10,10,,"9 quantiles -> 9 distinct, 0 at/above max(X)"
+dbpedia39,24863259,243,1,821,clustering,10,10,10,,10/10 clusters non-empty
+dbpedia39,24863259,243,1,821,equal_width,25,25,9,9,"attainable 9/25, occupied 9/25"
+dbpedia39,24863259,243,1,821,equal_frequency,25,19,19,,"24 quantiles -> 18 distinct, 0 at/above max(X)"
+dbpedia39,24863259,243,1,821,clustering,25,22,22,,22/25 clusters non-empty
+dyldo_2015-10-11,21983635,1376,1,33253,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+dyldo_2015-10-11,21983635,1376,1,33253,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+dyldo_2015-10-11,21983635,1376,1,33253,clustering,1,1,1,,1/1 clusters non-empty
+dyldo_2015-10-11,21983635,1376,1,33253,equal_width,5,5,4,4,"attainable 4/5, occupied 4/5"
+dyldo_2015-10-11,21983635,1376,1,33253,equal_frequency,5,5,5,,"4 quantiles -> 4 distinct, 0 at/above max(X)"
+dyldo_2015-10-11,21983635,1376,1,33253,clustering,5,5,5,,5/5 clusters non-empty
+dyldo_2015-10-11,21983635,1376,1,33253,equal_width,10,10,6,6,"attainable 6/10, occupied 6/10"
+dyldo_2015-10-11,21983635,1376,1,33253,equal_frequency,10,9,9,,"9 quantiles -> 9 distinct, 1 at/above max(X)"
+dyldo_2015-10-11,21983635,1376,1,33253,clustering,10,10,10,,10/10 clusters non-empty
+dyldo_2015-10-11,21983635,1376,1,33253,equal_width,25,25,9,9,"attainable 9/25, occupied 9/25"
+dyldo_2015-10-11,21983635,1376,1,33253,equal_frequency,25,17,17,,"24 quantiles -> 17 distinct, 3 at/above max(X)"
+dyldo_2015-10-11,21983635,1376,1,33253,clustering,25,22,22,,22/25 clusters non-empty
+watdiv10m,10780242,307,1,318,equal_width,1,1,1,1,"attainable 1/1, occupied 1/1"
+watdiv10m,10780242,307,1,318,equal_frequency,1,1,1,,"0 quantiles -> 0 distinct, 0 at/above max(X)"
+watdiv10m,10780242,307,1,318,clustering,1,1,1,,1/1 clusters non-empty
+watdiv10m,10780242,307,1,318,equal_width,5,5,4,4,"attainable 4/5, occupied 4/5"
+watdiv10m,10780242,307,1,318,equal_frequency,5,5,5,,"4 quantiles -> 4 distinct, 0 at/above max(X)"
+watdiv10m,10780242,307,1,318,clustering,5,5,5,,5/5 clusters non-empty
+watdiv10m,10780242,307,1,318,equal_width,10,10,6,6,"attainable 6/10, occupied 6/10"
+watdiv10m,10780242,307,1,318,equal_frequency,10,10,10,,"9 quantiles -> 9 distinct, 0 at/above max(X)"
+watdiv10m,10780242,307,1,318,clustering,10,10,10,,10/10 clusters non-empty
+watdiv10m,10780242,307,1,318,equal_width,25,25,9,9,"attainable 9/25, occupied 9/25"
+watdiv10m,10780242,307,1,318,equal_frequency,25,25,25,,"24 quantiles -> 24 distinct, 0 at/above max(X)"
+watdiv10m,10780242,307,1,318,clustering,25,25,25,,25/25 clusters non-empty

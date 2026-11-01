@@ -1,0 +1,691 @@
+{
+  "graph": "/home/fbtelki/probabilistic_graphs/datasets/out/dbpedia39/graph_weighted.wnt",
+  "results": [
+    {
+      "classes_compared": 81718,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 17212886,
+        "cells": 9613358,
+        "mean": 0.05076596154256191,
+        "median": 0.025,
+        "max": 0.8343685300700018
+      },
+      "dispersion": {
+        "pairs": 17913145,
+        "cells": 16717710,
+        "mean": 0.018672676795653473,
+        "median": 0.006406,
+        "max": 0.8246902983093176
+      },
+      "model": "AC",
+      "binning": "deterministic",
+      "classes": 254925,
+      "seconds": 482.0,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 109214,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 16327346,
+        "cells": 5805000,
+        "mean": 0.026227926642624695,
+        "median": 0.013986,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 17207719,
+        "cells": 11643972,
+        "mean": 0.009548766480565884,
+        "median": 0.00362,
+        "max": 0.18599647264022212
+      },
+      "model": "AC",
+      "binning": "equal_width_m5",
+      "classes": 376241,
+      "seconds": 471.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 118181,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14512294,
+        "cells": 193867,
+        "mean": 0.007678877801914773,
+        "median": 0.005556,
+        "max": 0.0387096774
+      },
+      "dispersion": {
+        "pairs": 15442559,
+        "cells": 887653,
+        "mean": 0.001572956979820981,
+        "median": 0.0,
+        "max": 0.03597883597388887
+      },
+      "model": "AC",
+      "binning": "equal_width_m25",
+      "classes": 563613,
+      "seconds": 507.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 110724,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14937532,
+        "cells": 2537449,
+        "mean": 0.03858460810398806,
+        "median": 0.016667,
+        "max": 0.56818181819
+      },
+      "dispersion": {
+        "pairs": 15838165,
+        "cells": 7678717,
+        "mean": 0.010366795973309023,
+        "median": 0.003047,
+        "max": 0.438541666675
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m5",
+      "classes": 502290,
+      "seconds": 519.9,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 117688,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14512718,
+        "cells": 226997,
+        "mean": 0.027056129065530662,
+        "median": 0.004545,
+        "max": 0.26666666679999995
+      },
+      "dispersion": {
+        "pairs": 15438992,
+        "cells": 714247,
+        "mean": 0.004012729555010817,
+        "median": 0.000122,
+        "max": 0.17578824109271507
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m25",
+      "classes": 563598,
+      "seconds": 501.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 108414,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 15544789,
+        "cells": 4808221,
+        "mean": 0.03330294840400385,
+        "median": 0.015873,
+        "max": 0.5
+      },
+      "dispersion": {
+        "pairs": 16438605,
+        "cells": 10416237,
+        "mean": 0.011265561741283512,
+        "median": 0.003972,
+        "max": 0.438541666675
+      },
+      "model": "AC",
+      "binning": "clustering_m5",
+      "classes": 437266,
+      "seconds": 436.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 117513,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14521617,
+        "cells": 252069,
+        "mean": 0.03343905913165749,
+        "median": 0.012821,
+        "max": 0.17647058823000006
+      },
+      "dispersion": {
+        "pairs": 15447573,
+        "cells": 935210,
+        "mean": 0.004999604886304545,
+        "median": 3e-06,
+        "max": 0.1507692307632
+      },
+      "model": "AC",
+      "binning": "clustering_m25",
+      "classes": 561973,
+      "seconds": 512.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 400,
+      "classes_with_differing_cells": 169,
+      "representative_error": {
+        "pairs": 3248097,
+        "cells": 2081020,
+        "mean": 0.0036092878724478467,
+        "median": 0.0,
+        "max": 1.0000000003000002
+      },
+      "dispersion": {
+        "pairs": 3248494,
+        "cells": 3236528,
+        "mean": 0.0036314981924603085,
+        "median": 2.6e-05,
+        "max": 0.9999904665661823
+      },
+      "model": "CC",
+      "binning": "deterministic",
+      "classes": 406,
+      "seconds": 491.9,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "equal_width_m5",
+      "classes": 575,
+      "seconds": 517.7,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "equal_width_m25",
+      "classes": 575,
+      "seconds": 458.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "equal_frequency_m5",
+      "classes": 575,
+      "seconds": 525.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "equal_frequency_m25",
+      "classes": 575,
+      "seconds": 500.7,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "clustering_m5",
+      "classes": 575,
+      "seconds": 463.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 532,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 3240676,
+        "cells": 2073789,
+        "mean": 1.196394641069847e-10,
+        "median": 0.0,
+        "max": 6.999999468959572e-10
+      },
+      "dispersion": {
+        "pairs": 3241073,
+        "cells": 3225069,
+        "mean": 5.771488432587195e-11,
+        "median": 0.0,
+        "max": 4.4938308629838275e-10
+      },
+      "model": "CC",
+      "binning": "clustering_m25",
+      "classes": 575,
+      "seconds": 485.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 87399,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 17106163,
+        "cells": 9231492,
+        "mean": 0.049819854482267625,
+        "median": 0.024242,
+        "max": 0.8506967485070017
+      },
+      "dispersion": {
+        "pairs": 17839255,
+        "cells": 16479523,
+        "mean": 0.018143698741912875,
+        "median": 0.005939,
+        "max": 0.8246902983093176
+      },
+      "model": "ACC",
+      "binning": "deterministic",
+      "classes": 270070,
+      "seconds": 603.9,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 115759,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 16199993,
+        "cells": 5428393,
+        "mean": 0.026441553581164932,
+        "median": 0.014423,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 17117541,
+        "cells": 11284226,
+        "mean": 0.009460990111738458,
+        "median": 0.003571,
+        "max": 0.1900410925614212
+      },
+      "model": "ACC",
+      "binning": "equal_width_m5",
+      "classes": 395509,
+      "seconds": 581.5,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 124548,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14380665,
+        "cells": 192658,
+        "mean": 0.007676521467279891,
+        "median": 0.005556,
+        "max": 0.0387096774
+      },
+      "dispersion": {
+        "pairs": 15345799,
+        "cells": 780004,
+        "mean": 0.0017768489244810255,
+        "median": 0.0,
+        "max": 0.03597883597388887
+      },
+      "model": "ACC",
+      "binning": "equal_width_m25",
+      "classes": 583604,
+      "seconds": 610.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 116773,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14813519,
+        "cells": 2229342,
+        "mean": 0.04063712340149399,
+        "median": 0.017857,
+        "max": 0.56818181819
+      },
+      "dispersion": {
+        "pairs": 15748558,
+        "cells": 7476019,
+        "mean": 0.010240002316388407,
+        "median": 0.003016,
+        "max": 0.48222222223999994
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m5",
+      "classes": 520260,
+      "seconds": 572.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 124058,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14381472,
+        "cells": 226093,
+        "mean": 0.027175025260739033,
+        "median": 0.004545,
+        "max": 0.26666666679999995
+      },
+      "dispersion": {
+        "pairs": 15342681,
+        "cells": 583571,
+        "mean": 0.004866415687408616,
+        "median": 0.000823,
+        "max": 0.1860205993784269
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m25",
+      "classes": 583518,
+      "seconds": 542.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 114465,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 15424789,
+        "cells": 4364234,
+        "mean": 0.03345220399676877,
+        "median": 0.015873,
+        "max": 0.5
+      },
+      "dispersion": {
+        "pairs": 16352454,
+        "cells": 10060666,
+        "mean": 0.011034858594814137,
+        "median": 0.003908,
+        "max": 0.38419618529836513
+      },
+      "model": "ACC",
+      "binning": "clustering_m5",
+      "classes": 455028,
+      "seconds": 606.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 123868,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14390486,
+        "cells": 250678,
+        "mean": 0.0333104631212671,
+        "median": 0.012987,
+        "max": 0.17647058823000006
+      },
+      "dispersion": {
+        "pairs": 15351333,
+        "cells": 823747,
+        "mean": 0.0055915272283539605,
+        "median": 4.7e-05,
+        "max": 0.1507692307632
+      },
+      "model": "ACC",
+      "binning": "clustering_m25",
+      "classes": 581811,
+      "seconds": 595.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 126480,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14379977,
+        "cells": 6046609,
+        "mean": 0.048603951364993736,
+        "median": 0.02381,
+        "max": 0.841926729965
+      },
+      "dispersion": {
+        "pairs": 15362056,
+        "cells": 13407176,
+        "mean": 0.01478174937541057,
+        "median": 0.004261,
+        "max": 0.8259599932330787
+      },
+      "model": "SchemEX",
+      "binning": "deterministic",
+      "classes": 599202,
+      "seconds": 780.1,
+      "expected_representative_error": {
+        "cells_compared": 6046609,
+        "mean": 0.04860395136558145,
+        "median": 0.023809523799999982,
+        "max": 0.841926729965
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 135099,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13537690,
+        "cells": 3374845,
+        "mean": 0.024669872717483513,
+        "median": 0.013889,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 14555217,
+        "cells": 8187249,
+        "mean": 0.007592077662447507,
+        "median": 0.00224,
+        "max": 0.16865079360925916
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m5",
+      "classes": 720270,
+      "seconds": 755.0,
+      "expected_representative_error": {
+        "cells_compared": 3374845,
+        "mean": 0.024669872717818998,
+        "median": 0.013888888899999993,
+        "max": 0.19999999999999984
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 129552,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12484749,
+        "cells": 163829,
+        "mean": 0.007668028281589768,
+        "median": 0.005556,
+        "max": 0.0387096774
+      },
+      "dispersion": {
+        "pairs": 13429457,
+        "cells": 632547,
+        "mean": 0.0018527356191738286,
+        "median": 0.0,
+        "max": 0.03597883597388887
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m25",
+      "classes": 835294,
+      "seconds": 695.7,
+      "expected_representative_error": {
+        "cells_compared": 163829,
+        "mean": 0.007668028281583422,
+        "median": 0.0055555555599999945,
+        "max": 0.0387096774
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 126115,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12809614,
+        "cells": 1578950,
+        "mean": 0.043252342207542836,
+        "median": 0.017857,
+        "max": 0.56818181819
+      },
+      "dispersion": {
+        "pairs": 13747925,
+        "cells": 6088685,
+        "mean": 0.009289980262581675,
+        "median": 0.002178,
+        "max": 0.48222222223999994
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m5",
+      "classes": 782931,
+      "seconds": 847.3,
+      "expected_representative_error": {
+        "cells_compared": 1578950,
+        "mean": 0.04325234220791846,
+        "median": 0.01785714290000001,
+        "max": 0.56818181819
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 129240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12488916,
+        "cells": 184149,
+        "mean": 0.02662024606529611,
+        "median": 0.004762,
+        "max": 0.26666666679999995
+      },
+      "dispersion": {
+        "pairs": 13431711,
+        "cells": 492304,
+        "mean": 0.004956879254946453,
+        "median": 0.000717,
+        "max": 0.190909091030303
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m25",
+      "classes": 834696,
+      "seconds": 721.5,
+      "expected_representative_error": {
+        "cells_compared": 184149,
+        "mean": 0.02662024606528392,
+        "median": 0.004761904760000005,
+        "max": 0.26666666679999995
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 127157,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13175821,
+        "cells": 2824099,
+        "mean": 0.03375514015179833,
+        "median": 0.013889,
+        "max": 0.5
+      },
+      "dispersion": {
+        "pairs": 14125809,
+        "cells": 7456854,
+        "mean": 0.009845423379851616,
+        "median": 0.002976,
+        "max": 0.3777108433987952
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m5",
+      "classes": 742886,
+      "seconds": 788.9,
+      "expected_representative_error": {
+        "cells_compared": 2824099,
+        "mean": 0.033755140151986295,
+        "median": 0.013888888899999993,
+        "max": 0.5
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 129030,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12496188,
+        "cells": 207200,
+        "mean": 0.03211401126517789,
+        "median": 0.011111,
+        "max": 0.17647058823000003
+      },
+      "dispersion": {
+        "pairs": 13438120,
+        "cells": 698274,
+        "mean": 0.00565622988511169,
+        "median": 5e-06,
+        "max": 0.150641025635
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m25",
+      "classes": 833172,
+      "seconds": 762.7,
+      "expected_representative_error": {
+        "cells_compared": 207200,
+        "mean": 0.0321140112651412,
+        "median": 0.011111111079999902,
+        "max": 0.17647058823000003
+      },
+      "validation": "OK"
+    }
+  ]
+}

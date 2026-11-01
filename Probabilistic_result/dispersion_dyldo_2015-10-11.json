@@ -1,0 +1,691 @@
+{
+  "graph": "/home/fbtelki/probabilistic_graphs/datasets/out/dyldo_2015-10-11/graph_weighted.wnt",
+  "results": [
+    {
+      "classes_compared": 23171,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14748610,
+        "cells": 3359496,
+        "mean": 0.06542854103190522,
+        "median": 0.025,
+        "max": 0.9755585718350201
+      },
+      "dispersion": {
+        "pairs": 14910632,
+        "cells": 9006159,
+        "mean": 0.016287931501546705,
+        "median": 0.00329,
+        "max": 0.8038050881179608
+      },
+      "model": "AC",
+      "binning": "deterministic",
+      "classes": 56846,
+      "seconds": 485.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 31353,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14574726,
+        "cells": 1968769,
+        "mean": 0.020643770513997472,
+        "median": 0.009091,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 14786146,
+        "cells": 5529383,
+        "mean": 0.005368010359223376,
+        "median": 0.000331,
+        "max": 0.18714866547823072
+      },
+      "model": "AC",
+      "binning": "equal_width_m5",
+      "classes": 82250,
+      "seconds": 521.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 37419,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14189786,
+        "cells": 322621,
+        "mean": 0.0036944187556738214,
+        "median": 0.000918,
+        "max": 0.04000000000000001
+      },
+      "dispersion": {
+        "pairs": 14449938,
+        "cells": 2863801,
+        "mean": 0.0003597926623962272,
+        "median": 0.0,
+        "max": 0.03583333331422223
+      },
+      "model": "AC",
+      "binning": "equal_width_m25",
+      "classes": 119385,
+      "seconds": 547.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 32806,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14465267,
+        "cells": 1569966,
+        "mean": 0.01932541358097402,
+        "median": 0.007843,
+        "max": 0.34090909100999967
+      },
+      "dispersion": {
+        "pairs": 14691057,
+        "cells": 4786500,
+        "mean": 0.00479845114278109,
+        "median": 0.000207,
+        "max": 0.23448458975882402
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m5",
+      "classes": 90959,
+      "seconds": 515.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 36791,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14200940,
+        "cells": 451037,
+        "mean": 0.008265902739220735,
+        "median": 0.002924,
+        "max": 0.15555555562000045
+      },
+      "dispersion": {
+        "pairs": 14453249,
+        "cells": 2709192,
+        "mean": 0.001194707170882325,
+        "median": 0.0,
+        "max": 0.12740576931296055
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m25",
+      "classes": 117663,
+      "seconds": 531.1,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 31094,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14496384,
+        "cells": 2081952,
+        "mean": 0.04012211527952859,
+        "median": 0.012882,
+        "max": 0.44999999991000017
+      },
+      "dispersion": {
+        "pairs": 14713827,
+        "cells": 6776952,
+        "mean": 0.00822183739059772,
+        "median": 0.000799,
+        "max": 0.3824293585423002
+      },
+      "model": "AC",
+      "binning": "clustering_m5",
+      "classes": 85613,
+      "seconds": 568.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 37046,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14178084,
+        "cells": 417084,
+        "mean": 0.006507023605002465,
+        "median": 0.002165,
+        "max": 0.14024218507999914
+      },
+      "dispersion": {
+        "pairs": 14430999,
+        "cells": 3056467,
+        "mean": 0.0007889278388757893,
+        "median": 0.0,
+        "max": 0.08823529412499997
+      },
+      "model": "AC",
+      "binning": "clustering_m25",
+      "classes": 120313,
+      "seconds": 514.1,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 25885,
+      "classes_with_differing_cells": 4797,
+      "representative_error": {
+        "pairs": 8735586,
+        "cells": 5258825,
+        "mean": 0.7952909632884951,
+        "median": 1.0,
+        "max": 1.0000000003399991
+      },
+      "dispersion": {
+        "pairs": 8760424,
+        "cells": 8389268,
+        "mean": 0.33847022470593063,
+        "median": 0.340826,
+        "max": 0.999915526255365
+      },
+      "model": "CC",
+      "binning": "deterministic",
+      "classes": 48155,
+      "seconds": 451.9,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "equal_width_m5",
+      "classes": 52952,
+      "seconds": 558.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "equal_width_m25",
+      "classes": 52952,
+      "seconds": 491.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "equal_frequency_m5",
+      "classes": 52952,
+      "seconds": 528.5,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "equal_frequency_m25",
+      "classes": 52952,
+      "seconds": 447.5,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "clustering_m5",
+      "classes": 52952,
+      "seconds": 509.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 28240,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 6284006,
+        "cells": 1452540,
+        "mean": 8.107285808407983e-11,
+        "median": 0.0,
+        "max": 7.199983942385302e-10
+      },
+      "dispersion": {
+        "pairs": 6307865,
+        "cells": 5744931,
+        "mean": 1.855424779124438e-11,
+        "median": 0.0,
+        "max": 4.566788058824045e-10
+      },
+      "model": "CC",
+      "binning": "clustering_m25",
+      "classes": 52952,
+      "seconds": 552.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 55806,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14502798,
+        "cells": 3421657,
+        "mean": 0.07558485717662651,
+        "median": 0.025,
+        "max": 0.9755585718350201
+      },
+      "dispersion": {
+        "pairs": 14752018,
+        "cells": 8703457,
+        "mean": 0.016149075107474667,
+        "median": 0.00329,
+        "max": 0.8038050881179608
+      },
+      "model": "ACC",
+      "binning": "deterministic",
+      "classes": 137859,
+      "seconds": 501.7,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 62691,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14327480,
+        "cells": 2079986,
+        "mean": 0.018940133882999064,
+        "median": 0.008929,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 14619650,
+        "cells": 5285598,
+        "mean": 0.005459860542478191,
+        "median": 0.000397,
+        "max": 0.18714866547823072
+      },
+      "model": "ACC",
+      "binning": "equal_width_m5",
+      "classes": 164922,
+      "seconds": 637.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 68412,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13952164,
+        "cells": 462426,
+        "mean": 0.002526882299634918,
+        "median": 0.0,
+        "max": 0.04000000000000001
+      },
+      "dispersion": {
+        "pairs": 14291658,
+        "cells": 2672925,
+        "mean": 0.0003790395253770245,
+        "median": 0.0,
+        "max": 0.03583333331422223
+      },
+      "model": "ACC",
+      "binning": "equal_width_m25",
+      "classes": 201160,
+      "seconds": 505.0,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 64285,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14221138,
+        "cells": 1561689,
+        "mean": 0.018764007682834195,
+        "median": 0.007842,
+        "max": 0.34090909100999967
+      },
+      "dispersion": {
+        "pairs": 14528788,
+        "cells": 4574197,
+        "mean": 0.004823844663169656,
+        "median": 0.000236,
+        "max": 0.23448458975882402
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m5",
+      "classes": 173542,
+      "seconds": 583.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 67770,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13963604,
+        "cells": 473462,
+        "mean": 0.00770585793447269,
+        "median": 0.002849,
+        "max": 0.15555555562000045
+      },
+      "dispersion": {
+        "pairs": 14295031,
+        "cells": 2581703,
+        "mean": 0.0012305790661708454,
+        "median": 0.0,
+        "max": 0.12740576931296055
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m25",
+      "classes": 199541,
+      "seconds": 603.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 62817,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14253572,
+        "cells": 2143872,
+        "mean": 0.03618794678327774,
+        "median": 0.010101,
+        "max": 0.44999999991000017
+      },
+      "dispersion": {
+        "pairs": 14554262,
+        "cells": 6466762,
+        "mean": 0.00825347570180516,
+        "median": 0.000832,
+        "max": 0.3824293585423002
+      },
+      "model": "ACC",
+      "binning": "clustering_m5",
+      "classes": 167264,
+      "seconds": 549.9,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 67999,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13941414,
+        "cells": 557250,
+        "mean": 0.004857891047464168,
+        "median": 0.000902,
+        "max": 0.14024218507999914
+      },
+      "dispersion": {
+        "pairs": 14273328,
+        "cells": 2858009,
+        "mean": 0.0008190686829498927,
+        "median": 0.0,
+        "max": 0.08823529412499997
+      },
+      "model": "ACC",
+      "binning": "clustering_m25",
+      "classes": 202006,
+      "seconds": 580.7,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 76578,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14080605,
+        "cells": 2803010,
+        "mean": 0.05736564146616337,
+        "median": 0.020202,
+        "max": 0.9165217391399995
+      },
+      "dispersion": {
+        "pairs": 14384752,
+        "cells": 7349173,
+        "mean": 0.015507152745617528,
+        "median": 0.003314,
+        "max": 0.7784488493501587
+      },
+      "model": "SchemEX",
+      "binning": "deterministic",
+      "classes": 244611,
+      "seconds": 687.1,
+      "expected_representative_error": {
+        "cells_compared": 2803010,
+        "mean": 0.0573656414664314,
+        "median": 0.020202020190000003,
+        "max": 0.9165217391399995
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 81551,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13924576,
+        "cells": 1669985,
+        "mean": 0.019164827672640446,
+        "median": 0.008929,
+        "max": 0.19999999999999984
+      },
+      "dispersion": {
+        "pairs": 14261453,
+        "cells": 4403270,
+        "mean": 0.0055274785392503125,
+        "median": 0.000611,
+        "max": 0.18714866547823072
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m5",
+      "classes": 268395,
+      "seconds": 772.6,
+      "expected_representative_error": {
+        "cells_compared": 1669985,
+        "mean": 0.01916482767261425,
+        "median": 0.008928571430000004,
+        "max": 0.19999999999999984
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 86122,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13602629,
+        "cells": 307361,
+        "mean": 0.0029951008690560273,
+        "median": 0.000273,
+        "max": 0.04000000000000001
+      },
+      "dispersion": {
+        "pairs": 13976191,
+        "cells": 2011612,
+        "mean": 0.0003880530103848942,
+        "median": 0.0,
+        "max": 0.03583333331422223
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m25",
+      "classes": 300125,
+      "seconds": 629.1,
+      "expected_representative_error": {
+        "cells_compared": 307361,
+        "mean": 0.0029951008690584967,
+        "median": 0.00027322404999999966,
+        "max": 0.04000000000000001
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 82699,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13838468,
+        "cells": 1404527,
+        "mean": 0.01797406145048899,
+        "median": 0.007576,
+        "max": 0.34090909100999967
+      },
+      "dispersion": {
+        "pairs": 14185674,
+        "cells": 3926409,
+        "mean": 0.004835626014605493,
+        "median": 0.000321,
+        "max": 0.23448458975882402
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m5",
+      "classes": 275915,
+      "seconds": 752.6,
+      "expected_representative_error": {
+        "cells_compared": 1404527,
+        "mean": 0.017974061450544938,
+        "median": 0.007575757580000009,
+        "max": 0.34090909100999967
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 85405,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13621215,
+        "cells": 434601,
+        "mean": 0.007195149400336741,
+        "median": 0.002632,
+        "max": 0.15555555562000045
+      },
+      "dispersion": {
+        "pairs": 13986573,
+        "cells": 2162821,
+        "mean": 0.0012309000539709875,
+        "median": 0.0,
+        "max": 0.11835292536293096
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m25",
+      "classes": 298074,
+      "seconds": 686.9,
+      "expected_representative_error": {
+        "cells_compared": 434601,
+        "mean": 0.00719514940032882,
+        "median": 0.002631578949999998,
+        "max": 0.15555555562000045
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 81794,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13867379,
+        "cells": 1738767,
+        "mean": 0.03247319643395135,
+        "median": 0.009804,
+        "max": 0.44999999991000017
+      },
+      "dispersion": {
+        "pairs": 14210513,
+        "cells": 5219652,
+        "mean": 0.008377400899414893,
+        "median": 0.001263,
+        "max": 0.3824293585423002
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m5",
+      "classes": 270443,
+      "seconds": 761.3,
+      "expected_representative_error": {
+        "cells_compared": 1738767,
+        "mean": 0.03247319643401165,
+        "median": 0.009803921660000103,
+        "max": 0.44999999991000017
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 85564,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 13602209,
+        "cells": 398303,
+        "mean": 0.005245907161529885,
+        "median": 0.001667,
+        "max": 0.1428571429
+      },
+      "dispersion": {
+        "pairs": 13967650,
+        "cells": 2190514,
+        "mean": 0.0008235962401185296,
+        "median": 0.0,
+        "max": 0.08823529412499997
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m25",
+      "classes": 300356,
+      "seconds": 693.4,
+      "expected_representative_error": {
+        "cells_compared": 398303,
+        "mean": 0.005245907161526367,
+        "median": 0.0016666666699999971,
+        "max": 0.1428571429
+      },
+      "validation": "OK"
+    }
+  ]
+}

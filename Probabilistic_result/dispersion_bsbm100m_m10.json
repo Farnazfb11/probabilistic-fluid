@@ -1,0 +1,230 @@
+{
+  "graph": "/home/fbtelki/probabilistic_graphs/datasets/out/bsbm100m/graph_weighted.wnt",
+  "results": [
+    {
+      "classes_compared": 165,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 84291122,
+        "cells": 3436500,
+        "mean": 0.004198965887107569,
+        "median": 0.001838,
+        "max": 0.09999999989999986
+      },
+      "dispersion": {
+        "pairs": 84293316,
+        "cells": 4129633,
+        "mean": 0.0028328782447375024,
+        "median": 0.001634,
+        "max": 0.06951932838063829
+      },
+      "model": "AC",
+      "binning": "equal_width_m10",
+      "classes": 178,
+      "seconds": 1794.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 78,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 84292539,
+        "cells": 3830417,
+        "mean": 0.008753447139002706,
+        "median": 0.004412,
+        "max": 0.24749999999999994
+      },
+      "dispersion": {
+        "pairs": 84293504,
+        "cells": 4129946,
+        "mean": 0.00546848560235176,
+        "median": 0.002926,
+        "max": 0.21791928480548206
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m10",
+      "classes": 78,
+      "seconds": 1916.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 119,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 84291866,
+        "cells": 3599423,
+        "mean": 0.00594394185170719,
+        "median": 0.002846,
+        "max": 0.17307692306
+      },
+      "dispersion": {
+        "pairs": 84293403,
+        "cells": 4129555,
+        "mean": 0.0041091296164062294,
+        "median": 0.001953,
+        "max": 0.14950120684177526
+      },
+      "model": "AC",
+      "binning": "clustering_m10",
+      "classes": 126,
+      "seconds": 1839.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 36759,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83448236,
+        "cells": 2736263,
+        "mean": 0.004339655872512167,
+        "median": 0.002168,
+        "max": 0.09999999989999986
+      },
+      "dispersion": {
+        "pairs": 83959340,
+        "cells": 3720993,
+        "mean": 0.002531967050371043,
+        "median": 0.001289,
+        "max": 0.08735632175555541
+      },
+      "model": "ACC",
+      "binning": "equal_width_m10",
+      "classes": 60418,
+      "seconds": 2132.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 27492,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83766539,
+        "cells": 3298880,
+        "mean": 0.007363959856113474,
+        "median": 0.003687,
+        "max": 0.28846153845
+      },
+      "dispersion": {
+        "pairs": 84148295,
+        "cells": 3956586,
+        "mean": 0.004575104189079707,
+        "median": 0.002272,
+        "max": 0.18946613429428572
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m10",
+      "classes": 37744,
+      "seconds": 1814.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 31433,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83608198,
+        "cells": 3036906,
+        "mean": 0.005965117744895595,
+        "median": 0.002914,
+        "max": 0.17307692306
+      },
+      "dispersion": {
+        "pairs": 84045528,
+        "cells": 3834574,
+        "mean": 0.0036162520458571535,
+        "median": 0.001768,
+        "max": 0.14533058914384617
+      },
+      "model": "ACC",
+      "binning": "clustering_m10",
+      "classes": 49011,
+      "seconds": 2145.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 58496,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83252563,
+        "cells": 2736263,
+        "mean": 0.004339655872512167,
+        "median": 0.002168,
+        "max": 0.09999999989999986
+      },
+      "dispersion": {
+        "pairs": 83959312,
+        "cells": 3720993,
+        "mean": 0.002531967050371043,
+        "median": 0.001289,
+        "max": 0.08735632175555541
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m10",
+      "classes": 82159,
+      "seconds": 2587.7,
+      "expected_representative_error": {
+        "cells_compared": 2736263,
+        "mean": 0.00433965587250197,
+        "median": 0.00216802168,
+        "max": 0.09999999989999986
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 49229,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83570866,
+        "cells": 3298880,
+        "mean": 0.007363959856113474,
+        "median": 0.003687,
+        "max": 0.28846153845
+      },
+      "dispersion": {
+        "pairs": 84148267,
+        "cells": 3956586,
+        "mean": 0.004575104189079707,
+        "median": 0.002272,
+        "max": 0.18946613429428572
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m10",
+      "classes": 59485,
+      "seconds": 2372.7,
+      "expected_representative_error": {
+        "cells_compared": 3298880,
+        "mean": 0.00736395985613221,
+        "median": 0.003686635949999996,
+        "max": 0.28846153845
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 53170,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 83412525,
+        "cells": 3036906,
+        "mean": 0.005965117744895595,
+        "median": 0.002914,
+        "max": 0.17307692306
+      },
+      "dispersion": {
+        "pairs": 84045500,
+        "cells": 3834574,
+        "mean": 0.0036162520458571535,
+        "median": 0.001768,
+        "max": 0.14533058914384617
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m10",
+      "classes": 70752,
+      "seconds": 2336.1,
+      "expected_representative_error": {
+        "cells_compared": 3036906,
+        "mean": 0.005965117744903977,
+        "median": 0.0029137529099999976,
+        "max": 0.17307692306
+      },
+      "validation": "OK"
+    }
+  ]
+}

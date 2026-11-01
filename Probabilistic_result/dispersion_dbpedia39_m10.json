@@ -1,0 +1,230 @@
+{
+  "graph": "/home/fbtelki/probabilistic_graphs/datasets/out/dbpedia39/graph_weighted.wnt",
+  "results": [
+    {
+      "classes_compared": 121096,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14951372,
+        "cells": 1601508,
+        "mean": 0.015058082829470267,
+        "median": 0.007576,
+        "max": 0.09999999999999998
+      },
+      "dispersion": {
+        "pairs": 15929954,
+        "cells": 3559851,
+        "mean": 0.005203200309826465,
+        "median": 0.001715,
+        "max": 0.09304922582873265
+      },
+      "model": "AC",
+      "binning": "equal_width_m10",
+      "classes": 520375,
+      "seconds": 495.6,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 115471,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14624438,
+        "cells": 834468,
+        "mean": 0.03541999525222181,
+        "median": 0.011111,
+        "max": 0.39393939398000005
+      },
+      "dispersion": {
+        "pairs": 15542694,
+        "cells": 2537215,
+        "mean": 0.009606999226586149,
+        "median": 0.00259,
+        "max": 0.28899919986282435
+      },
+      "model": "AC",
+      "binning": "equal_frequency_m10",
+      "classes": 546728,
+      "seconds": 468.8,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 115300,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14693368,
+        "cells": 1340737,
+        "mean": 0.027060908489524044,
+        "median": 0.009091,
+        "max": 0.3333333335
+      },
+      "dispersion": {
+        "pairs": 15610223,
+        "cells": 3494774,
+        "mean": 0.008155896519125199,
+        "median": 0.002552,
+        "max": 0.28896510524608826
+      },
+      "model": "AC",
+      "binning": "clustering_m10",
+      "classes": 538940,
+      "seconds": 508.3,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 127596,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14821035,
+        "cells": 1405216,
+        "mean": 0.015504388814013484,
+        "median": 0.008282,
+        "max": 0.09999999999999998
+      },
+      "dispersion": {
+        "pairs": 15835716,
+        "cells": 3459572,
+        "mean": 0.005206051222053545,
+        "median": 0.001634,
+        "max": 0.093048677357885
+      },
+      "model": "ACC",
+      "binning": "equal_width_m10",
+      "classes": 540270,
+      "seconds": 606.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 121686,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14495171,
+        "cells": 823143,
+        "mean": 0.035782078925660835,
+        "median": 0.011111,
+        "max": 0.38095238120000013
+      },
+      "dispersion": {
+        "pairs": 15448139,
+        "cells": 2405806,
+        "mean": 0.009720612005705042,
+        "median": 0.002671,
+        "max": 0.3034255599704348
+      },
+      "model": "ACC",
+      "binning": "equal_frequency_m10",
+      "classes": 566010,
+      "seconds": 587.2,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 121488,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 14564756,
+        "cells": 1132341,
+        "mean": 0.029755838547677365,
+        "median": 0.010256,
+        "max": 0.3333333335
+      },
+      "dispersion": {
+        "pairs": 15516123,
+        "cells": 3348052,
+        "mean": 0.00814624880841828,
+        "median": 0.002536,
+        "max": 0.29166666664583335
+      },
+      "model": "ACC",
+      "binning": "clustering_m10",
+      "classes": 558173,
+      "seconds": 646.4,
+      "validation": "-"
+    },
+    {
+      "classes_compared": 130413,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12699284,
+        "cells": 936563,
+        "mean": 0.015137789072693473,
+        "median": 0.007576,
+        "max": 0.09999999999999998
+      },
+      "dispersion": {
+        "pairs": 13660777,
+        "cells": 2454024,
+        "mean": 0.004747368864600145,
+        "median": 0.001227,
+        "max": 0.09305191398243837
+      },
+      "model": "SchemEX",
+      "binning": "equal_width_m10",
+      "classes": 812059,
+      "seconds": 734.8,
+      "expected_representative_error": {
+        "cells_compared": 936563,
+        "mean": 0.01513778907266726,
+        "median": 0.007575757580000009,
+        "max": 0.09999999999999998
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 127673,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12577739,
+        "cells": 632581,
+        "mean": 0.037696170959905344,
+        "median": 0.011204,
+        "max": 0.38095238120000013
+      },
+      "dispersion": {
+        "pairs": 13516231,
+        "cells": 1934498,
+        "mean": 0.00974022290030584,
+        "median": 0.002564,
+        "max": 0.3051178451413334
+      },
+      "model": "SchemEX",
+      "binning": "equal_frequency_m10",
+      "classes": 819410,
+      "seconds": 763.3,
+      "expected_representative_error": {
+        "cells_compared": 632581,
+        "mean": 0.03769617096002657,
+        "median": 0.011204481789999998,
+        "max": 0.38095238120000013
+      },
+      "validation": "OK"
+    },
+    {
+      "classes_compared": 128172,
+      "classes_with_differing_cells": 0,
+      "representative_error": {
+        "pairs": 12624185,
+        "cells": 822667,
+        "mean": 0.03186124392968415,
+        "median": 0.011111,
+        "max": 0.3333333335
+      },
+      "dispersion": {
+        "pairs": 13566429,
+        "cells": 2579075,
+        "mean": 0.008143756386184631,
+        "median": 0.002273,
+        "max": 0.29455782311249995
+      },
+      "model": "SchemEX",
+      "binning": "clustering_m10",
+      "classes": 814217,
+      "seconds": 712.2,
+      "expected_representative_error": {
+        "cells_compared": 822667,
+        "mean": 0.03186124392968657,
+        "median": 0.011111111079999902,
+        "max": 0.3333333335
+      },
+      "validation": "OK"
+    }
+  ]
+}
