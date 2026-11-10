@@ -1,4 +1,5 @@
 import os, json, gzip
+from collections import defaultdict
 from typing import Dict, Any, Union, Type, Optional
 import networkx as nx
 
@@ -12,7 +13,7 @@ from Summarizer import group_by_signature, build_summary_graph
 
 # Separator for the (P, O) keys of the mass payload. The same character
 # get_id() uses, so it cannot occur inside an IRI or a type-set serialisation.
-SEP = "\u241E"
+SEP = "␞"
 
 
 def _sorted_list(x) -> list:
@@ -33,6 +34,33 @@ _STRATEGY_REGISTRY: Dict[str, Type] = {
 }
 
 
+def class_mean_payload(per_v_summary: Dict[Any, Any], members) -> tuple:
+    # The mass payload and the edge multiplicities of one class: the mean of
+    # each cell mass, and of each predicate count, over the members.
+    #
+    # A cell absent from a member counts as zero, as in the dispersion of
+    # measures.py, so the error of this payload is exactly that dispersion.
+    # The mean also keeps the totals (mean * vcp is the mass the whole class
+    # sends through the cell) and stays a distribution: every member's masses
+    # sum to one, and so does their mean.
+    mass_sum: Dict[tuple, float] = defaultdict(float)
+    mult_sum: Dict[str, float] = defaultdict(float)
+    n = 0
+    for m in members:
+        vs = per_v_summary.get(m)
+        if vs is None:
+            continue
+        n += 1
+        for k, v in vs.mass.items():
+            mass_sum[k] += v
+        for p, c in vs.neighbors.items():
+            mult_sum[p] += c
+    if not n:
+        return {}, {}
+    return ({k: v / n for k, v in mass_sum.items()},
+            {p: c / n for p, c in mult_sum.items()})
+
+
 def build_package(
     G: nx.MultiDiGraph,
     per_v_summary: Dict[Any, Any],
@@ -49,11 +77,12 @@ def build_package(
     # collected. Split out of save_summary_for_strategy so that run_summary.py
     # can export without running the collector a second time.
     #
-    # The mass payload (mpp), the bins and the edge multiplicities are taken
-    # from members[0], the same representative the representative error of
-    # Section 4.5 is measured against, and are emitted only when the vertices
-    # actually carry mass. A deterministic run over an unweighted graph
-    # therefore produces exactly the package this file produced before.
+    # The mass payload (mpp) and the edge multiplicities (emp) are the class
+    # means of class_mean_payload, and are emitted only when the vertices
+    # actually carry mass. The bins are taken from members[0]: every member of
+    # a binned class has the same bins, since the bins enter the signature.
+    # A deterministic run over an unweighted graph therefore produces exactly
+    # the package this file produced before.
     groups = group_by_signature(per_v_id)
 
     nodes: Dict[str, Any] = {}
@@ -82,13 +111,13 @@ def build_package(
                 "pred_to_dst_types": _canon_pred2dst(pred2dst), # schema: predicate→dst types
             }
 
-            rep = per_v_summary.get(members[0])
-            if rep is not None and rep.mass:
-                entry["rep"] = str(G.nodes[members[0]].get("label", members[0]))
-                entry["mpp"] = {f"{p}{SEP}{o}": v for (p, o), v in rep.mass.items()}
-                entry["emp"] = dict(rep.neighbors)              # payload: edge multiplicity
-                if rep.bins is not None:
-                    entry["bins"] = {f"{p}{SEP}{o}": v for (p, o), v in rep.bins.items()}
+            mean_mass, mean_mult = class_mean_payload(per_v_summary, members)
+            if mean_mass:
+                entry["mpp"] = {f"{p}{SEP}{o}": v for (p, o), v in mean_mass.items()}
+                entry["emp"] = mean_mult                        # payload: edge multiplicity
+                first = per_v_summary.get(members[0])
+                if first is not None and first.bins is not None:
+                    entry["bins"] = {f"{p}{SEP}{o}": v for (p, o), v in first.bins.items()}
 
             nodes[str(sid)] = entry
     else:
@@ -111,6 +140,7 @@ def build_package(
         "strategy": strategy_name,
         "only_id": bool(only_id),
         "include_edges": bool(include_edges),
+        "mass_payload": "class_mean",
         **(meta or {})
     }
     pkg = {

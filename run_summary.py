@@ -46,11 +46,16 @@ report, so the measures mark it as such rather than recording zero.
 
 Fidelity
 --------
-Unless --no-rep-error is given, each run also records the representative
-error and the within-class dispersion, both from measures.both_measures over
+Unless --no-rep-error is given, each run also records the within-class
+dispersion and the representative error, both from measures.both_measures over
 the summaries and partition the run has just built, so no second pass over the
 graph is needed (measures.py dispersion recomputes them for a sweep run with
 --no-rep-error).
+
+The mass payload of a class is the mean of its members' cell masses (save.py,
+class_mean_payload), so the dispersion is exactly the error of the payload.
+The representative error is what a payload holding one member's masses would
+cost instead, and is kept for that comparison.
 
 Measuring memory
 ----------------
@@ -324,6 +329,7 @@ def run_one(
         "seconds_phase2": round(seconds_phase2, 3),
         "seconds_total": round(seconds_total, 3),
         "process_peak_rss_mb": round(maxrss_mb(), 1),
+        "mass_payload": "class_mean",
     }
     result.update(class_size_distribution(groups))
     result["compression"] = (
@@ -342,6 +348,7 @@ def run_one(
             "median": rep["median"],
             "max": rep["max"],
         }
+        # the payload is the class mean, so its error is the dispersion
         result["dispersion"] = fid["dispersion"]
         result["classes_with_differing_cells"] = fid["classes_with_differing_cells"]
         phases["fidelity"] = ph_fid.as_dict()

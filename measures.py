@@ -74,6 +74,11 @@ PER_PREDICATE_MODELS = ("AC", "ACC", "SchemEX")
 # how tightly does the binning hold a class together --- and, being measured
 # about the mean, is a property of the partition rather than of one member.
 #
+# The mass payload of a class is the mean of its members' cell masses
+# (save.py, class_mean_payload), so the dispersion is exactly the error of the
+# payload, and the representative error is what a payload holding one member's
+# masses would cost instead.
+#
 # Both are computed over the same population of (member, cell) pairs, so they
 # are directly comparable. One asymmetry is deliberate: the representative
 # error compares members[1:] against members[0], whereas dispersion includes
@@ -85,6 +90,9 @@ PER_PREDICATE_MODELS = ("AC", "ACC", "SchemEX")
 
 PLACES = 6
 
+# Deviations at or below this are summation noise, not disagreement.
+ZERO_TOL = 1e-12
+
 
 class DevStats:
     """Streaming mean, median and maximum of a stream of deviations.
@@ -92,6 +100,9 @@ class DevStats:
     The median comes from a histogram quantised to 1e-6; mean and maximum are
     exact. Zero deviations are counted but excluded from the summary
     statistics, so that a difference is recorded only when it is non-zero.
+    A deviation below ZERO_TOL counts as zero: two sums of the same weights
+    can differ in the last bits (0.1 + 0.2 against 0.3), and without the
+    tolerance such pairs would enter the statistics as tiny disagreements.
     """
 
     def __init__(self) -> None:
@@ -104,7 +115,7 @@ class DevStats:
 
     def add(self, d: float) -> None:
         self.pairs += 1
-        if d <= 0.0:
+        if d <= ZERO_TOL:
             return
         self.nonzero += 1
         self.total += d
