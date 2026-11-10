@@ -112,14 +112,22 @@ class VertexSummary:
     def seal(self, b) -> "VertexSummary":
         # Apply the binning once all messages for this vertex are merged.
         # Must not run per edge: b is not additive, so b(0.3) and b(0.3) say
-        # nothing about b(0.6). Not calling seal leaves the summary
-        # deterministic.
+        # nothing about b(0.6).
+        #
+        # The exact masses are never changed, so a summary can be sealed
+        # again under another binning: the boundaries are fitted to the
+        # masses of all vertices first, and every configuration then reuses
+        # the same collected summaries. seal(None) removes the bins and makes
+        # the summary deterministic again.
+        if b is None:
+            self.bins = None
+            return self
         self.bins = {k: b(v) for k, v in self.mass.items()}
         return self
     def _dst_bucket_parts(self, bucket) -> list[str]:
         # deterministic serialisation of one predicate's destination-type bucket
         if DST_TYPE_MODE == "sets":
-            return sorted("\u241E".join(sorted(ts)) for ts in bucket)
+            return sorted("␞".join(sorted(ts)) for ts in bucket)
         return sorted(bucket)
     #signature / ID
     def get_id(self) -> int:
@@ -149,8 +157,8 @@ class VertexSummary:
             parts.append("|b|")
             for key in sorted(self.bins, key=lambda k: (str(k[0]), str(k[1]))):
                 p, o = key
-                parts.append(f"{p}\u241E{o}\u241E{self.bins[key]}")
-        signature = "\u241F".join(parts)  # reduce collisions
+                parts.append(f"{p}␞{o}␞{self.bins[key]}")
+        signature = "␟".join(parts)  # reduce collisions
         return hash_id(signature)
 
     # export

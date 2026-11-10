@@ -4,54 +4,72 @@ run_summary.py
 ==============
 
 Compute probabilistic summaries and record their measures, with the cost of
-both phases.
+every step.
 
     python run_summary.py \
         --graph out/dyldo/graph_weighted.wnt \
         --types out/dyldo/vertex_types.tsv \
-        --family all --m 1 5 10 25 \
-        --model AC ACC SchemEX \
+        --deterministic --family all --m 1 5 10 25 \
+        --model AC CC ACC SchemEX \
         --out out/dyldo/summaries \
         --save-summaries out/dyldo/summaries/packages
 
-Two phases
-----------
-The first phase determines the binning from the model parameters and the input
-graph, and replaces each vertex's outgoing mass by the bin it falls into. This
-is what the model adds. The second computes the quotient under EQR_p, for
-which any partition refinement is adequate: once the mass is binned, the
-condition of Definition 12 is an ordinary equivalence over discrete labels.
+Steps
+-----
+For each summary model:
 
-Passing --deterministic runs the second phase alone, with no binning,
-which reproduces the deterministic FLUID summary. Together with the b_0
-configuration this is the check of Remark 17.
+  collect   send and merge the messages of every triple, giving each vertex
+            its summary with the exact cell masses mu(s,P,O). This does not
+            depend on the binning, so it is done once per model and shared by
+            all its configurations (pass --recollect to repeat it per run).
 
-Both phases are measured. Earlier versions loaded a binning precomputed by
-binning.py, so phase 1 appeared to be free; it is not. Reading the weights and
-placing the boundaries is work the model requires, and on the larger graphs it
-is a visible share of the total.
+Then for each configuration of that model:
 
-Binning may be either computed here, from --family and --m, or loaded from a
-binnings.json with --binnings. Loading is right for reproducing a recorded
-summary, but a loaded binning has no construction cost to report, so the
-measures mark it as such rather than recording zero.
+  phase 1   fit the bin boundaries to the masses just collected. Only the
+            data-dependent families need the masses themselves; their
+            extraction into one array is recorded as "mass_values", once per
+            model. equal_width is closed-form and costs nothing here.
+  phase 2   bin every vertex's masses ("partition": seal, signature, grouping)
+            and build the summary graph ("summary_graph").
+
+Fitting after collection is the change from earlier versions, which fitted
+the boundaries to the edge weights pi before collection and applied them to
+the masses mu. --fit-on pi restores that behaviour, for comparison.
+
+Passing --deterministic runs phase 2 with no binning, which reproduces the
+deterministic FLUID summary. Together with the m=1 configurations this is the
+check of Remark 17.
+
+Binning may also be loaded from a binnings.json with --binnings, for
+reproducing a recorded summary; a loaded binning has no construction cost to
+report, so the measures mark it as such rather than recording zero.
+
+Fidelity
+--------
+Unless --no-rep-error is given, each run also records the representative
+error and the within-class dispersion, both from measures.both_measures over
+the summaries and partition the run has just built, so no second pass over the
+graph is needed (measures.py dispersion recomputes them for a sweep run with
+--no-rep-error).
 
 Measuring memory
 ----------------
 getrusage(RUSAGE_SELF).ru_maxrss is the peak resident size since the process
 started and never decreases, so in a sweep every run after the first reports
 the high-water mark of its predecessors. It is recorded once per sweep, as the
-requirement of the whole job, and is not used per run. Per run we record
+requirement of the whole job, and is not used per run. Per step we record
 
   rss_delta_mb      resident size after minus before, from /proc/self/status
-  hwm_increase_mb   how much this run raised the process high-water mark;
-                    zero means the run stayed below an earlier peak
-  python_peak_mb    tracemalloc's peak for this run, with --tracemalloc only,
+  hwm_increase_mb   how much this step raised the process high-water mark;
+                    zero means the step stayed below an earlier peak
+  python_peak_mb    tracemalloc's peak for this step, with --tracemalloc only,
                     since tracing costs a substantial share of the runtime
 
 None of the three is the whole truth on its own: rss_delta understates because
 the allocator does not always return freed pages, and python_peak misses
 buffers allocated outside Python. Reported together they bound the answer.
+The memory the summary needs is that of the collect step; the shared collect
+step is measured once per model and repeated in each of its runs.
 
 Only dependencies: networkx, numpy, plus the project modules.
 """
@@ -72,10 +90,13 @@ from collections import Counter
 from datetime import datetime, timezone
 from statistics import mean, median
 
+import numpy as np
+
 from binning import FAMILIES, load_binnings, load_weights, make_binning
 from pgraph_io import load_weighted_graph
-from Collector import SchemaCollector
+from Collector import SchemaCollector, mass_values
 from Summarizer import group_by_signature, build_summary_graph
+from measures import both_measures
 from save import build_package, write_package
 
 from AttCollection import SEAttributeCollection
@@ -91,8 +112,8 @@ MODELS = {
     "SchemEX": SEComplexAttributeClassCollection,
 }
 
-# Families whose boundaries are derived from the observed weights, and which
-# therefore require a pass over the graph before the binning can be built.
+# Families whose boundaries are derived from the observed values, and which
+# therefore need those values before the binning can be built.
 DATA_DEPENDENT = ("equal_frequency", "clustering")
 
 
@@ -128,10 +149,10 @@ def maxrss_mb() -> float:
 
 
 class Phase:
-    """Time and memory for one phase of work.
+    """Time and memory for one step of work.
 
     Used as a context manager; the measurements are available afterwards via
-    as_dict(). Phases are not nested, so the single global tracemalloc state
+    as_dict(). Steps are not nested, so the single global tracemalloc state
     is safe to start and stop here.
     """
 
@@ -232,60 +253,36 @@ def class_size_distribution(groups: dict) -> dict:
     }
 
 
-def representative_error(summaries: dict, groups: dict) -> dict:
-    """How much the payload's representative misstates the other members.
-
-    Section 3.8 keeps the exact outgoing masses of one designated member of
-    each class. Members agree on the binned mass but not on the mass itself,
-    so the payload is well defined only relative to that choice, and the
-    discrepancy is worth reporting rather than assuming away.
-
-    Linear in the number of vertices, but with a large constant: on the bigger
-    graphs it can dominate the run, which is why --no-rep-error exists.
-    """
-    errors = []
-    for members in groups.values():
-        if len(members) < 2:
-            continue
-        rep = summaries[members[0]].mass
-        for m in members[1:]:
-            other = summaries[m].mass
-            for cell in set(rep) | set(other):
-                d = abs(rep.get(cell, 0.0) - other.get(cell, 0.0))
-                if d > 0.0:
-                    errors.append(d)
-    if not errors:
-        return {"cells_compared": 0, "mean": 0.0, "max": 0.0}
-    return {
-        "cells_compared": len(errors),
-        "mean": mean(errors),
-        "median": median(errors),
-        "max": max(errors),
-    }
+def collect_model(G, model_name: str, trace: bool):
+    """The collect step: every vertex's summary with its exact masses."""
+    with Phase("collect", trace) as ph:
+        summaries = SchemaCollector(MODELS[model_name]()).collect_masses(G)
+    return summaries, ph.as_dict()
 
 
 def run_one(
     G,
     model_name: str,
+    summaries: dict,
     binning,
     label: str,
+    collect_phase: dict,
+    values_phase,
     binning_phase: dict,
     trace: bool,
-    want_rep_error: bool,
+    want_fidelity: bool,
     save_to: str | None = None,
 ) -> dict:
-    """Summarise G under one model and one binning, returning the measures.
+    """Bin the collected summaries under one configuration and measure.
 
-    binning_phase describes how the binning for this configuration was
-    obtained and what it cost; it is passed in because a binning is built once
-    per configuration and then used by every model, so charging its
-    construction to a single model would misreport it.
+    collect_phase, values_phase and binning_phase describe the steps before
+    phase 2 and what they cost; they are passed in because the collect step
+    and the mass extraction are shared by every configuration of a model, and
+    charging them to a single run would misreport them.
     """
-    with Phase("collect", trace) as ph_collect:
-        collector = SchemaCollector(MODELS[model_name]())
-        summaries, ids = collector.collect(G, binning=binning)
-
-    groups = group_by_signature(ids)
+    with Phase("partition", trace) as ph_part:
+        ids = SchemaCollector.signatures(summaries, binning)
+        groups = group_by_signature(ids)
 
     with Phase("summary_graph", trace) as ph_graph:
         super_counts, super_pred = build_summary_graph(G, groups, by_predicate=True)
@@ -294,17 +291,23 @@ def run_one(
     n_super_pred_edges = sum(
         len(preds) for dsts in super_pred.values() for preds in dsts.values()
     )
+    del super_counts, super_pred
     dead_ends = sum(1 for n in G.nodes() if G.out_degree(n) == 0)
 
     phases = {
+        "collect": collect_phase,
+        "mass_values": values_phase,
         "binning": binning_phase,
-        "collect": ph_collect.as_dict(),
+        "partition": ph_part.as_dict(),
         "summary_graph": ph_graph.as_dict(),
     }
+    seconds_phase1 = binning_phase.get("seconds", 0.0)
+    seconds_phase2 = ph_part.seconds + ph_graph.seconds
     seconds_total = (
-        binning_phase.get("seconds", 0.0)
-        + ph_collect.seconds
-        + ph_graph.seconds
+        collect_phase.get("seconds", 0.0)
+        + (values_phase or {}).get("seconds", 0.0)
+        + seconds_phase1
+        + seconds_phase2
     )
 
     result = {
@@ -317,6 +320,8 @@ def run_one(
         "summary_edges": n_super_edges,
         "summary_labelled_edges": n_super_pred_edges,
         "phases": phases,
+        "seconds_phase1": round(seconds_phase1, 3),
+        "seconds_phase2": round(seconds_phase2, 3),
         "seconds_total": round(seconds_total, 3),
         "process_peak_rss_mb": round(maxrss_mb(), 1),
     }
@@ -325,12 +330,24 @@ def run_one(
         result["classes"] / G.number_of_nodes() if G.number_of_nodes() else 0.0
     )
 
-    if want_rep_error:
-        with Phase("representative_error", trace) as ph_rep:
-            result["representative_error"] = representative_error(summaries, groups)
-        phases["representative_error"] = ph_rep.as_dict()
+    if want_fidelity:
+        with Phase("fidelity", trace) as ph_fid:
+            fid = both_measures(summaries, groups)
+        rep = fid["representative_error"]
+        # same keys as before, so tables.py reads it unchanged
+        result["representative_error"] = {
+            "cells_compared": rep["cells"],
+            "pairs": rep["pairs"],
+            "mean": rep["mean"],
+            "median": rep["median"],
+            "max": rep["max"],
+        }
+        result["dispersion"] = fid["dispersion"]
+        result["classes_with_differing_cells"] = fid["classes_with_differing_cells"]
+        phases["fidelity"] = ph_fid.as_dict()
     else:
         result["representative_error"] = None
+        result["dispersion"] = None
 
     if save_to:
         with Phase("export", trace) as ph_exp:
@@ -342,6 +359,7 @@ def run_one(
                     "binning_family": None if binning is None else binning.family,
                     "binning_effective_m": None if binning is None else binning.m,
                     "binning_boundaries": None if binning is None else binning.boundaries,
+                    "binning_fitted_on": binning_phase.get("fitted_on"),
                     "classes": result["classes"],
                     "input_vertices": result["input_vertices"],
                     "input_triples": result["input_triples"],
@@ -355,6 +373,7 @@ def run_one(
         result["binning_family"] = binning.family
         result["binning_effective_m"] = binning.m
         result["binning_boundaries"] = binning.boundaries
+        result["binning_fitted_on"] = binning_phase.get("fitted_on")
 
     return result
 
@@ -398,11 +417,18 @@ def main() -> int:
 
     ap.add_argument("--family", nargs="+", default=None,
                     choices=list(FAMILIES) + ["all"],
-                    help="binning families to build here, so that phase 1 is "
+                    help="binning families to fit here, so that phase 1 is "
                          "measured; combine with --m")
     ap.add_argument("--m", type=int, nargs="+", default=[1, 5, 10, 25],
                     help="numbers of non-zero bins to request")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--fit-on", choices=("mu", "pi"), default="mu",
+                    help="fit the boundaries to each model's cell masses mu "
+                         "(default) or, as before, to the edge weights pi")
+    ap.add_argument("--recollect", action="store_true",
+                    help="repeat the collect step for every configuration "
+                         "instead of sharing it within a model, so that each "
+                         "run is measured on its own")
 
     ap.add_argument("--binnings", default=None,
                     help="binnings.json written by binning.py; a binning "
@@ -415,11 +441,11 @@ def main() -> int:
     ap.add_argument("--model", nargs="+", default=["SchemEX"], choices=list(MODELS))
     ap.add_argument("--out", default=None, help="directory for the measures and log")
     ap.add_argument("--tracemalloc", action="store_true",
-                    help="measure Python allocation peaks per phase; accurate "
+                    help="measure Python allocation peaks per step; accurate "
                          "but slows the run substantially")
     ap.add_argument("--no-rep-error", action="store_true",
-                    help="skip the representative error, which is the most "
-                         "expensive measure on large graphs")
+                    help="skip the representative error and the dispersion, "
+                         "the most expensive measures on large graphs")
     ap.add_argument("--save-summaries", default=None,
                     help="directory for the summary packages, one per model "
                          "and configuration")
@@ -441,6 +467,8 @@ def main() -> int:
     log.write(f"commit  {prov['git_commit']}"
               f"{'  (dirty)' if prov['git_dirty'] else ''}")
     log.write(f"models  {' '.join(args.model)}")
+    log.write(f"fit on  {args.fit_on}"
+              f"{'  (collect repeated per run)' if args.recollect else ''}")
     log.write("=" * 78)
 
     # ---- shared setup: load the graph once ------------------------------- #
@@ -450,43 +478,29 @@ def main() -> int:
               f"rss {ph_load._rss1:.0f} MiB "
               f"({G.number_of_nodes():,} vertices, {G.number_of_edges():,} triples)")
 
-    # ---- the weights, needed only by data-dependent families ------------- #
     families = []
     if args.family:
         families = list(FAMILIES) if "all" in args.family else list(args.family)
+    any_data_dependent = any(f in DATA_DEPENDENT for f in families)
 
-    X = None
+    # ---- the edge weights, only for --fit-on pi -------------------------- #
+    X_pi = None
     ph_weights = None
-    if any(f in DATA_DEPENDENT for f in families):
+    if args.fit_on == "pi" and any_data_dependent:
         with Phase("load_weights", args.tracemalloc) as ph_weights:
-            X = load_weights(args.graph)
-        log.write(f"[setup] {len(X):,} weights read in {ph_weights.seconds:.1f}s "
-                  f"for the data-dependent families")
+            X_pi = np.asarray(load_weights(args.graph), dtype=float)
+        log.write(f"[setup] {len(X_pi):,} edge weights read in "
+                  f"{ph_weights.seconds:.1f}s for the data-dependent families")
 
-    # ---- assemble the configurations ------------------------------------- #
-    # Each entry is (label, binning, binning_phase_dict). The binning is built
-    # once per configuration and shared by every model, so its cost is recorded
-    # against the configuration rather than against one model's run.
+    # ---- the configurations ---------------------------------------------- #
+    # Each entry is (label, family, m, loaded binning or None). The binning
+    # itself is fitted per model, after that model's masses are collected.
     configs: list = []
-
     if args.deterministic:
-        configs.append(("deterministic", None,
-                        {"seconds": 0.0, "source": "none"}))
-
+        configs.append(("deterministic", None, None, None))
     for family in families:
         for m in args.m:
-            with Phase("binning", args.tracemalloc) as ph_bin:
-                b = make_binning(family, m, X, seed=args.seed)
-            d = ph_bin.as_dict()
-            d["source"] = "computed"
-            d["requested_m"] = m
-            d["effective_m"] = b.m
-            # The weight pass is shared by every data-dependent configuration,
-            # so it is reported separately rather than added to each of them.
-            if family in DATA_DEPENDENT and ph_weights is not None:
-                d["shared_weight_load_seconds"] = round(ph_weights.seconds, 3)
-            configs.append((f"{family}_m{m}", b, d))
-
+            configs.append((f"{family}_m{m}", family, m, None))
     if args.binnings:
         loaded = load_binnings(args.binnings)
         keys = args.config or ["all"]
@@ -495,57 +509,124 @@ def main() -> int:
             if k not in loaded:
                 raise SystemExit(f"unknown config {k!r}; available: "
                                  f"{', '.join(sorted(loaded))}")
-            configs.append((k, loaded[k],
-                            {"seconds": 0.0, "source": "loaded",
-                             "note": "built by binning.py; construction not measured here"}))
+            configs.append((k, loaded[k].family, loaded[k].m, loaded[k]))
 
     log.write(f"[setup] {len(configs)} configurations x {len(args.model)} models "
               f"= {len(configs) * len(args.model)} runs")
     log.write("")
     log.write(f"{'model':<8} {'binning':<24} {'classes':>11} {'mean size':>10} "
-              f"{'edges':>11} {'bin s':>7} {'coll s':>8} {'total s':>8} {'dRSS MiB':>9}")
-    log.write("-" * 110)
+              f"{'edges':>11} {'coll s':>8} {'fit s':>7} {'part s':>8} "
+              f"{'total s':>8} {'dRSS MiB':>9}")
+    log.write("-" * 114)
 
     # ---- the sweep -------------------------------------------------------- #
     results = []
-    for label, b, binning_phase in configs:
-        for model_name in args.model:
+    binnings_used: dict = {}
+    seconds_collect_all = 0.0
+    seconds_values_all = 0.0
+    seconds_fit_all = 0.0
+
+    for model_name in args.model:
+        summaries = None
+        collect_phase = None
+        X_mu = None
+        values_phase = None
+
+        for label, family, m, fixed in configs:
+            # ---- collect: once per model, or per run with --recollect ---- #
+            if summaries is None or args.recollect:
+                summaries = None          # release the previous run's first
+                X_mu = None
+                values_phase = None
+                summaries, collect_phase = collect_model(G, model_name,
+                                                         args.tracemalloc)
+                collect_phase["shared"] = not args.recollect
+                seconds_collect_all += collect_phase["seconds"]
+
+            # ---- phase 1: the binning --------------------------------- #
+            if family is None:
+                b = None
+                binning_phase = {"seconds": 0.0, "source": "none"}
+            elif fixed is not None:
+                b = fixed
+                binning_phase = {"seconds": 0.0, "source": "loaded",
+                                 "fitted_on": "loaded",
+                                 "note": "built by binning.py; construction "
+                                         "not measured here"}
+            else:
+                X = None
+                if family in DATA_DEPENDENT:
+                    if args.fit_on == "pi":
+                        X = X_pi
+                    else:
+                        if X_mu is None:
+                            with Phase("mass_values", args.tracemalloc) as ph_val:
+                                X_mu = mass_values(summaries)
+                            values_phase = ph_val.as_dict()
+                            values_phase["values"] = int(X_mu.size)
+                            values_phase["shared"] = not args.recollect
+                            seconds_values_all += values_phase["seconds"]
+                        X = X_mu
+                with Phase("binning", args.tracemalloc) as ph_bin:
+                    b = make_binning(family, m, X, seed=args.seed)
+                binning_phase = ph_bin.as_dict()
+                binning_phase.update({
+                    "source": "computed",
+                    # the sweep's setting; equal_width ignores the values
+                    "fitted_on": args.fit_on,
+                    "closed_form": family not in DATA_DEPENDENT,
+                    "requested_m": m,
+                    "effective_m": b.m,
+                    "values": None if X is None else int(len(X)),
+                })
+                seconds_fit_all += binning_phase["seconds"]
+            if b is not None:
+                binnings_used.setdefault(model_name, {})[label] = b.to_dict()
+
+            # values_phase is reported only for runs that used the masses
+            vp = values_phase if (family in DATA_DEPENDENT
+                                  and args.fit_on == "mu") else None
+
             save_to = (
                 os.path.join(args.save_summaries,
                              f"summary_{name}_{model_name}_{label}.json.gz")
                 if args.save_summaries else None
             )
-            r = run_one(G, model_name, b, label, binning_phase,
-                        args.tracemalloc, not args.no_rep_error, save_to)
+            r = run_one(G, model_name, summaries, b, label, collect_phase, vp,
+                        binning_phase, args.tracemalloc,
+                        not args.no_rep_error, save_to)
             results.append(r)
             p = r["phases"]
             log.write(
                 f"{model_name:<8} {label:<24} {r['classes']:>11,} "
                 f"{r['mean_size']:>10.2f} {r['summary_edges']:>11,} "
-                f"{p['binning']['seconds']:>7.1f} {p['collect']['seconds']:>8.1f} "
+                f"{p['collect']['seconds']:>8.1f} "
+                f"{p['binning']['seconds']:>7.2f} "
+                f"{p['partition']['seconds']:>8.1f} "
                 f"{r['seconds_total']:>8.1f} "
                 f"{p['collect']['rss_delta_mb']:>9.1f}"
             )
+
+        summaries = None
+        X_mu = None
 
     # ---- totals ----------------------------------------------------------- #
     setup = {
         "load_graph": ph_load.as_dict(),
         "load_weights": ph_weights.as_dict() if ph_weights is not None else None,
     }
-    # Each run's seconds_total includes its configuration's binning cost, which
-    # is correct for "what one summarisation costs" but would double-count the
-    # binning across the models sharing it. The sweep total therefore adds the
-    # phase-2 work of every run to the phase-1 work of every configuration once.
-    phase2_seconds = sum(
-        r["phases"]["collect"]["seconds"] + r["phases"]["summary_graph"]["seconds"]
-        for r in results
-    )
-    binning_seconds = sum(c[2].get("seconds", 0.0) for c in configs)
-    total_run_seconds = phase2_seconds + binning_seconds
+    # The collect step and the mass extraction are counted once per time they
+    # actually ran, the fits once per configuration, and phase 2 once per run.
+    phase2_seconds = sum(r["seconds_phase2"] for r in results)
+    total_run_seconds = (seconds_collect_all + seconds_values_all
+                         + seconds_fit_all + phase2_seconds)
     shared_seconds = ph_load.seconds + (ph_weights.seconds if ph_weights else 0.0)
 
-    log.write("-" * 110)
-    log.write(f"[total] {len(results)} runs in {total_run_seconds:.1f}s, "
+    log.write("-" * 114)
+    log.write(f"[total] {len(results)} runs in {total_run_seconds:.1f}s "
+              f"(collect {seconds_collect_all:.1f}s, mass values "
+              f"{seconds_values_all:.1f}s, fitting {seconds_fit_all:.1f}s, "
+              f"phase 2 {phase2_seconds:.1f}s), "
               f"shared setup {shared_seconds:.1f}s, "
               f"process peak rss {maxrss_mb():.0f} MiB")
     log.write("")
@@ -556,10 +637,14 @@ def main() -> int:
             "provenance": prov,
             "graph": args.graph,
             "types": args.types,
+            "fit_on": args.fit_on,
+            "recollect": args.recollect,
             "setup": setup,
             "seconds_shared_setup": round(shared_seconds, 3),
             "seconds_all_runs": round(total_run_seconds, 3),
-            "seconds_phase1_binning": round(binning_seconds, 3),
+            "seconds_collect": round(seconds_collect_all, 3),
+            "seconds_mass_values": round(seconds_values_all, 3),
+            "seconds_phase1_binning": round(seconds_fit_all, 3),
             "seconds_phase2_summarisation": round(phase2_seconds, 3),
             "process_peak_rss_mb": round(maxrss_mb(), 1),
             "results": results,
@@ -568,6 +653,15 @@ def main() -> int:
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(doc, fh, indent=2)
         log.write(f"[ok] wrote {path} ({len(results)} runs)")
+
+        # The boundaries every run used, per model, since the masses they are
+        # fitted to depend on the model's cells. Not in the binnings.json
+        # format of binning.py, which holds one set for all models.
+        bpath = os.path.join(args.out, f"binnings_used_{name}.json")
+        with open(bpath, "w", encoding="utf-8") as fh:
+            json.dump({"graph": args.graph, "fit_on": args.fit_on,
+                       "by_model": binnings_used}, fh, indent=2)
+        log.write(f"[ok] wrote {bpath}")
         if log_path:
             log.write(f"[ok] log appended to {log_path}")
 
