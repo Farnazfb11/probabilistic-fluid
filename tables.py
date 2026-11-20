@@ -6,6 +6,7 @@ tables.py
 The numbers behind the tables of the thesis.
 
     python tables.py build          --root out --out out/tables
+    python tables.py numbers        --results ~/probabilistic_graphs/results_mu
     python tables.py dataset-stats  out/*/graph_weighted.wnt --markdown
     python tables.py collect-stats  [--parse] [--only KEY ...]
     python tables.py parse-counts   <source file> [--keep-lang]
@@ -15,6 +16,9 @@ Each command takes the options of the script it replaces; run
 
   build          (was build_tables.py)  every measure of every sweep in one
                  long table, plus pivots and a workbook
+  numbers        the repeated runs of run_all.py: consistency between runs,
+                 runtime and memory over runs, every result-dependent number
+                 of the thesis, and the LaTeX bodies of the result tables
   dataset-stats  (was dataset_stats.py) descriptive statistics of a
                  preprocessed dataset, read from its weighted-triple file
   collect-stats  (was collect_stats.py) the dataset statistics of all six
@@ -950,11 +954,870 @@ def cmd_parse_counts(argv) -> int:
 
 
 # =========================================================================== #
+# 5. numbers: repeated runs, consistency, and every number the thesis reports
+# =========================================================================== #
+
+NUMBERS_HELP = """\
+Read the repeated runs written by run_all.py, check that they agree, and
+recompute every result-dependent number of the thesis.
+
+    python tables.py numbers --results ~/probabilistic_graphs/results_mu
+
+Layout read
+-----------
+<results>/run_<k>/<dataset>/measures_<dataset>.json   one per run and dataset
+<results>/run_1/<dataset>/bin_fidelity.json           quantisation error
+<results>/run_1/unary/rows.jsonl                       unary measures
+
+Runs 1 .. --warmup are warm-up runs: they enter the consistency check but not
+the runtime and memory statistics.
+
+Written to <results>/tables/ (or --out)
+--------------------------------------
+runs_master.csv       one row per run, dataset, model and binning
+efficiency_runs.csv   runtime and memory over the measured runs: median,
+                      min, max, mean, standard deviation, n
+consistency.txt       every (dataset, model, binning) whose class count,
+                      edges, boundaries or fidelity differ between runs;
+                      these are deterministic and must not differ
+master_median.csv     one row per (dataset, model, binning), runtime and
+master_mean.csv       memory taken as the median or the mean over runs
+thesis_numbers.md     every result-dependent number of the thesis, next to
+thesis_numbers.json   what the thesis currently says
+latex/*.tex           the bodies of the result tables, in the thesis layout,
+                      for the median and for the mean
+
+Phase-2 runtime in the tables is sec_summary: collect + partition + summary
+graph, which is what phase 2 meant before the boundaries were fitted to mu.
+"""
+
+N_DATASET_ORDER = ["bsbm1000", "bsbm100m", "watdiv10m", "dbpedia39",
+                   "dyldo_2015-10-11", "btc150m"]
+N_LABEL = {"bsbm1000": "BSBM 1000", "bsbm100m": "BSBM 100M",
+           "watdiv10m": "WatDiv 10M", "dbpedia39": "DBpedia 3.9",
+           "dyldo_2015-10-11": "DyLDO", "btc150m": "BTC 150M"}
+N_MODELS = ["AC", "CC", "ACC", "SchemEX"]
+N_BINNED = ["AC", "ACC", "SchemEX"]
+N_FAMILIES = ["equal_width", "equal_frequency", "clustering"]
+N_FAM = {"equal_width": "EW", "equal_frequency": "EF", "clustering": "CL"}
+N_MS = [1, 5, 10, 25]
+N_SMALL = "bsbm1000"
+
+# runtime used throughout: what phase 2 meant before the change
+RT = "sec_summary"
+
+EFF_FIELDS = ("sec_binning", "sec_mass_values", "sec_collect", "sec_partition",
+              "sec_summary_graph", "sec_phase2", "sec_summary", "sec_total",
+              "sec_fidelity", "rss_delta_collect_mb", "hwm_increase_collect_mb",
+              "rss_delta_partition_mb")
+EXACT_FIELDS = ("classes", "summary_edges", "max_size", "singletons",
+                "effective_m", "rep_err_cells", "disp_cells")
+FLOAT_FIELDS = ("rep_err_mean", "disp_mean", "disp_max")
+
+
+def _labels(ms=N_MS, det=True):
+    return (["deterministic"] if det else []) + \
+        [f"{f}_m{m}" for f in N_FAMILIES for m in ms]
+
+
+def _spearman(x, y):
+    def ranks(v):
+        order = sorted(range(len(v)), key=lambda i: v[i])
+        r = [0.0] * len(v)
+        i = 0
+        while i < len(order):
+            j = i
+            while j + 1 < len(order) and v[order[j + 1]] == v[order[i]]:
+                j += 1
+            for k in range(i, j + 1):
+                r[order[k]] = (i + j) / 2.0 + 1
+            i = j + 1
+        return r
+    rx, ry = ranks(x), ranks(y)
+    mx, my = mean(rx), mean(ry)
+    num = sum((a - mx) * (b - my) for a, b in zip(rx, ry))
+    den = (sum((a - mx) ** 2 for a in rx) * sum((b - my) ** 2 for b in ry)) ** 0.5
+    return num / den if den else 0.0
+
+
+def _rng(vals, fmt="{:.1f}"):
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return "n/a"
+    lo, hi = fmt.format(min(vals)), fmt.format(max(vals))
+    return lo if lo == hi else f"{lo} to {hi}"
+
+
+class _Grid:
+    def __init__(self, rows):
+        self.r = {(x["dataset"], x["model"], x["binning"]): x for x in rows}
+        self.datasets = [d for d in N_DATASET_ORDER
+                         if any(k[0] == d for k in self.r)]
+
+    def get(self, ds, model, label, field):
+        row = self.r.get((ds, model, label))
+        return None if row is None else row.get(field)
+
+    def b(self, ds, model, fam, m, field):
+        return self.get(ds, model, f"{fam}_m{m}", field)
+
+    def det(self, ds, model, field):
+        return self.get(ds, model, "deterministic", field)
+
+    def first(self, ds, fam, m, field):
+        """A binning measure shared by AC, ACC and SchemEX."""
+        for mo in N_BINNED:
+            v = self.b(ds, mo, fam, m, field)
+            if v is not None:
+                return v
+        return None
+
+
+def compute_numbers(rows) -> list:
+    """Every result-dependent number of the thesis, from one row per
+    (dataset, model, binning). Returns (section, key, thesis says, value)."""
+    g = _Grid(rows)
+    D = g.datasets
+    L = _labels()
+    out = []
+
+    def add(section, key, thesis, value):
+        out.append({"section": section, "key": key, "thesis": thesis,
+                    "value": value})
+
+    # ---------------------------------------------------------- efficiency
+    fastest = defaultdict(int)
+    spreads, n_groups = [], 0
+    for ds in D:
+        for mo in N_MODELS:
+            for m in N_MS:
+                t = {f: g.b(ds, mo, f, m, RT) for f in N_FAMILIES}
+                if any(v is None for v in t.values()):
+                    continue
+                n_groups += 1
+                fastest[min(t, key=t.get)] += 1
+                spreads.append((max(t.values()) - min(t.values())) / min(t.values()))
+    add("Results: efficiency", "fastest family",
+        "of the 96 groups of three runs, EW fastest in 34, CL in 34, EF in 28",
+        f"of {n_groups} groups: EW {fastest['equal_width']}, "
+        f"CL {fastest['clustering']}, EF {fastest['equal_frequency']}")
+    if spreads:
+        add("Results: efficiency", "spread between families at the same m",
+            "at most 25%, median 8%",
+            f"at most {100 * max(spreads):.0f}%, median {100 * median(spreads):.0f}%")
+    s4 = []
+    for ds in D:
+        for mo in N_MODELS:
+            v = [g.det(ds, mo, RT)] + [g.b(ds, mo, f, 1, RT) for f in N_FAMILIES]
+            if all(x is not None for x in v):
+                s4.append((max(v) - min(v)) / min(v))
+    if s4:
+        add("Results: efficiency", "spread among deterministic and the three m=1 runs",
+            "at most 29%, median 15%",
+            f"at most {100 * max(s4):.0f}%, median {100 * median(s4):.0f}%")
+    cors = []
+    for ds in D:
+        for mo in N_BINNED:
+            p = [(g.get(ds, mo, l, RT), g.get(ds, mo, l, "classes")) for l in L]
+            p = [q for q in p if None not in q]
+            if len(p) > 2:
+                cors.append(_spearman([q[0] for q in p], [q[1] for q in p]))
+    if cors:
+        add("Results: efficiency", "rank correlation runtime vs classes "
+            "(per dataset and model, AC/ACC/SchemEX)", "median -0.05",
+            f"median {median(cors):.2f}")
+    slow = []
+    for ds in D:
+        s = [g.get(ds, "SchemEX", l, RT) for l in L]
+        o = [g.get(ds, mo, l, RT) for mo in ("AC", "CC", "ACC") for l in L]
+        s, o = [x for x in s if x], [x for x in o if x]
+        if s and o and min(s) > max(o):
+            slow.append(N_LABEL[ds])
+    add("Results: efficiency / Threats", "SchemEX slower in every run",
+        "on five of the six datasets",
+        f"on {len(slow)} of {len(D)}: {', '.join(slow) or 'none'}")
+
+    mem = []
+    for ds in D:
+        rel, absd = [], []
+        for mo in N_MODELS:
+            d0 = g.det(ds, mo, "rss_delta_collect_mb")
+            if not d0:
+                continue
+            for l in L[1:]:
+                v = g.get(ds, mo, l, "rss_delta_collect_mb")
+                if v is not None:
+                    rel.append(abs(v - d0) / d0)
+                    absd.append(abs(v - d0) / 1024)
+        if rel:
+            mem.append(f"{N_LABEL[ds]} {100 * max(rel):.1f}% ({max(absd):.2f} GB)")
+    add("Results: efficiency", "memory, binned against deterministic",
+        "within 2% on four datasets, 3.6% on DyLDO; BSBM 1000 larger but at most 0.15 GB",
+        "; ".join(mem))
+    ratios = [g.get(ds, "SchemEX", l, "rss_delta_collect_mb") /
+              g.get(ds, "AC", l, "rss_delta_collect_mb")
+              for ds in D for l in L
+              if g.get(ds, "AC", l, "rss_delta_collect_mb")
+              and g.get(ds, "SchemEX", l, "rss_delta_collect_mb")]
+    add("Results: efficiency", "SchemEX memory / AC memory", "1.2 to 1.7 times",
+        _rng(ratios))
+    peak = max(((x.get("rss_delta_collect_mb") or 0, x["dataset"]) for x in rows),
+               default=(0, None))
+    add("Discussion: efficiency", "largest memory", "up to 228 GB on BSBM 100M",
+        f"{peak[0] / 1024:.0f} GB on {N_LABEL.get(peak[1], peak[1])}")
+
+    for fam in ("equal_frequency", "clustering"):
+        best = max(((g.b(ds, mo, fam, m, "sec_binning") or 0, ds)
+                    for ds in D for mo in N_MODELS for m in N_MS), default=(0, None))
+        add("Results: efficiency", f"phase 1, {N_FAM[fam]} at most",
+            "EF at most 3.8 s, CL at most 18.7 s, both on BSBM 100M",
+            f"{best[0]:.1f} s on {N_LABEL.get(best[1], best[1])}")
+    fac, share = [], []
+    for ds in D:
+        ef = [g.b(ds, mo, "equal_frequency", m, "sec_binning") for mo in N_MODELS for m in N_MS]
+        cl = [g.b(ds, mo, "clustering", m, "sec_binning") for mo in N_MODELS for m in N_MS]
+        ef, cl = [x for x in ef if x], [x for x in cl if x]
+        if ef and cl and ds != N_SMALL:
+            fac.append(mean(cl) / mean(ef))
+        fastest2 = min((g.get(ds, mo, l, RT) for mo in N_MODELS for l in L
+                        if g.get(ds, mo, l, RT)), default=None)
+        if cl and fastest2:
+            share.append(f"{N_LABEL[ds]} {100 * max(cl) / fastest2:.1f}% "
+                         f"({max(cl):.1f} s of {fastest2:.1f} s)")
+    add("Results: efficiency", "phase 1, CL / EF (five larger datasets)",
+        "5.5 to 6.2", _rng(fac))
+    add("Results: efficiency", "phase 1, CL against the fastest phase-2 run",
+        "at most 1.8% except BSBM 1000 (0.2 s against about 4 s)", "; ".join(share))
+    mv = [x.get("sec_mass_values") for x in rows if x.get("sec_mass_values")]
+    if mv:
+        add("Results: efficiency", "phase 1, collecting the mass values (new)",
+            "(not in the thesis yet)", f"at most {max(mv):.1f} s")
+
+    us, kb = [], []
+    for x in rows:
+        if x["dataset"] == N_SMALL or not x.get("input_triples"):
+            continue
+        if x.get(RT):
+            us.append(x[RT] / x["input_triples"] * 1e6)
+        if x.get("rss_delta_collect_mb"):
+            kb.append(x["rss_delta_collect_mb"] * 1024 / x["input_triples"])
+    add("Discussion: efficiency", "phase 2 per mass-carrying triple",
+        "13 to 35 us", _rng(us, "{:.0f}") + " us")
+    add("Discussion: efficiency", "collect memory per mass-carrying triple",
+        "1.6 to 3.4 KB", _rng(kb) + " KB")
+
+    # ---------------------------------------------------------- consistency
+    m1 = [g.b(ds, mo, f, 1, "classes") == g.det(ds, mo, "classes")
+          for ds in D for mo in N_BINNED for f in N_FAMILIES
+          if g.b(ds, mo, f, 1, "classes") is not None]
+    add("Results: consistency / Threats", "m=1 reproduces the deterministic class count",
+        "in all 54 runs of AC, ACC and SchemEX", f"{sum(m1)} of {len(m1)}")
+    cc = [f"{N_LABEL[ds]} {g.b(ds, 'CC', 'equal_width', 1, 'classes') - g.det(ds, 'CC', 'classes'):+,}"
+          for ds in D if g.b(ds, "CC", "equal_width", 1, "classes") is not None
+          and g.det(ds, "CC", "classes") is not None]
+    add("Appendix: CC", "additional CC classes under b0",
+        "WatDiv +9, DBpedia +169, DyLDO +4,797, BTC 150M +2, BSBM +0", "; ".join(cc))
+
+    # ---------------------------------------------------------- compactness
+    per_model, growth, share25 = defaultdict(list), {}, []
+    ewcl = n18 = 0
+    for ds in D:
+        for mo in N_BINNED:
+            d0 = g.det(ds, mo, "classes")
+            c25 = {f: g.b(ds, mo, f, 25, "classes") for f in N_FAMILIES}
+            if not d0 or None in c25.values():
+                continue
+            top = max(c25, key=c25.get)
+            n18 += 1
+            ewcl += top in ("equal_width", "clustering")
+            per_model[mo].append(c25[top] / d0)
+            growth[(ds, mo)] = (c25[top] / d0, d0, c25[top])
+            nv = g.det(ds, mo, "input_vertices")
+            if nv:
+                share25.append((c25[top] / nv, ds, mo))
+    add("Results: compactness / Discussion / Conclusion",
+        "classes at m=25 (largest family) / deterministic",
+        "AC 1.3 to 7.5, ACC 1.3 to 3.1, SchemEX 1.1 to 2.2; overall 1.1 to 7.5",
+        "; ".join(f"{mo} {_rng(per_model[mo])}" for mo in N_BINNED)
+        + f"; overall {_rng([v for l in per_model.values() for v in l])}")
+    for mo in N_BINNED:
+        ks = [k for k in growth if k[1] == mo]
+        if ks:
+            lo, hi = min(ks, key=lambda k: growth[k][0]), max(ks, key=lambda k: growth[k][0])
+            add("Results: compactness", f"least and most growth, {mo}",
+                "BTC 150M least, about 1.3 for every model; BSBM 100M most under AC, 50 to 376",
+                f"least {N_LABEL[lo[0]]} ({growth[lo][0]:.2f}), most {N_LABEL[hi[0]]} "
+                f"({growth[hi][1]:,} to {growth[hi][2]:,}, {growth[hi][0]:.2f})")
+    if share25:
+        top = max(share25)
+        add("Results: compactness / Discussion", "classes at m=25 as a share of the vertices",
+            "largest about a fifth (SchemEX on DBpedia), most under 5%",
+            f"largest {100 * top[0]:.1f}% ({top[2]} on {N_LABEL[top[1]]}); "
+            f"{sum(1 for s in share25 if s[0] < 0.05)} of {len(share25)} under 5%")
+    add("Results: compactness", "EW or CL gives the most classes at m=25",
+        "17 of the 18 cases", f"{ewcl} of {n18}")
+    bs = [f"{N_LABEL[ds]} {mo}: {'same' if g.b(ds, mo, 'equal_frequency', 5, 'classes') == g.det(ds, mo, 'classes') else 'differs'}"
+          for ds in ("bsbm1000", "bsbm100m") for mo in N_BINNED
+          if g.b(ds, mo, "equal_frequency", 5, "classes") is not None]
+    add("Results: compactness / Discussion", "EF at m=5 reproduces the deterministic partition on BSBM",
+        "yes, on both BSBM instances", "; ".join(bs))
+    nm = []
+    for ds in D:
+        for mo in N_BINNED:
+            for f in N_FAMILIES:
+                c = [g.b(ds, mo, f, m, "classes") for m in (5, 10, 25)]
+                if None in c:
+                    continue
+                for (a, b, m_a, m_b) in ((c[0], c[1], 5, 10), (c[1], c[2], 10, 25)):
+                    if b < a:
+                        nm.append(f"{N_LABEL[ds]} {mo} {N_FAM[f]} m={m_a}->{m_b}: {a:,} -> {b:,}")
+    add("Results: compactness", "class count not monotone in m",
+        "CL on BSBM 100M: ACC 49,723 -> 49,011, SchemEX 71,464 -> 70,752",
+        "; ".join(nm) or "none")
+
+    # ---------------------------------------------------------- binning
+    for field, name in (("bins_occupied_mu", "mu"), ("bins_occupied_pi", "pi")):
+        txt = []
+        for ds in D:
+            parts = []
+            for f in N_FAMILIES:
+                ne = [g.first(ds, f, m, field) for m in (5, 10, 25)]
+                if None not in ne:
+                    parts.append(f"{N_FAM[f]} " + "/".join(str(int(x)) for x in ne))
+            if parts:
+                txt.append(f"{N_LABEL[ds]}: " + ", ".join(parts))
+        if txt:
+            add("Results: binning behaviour", f"non-empty bins over {name}, m=5/10/25",
+                "counted over pi: EW 4/6/9 (BSBM 2/3/6); EF on BSBM 3/4/7 and 3/4/6; "
+                "CL on BSBM 5/8/15 and 5/9/16; elsewhere EF 17-25 and CL 22-25 at m=25",
+                " | ".join(txt))
+    cnt = defaultdict(lambda: [0, 0])
+    facs = []
+    for ds in D:
+        for f in N_FAMILIES:
+            for m in (5, 10, 25):
+                qp, qm = g.first(ds, f, m, "quant_err_pi"), g.first(ds, f, m, "quant_err_mu")
+                if qp is None or qm is None:
+                    continue
+                cnt[f][1] += 1
+                cnt[f][0] += qm > qp
+                if f == "clustering" and qp > 0:
+                    facs.append(qm / qp)
+    if cnt:
+        tot = [sum(v[0] for v in cnt.values()), sum(v[1] for v in cnt.values())]
+        dd = [cnt["equal_frequency"][0] + cnt["clustering"][0],
+              cnt["equal_frequency"][1] + cnt["clustering"][1]]
+        add("Results: binning behaviour / Limitations", "quantisation error on mu above that on pi",
+            "42 of 54; all 18 for CL (factor 1.3 to 24); 34 of 36 for the data-dependent families",
+            f"{tot[0]} of {tot[1]}; CL {cnt['clustering'][0]} of {cnt['clustering'][1]} "
+            f"(factor {_rng(facs)}); data-dependent {dd[0]} of {dd[1]}")
+    rises, n_series = defaultdict(list), 0
+    for ds in D:
+        for f in N_FAMILIES:
+            for fld in ("quant_err_pi", "quant_err_mu"):
+                q = [g.first(ds, f, m, fld) for m in (5, 10, 25)]
+                if None in q:
+                    continue
+                n_series += 1
+                if q[1] > q[0]:
+                    rises["5->10"].append(f"{N_LABEL[ds]} {N_FAM[f]} {fld[-2:]}")
+                if q[2] > q[1]:
+                    rises["10->25"].append(f"{N_LABEL[ds]} {N_FAM[f]} {fld[-2:]}")
+    if n_series:
+        add("Results: binning behaviour", "quantisation error not monotone in m",
+            "4 of 36 series rise from m=10 to m=25, three under CL",
+            f"of {n_series}: m=10->25 in {len(rises['10->25'])} "
+            f"({', '.join(rises['10->25']) or '-'}); m=5->10 in {len(rises['5->10'])} "
+            f"({', '.join(rises['5->10']) or '-'})")
+
+    # ---------------------------------------------------------- dispersion
+    detd = [g.det(ds, mo, "disp_mean") for ds in D for mo in N_BINNED]
+    add("Results: dispersion", "deterministic mean dispersion", "0.004 to 0.042",
+        _rng(detd, "{:.3f}"))
+    exceed, red, within, nonmono, ratios = 0, [], [], [], []
+    lowest = {m: [0, 0, []] for m in (5, 10, 25)}
+    max_ew = {m: [] for m in (5, 10, 25)}
+    max25 = {"equal_frequency": [], "clustering": []}
+    for ds in D:
+        for mo in N_BINNED:
+            d0 = g.det(ds, mo, "disp_mean")
+            for f in N_FAMILIES:
+                s = [g.b(ds, mo, f, m, "disp_mean") for m in (5, 10, 25)]
+                for v in s:
+                    if v is not None and d0 is not None and v > d0 + 1e-15:
+                        exceed += 1
+                if None not in s:
+                    if s[1] > s[0]:
+                        nonmono.append(f"{N_LABEL[ds]} {mo} {N_FAM[f]} 5->10")
+                    if s[2] > s[1]:
+                        nonmono.append(f"{N_LABEL[ds]} {mo} {N_FAM[f]} 10->25")
+            e25 = g.b(ds, mo, "equal_width", 25, "disp_mean")
+            if d0 and e25:
+                red.append(d0 / e25)
+            for m in (5, 10, 25):
+                v = {f: g.b(ds, mo, f, m, "disp_mean") for f in N_FAMILIES}
+                if None in v.values():
+                    continue
+                lowest[m][1] += 1
+                low = min(v, key=v.get)
+                if low == "equal_width":
+                    lowest[m][0] += 1
+                else:
+                    lowest[m][2].append(f"{N_LABEL[ds]} {mo} ({N_FAM[low]})")
+                mx = g.b(ds, mo, "equal_width", m, "disp_max")
+                if mx is not None:
+                    max_ew[m].append(mx)
+            for f in max25:
+                mx = g.b(ds, mo, f, 25, "disp_max")
+                if mx is not None:
+                    max25[f].append(mx)
+            for l in ["deterministic"] + _labels((5, 10, 25), det=False):
+                rp, dp = g.get(ds, mo, l, "rep_err_mean"), g.get(ds, mo, l, "disp_mean")
+                if rp and dp:
+                    ratios.append(rp / dp)
+        v = [g.b(ds, mo, "equal_width", 25, "disp_mean") for mo in N_BINNED]
+        if None not in v:
+            within.append(max(v) - min(v))
+    add("Results: dispersion", "binned configurations above the deterministic one",
+        "none", f"{exceed}")
+    add("Results: dispersion / Abstract / Introduction / Conclusion",
+        "EW m=25 reduces the dispersion by a factor of", "4 to 45 (up to 45)",
+        _rng(red, "{:.0f}"))
+    for m in (5, 10, 25):
+        add("Results: dispersion / Discussion / Conclusion", f"EW the lowest family at m={m}",
+            "every dataset and model at m=10 and 25; at m=5 12 of 18 "
+            "(exceptions CL on BSBM 100M, EF on DyLDO)",
+            f"{lowest[m][0]} of {lowest[m][1]}"
+            + (f"; exceptions {', '.join(lowest[m][2])}" if lowest[m][2] else ""))
+    add("Results: dispersion", "deterministic maximum", "up to 0.83",
+        _rng([g.det(ds, mo, "disp_max") for ds in D for mo in N_BINNED], "{:.2f}"))
+    add("Results: dispersion / Discussion", "EW maximum at m=5/10/25",
+        "at most 0.19, 0.09 and 0.04 (below 1/m)",
+        ", ".join(f"{max(max_ew[m]):.2f}" if max_ew[m] else "n/a" for m in (5, 10, 25)))
+    add("Results: dispersion / Discussion", "EF and CL maxima at m=25",
+        "0.09 to 0.29 and 0.03 to 0.27 (up to 0.29)",
+        f"EF {_rng(max25['equal_frequency'], '{:.2f}')}, CL {_rng(max25['clustering'], '{:.2f}')}")
+    add("Results: dispersion / Discussion", "the three models at EW m=25",
+        "within 0.0003 on every dataset",
+        f"within {max(within):.4f}" if within else "n/a")
+    sx = []
+    for ds in ("watdiv10m", "dbpedia39"):
+        v = {mo: g.det(ds, mo, "disp_mean") for mo in N_BINNED}
+        if None not in v.values():
+            sx.append(f"{N_LABEL[ds]}: " + ", ".join(f"{mo} {v[mo]:.3f}" for mo in N_BINNED))
+    add("Results: dispersion", "deterministic dispersion on WatDiv and DBpedia",
+        "SchemEX 0.020 and 0.015 against 0.029 and 0.019 for AC", "; ".join(sx))
+    add("Results: dispersion", "dispersion not monotone in m",
+        "7 of 54 series rise from m=5 to m=10 (CL on BSBM 100M and BTC 150M, EF for SchemEX on DBpedia)",
+        f"{len(nonmono)}: {', '.join(nonmono)}" if nonmono else "none")
+    add("Limitations / Results", "representative error / dispersion",
+        "1.4 to 10 times (the case for the class-mean payload)", _rng(ratios))
+
+    # ---------------------------------------------------------- appendices
+    eg = []
+    for ds in D:
+        for mo in N_BINNED:
+            d0 = g.det(ds, mo, "summary_edges")
+            for f in N_FAMILIES:
+                e = g.b(ds, mo, f, 25, "summary_edges")
+                if d0 and e:
+                    eg.append((e / d0, ds, mo, N_FAM[f]))
+    if eg:
+        lo, hi = min(eg), max(eg)
+        add("Appendix: summary edges", "edges at m=25 / deterministic (any family)",
+            "1.1 to 11.2; largest AC on BSBM 100M, smallest SchemEX on BSBM 1000",
+            f"{lo[0]:.1f} ({lo[2]} {lo[3]} on {N_LABEL[lo[1]]}) to "
+            f"{hi[0]:.1f} ({hi[2]} {hi[3]} on {N_LABEL[hi[1]]})")
+    epc = []
+    for ds in D:
+        v = [g.det(ds, mo, "summary_edges") / g.det(ds, mo, "classes")
+             for mo in N_BINNED if g.det(ds, mo, "summary_edges") and g.det(ds, mo, "classes")]
+        if v:
+            epc.append(f"{N_LABEL[ds]} {_rng(v, '{:.0f}')}")
+    add("Appendix: summary edges", "edges per class (deterministic)",
+        "about 5 to 16, except WatDiv above 100", "; ".join(epc))
+    nme = []
+    for ds in D:
+        for mo in N_BINNED:
+            for f in N_FAMILIES:
+                c = [g.b(ds, mo, f, m, "summary_edges") for m in (5, 10, 25)]
+                if None not in c and (c[1] < c[0] or c[2] < c[1]):
+                    nme.append(f"{N_LABEL[ds]} {mo} {N_FAM[f]}")
+    add("Appendix: summary edges", "edges not monotone in m",
+        "CL on BSBM 100M for ACC and SchemEX", ", ".join(nme) or "none")
+    bse = [f"{N_LABEL[ds]} {mo}: {'same' if g.b(ds, mo, 'equal_frequency', 5, 'summary_edges') == g.det(ds, mo, 'summary_edges') else 'differs'}"
+           for ds in ("bsbm1000", "bsbm100m") for mo in N_BINNED
+           if g.b(ds, mo, "equal_frequency", 5, "summary_edges") is not None]
+    add("Appendix: summary edges", "EF at m=5 leaves the BSBM edges unchanged",
+        "yes", "; ".join(bse))
+    tm = []
+    for ds in D:
+        v = []
+        for mo in N_BINNED:
+            a, b = g.det(ds, mo, "unary_tmh_w"), g.b(ds, mo, "equal_width", 25, "unary_tmh_w")
+            if a and b is not None:
+                v.append(f"{mo} {100 * (b - a) / a:+.0f}%")
+        if v:
+            tm.append(f"{N_LABEL[ds]}: {', '.join(v)}")
+    add("Appendix: unary", "TMH_w at EW m=25 against deterministic",
+        "at most 1% on BSBM, 6% on DBpedia and DyLDO, 14 to 28% on WatDiv, "
+        "BTC 150M to about a sixth for ACC and SchemEX", " | ".join(tm) or "n/a")
+    return out
+
+
+# ---------------------------------------------------------------- reading runs
+
+def read_runs(results: str):
+    """All measures rows of all runs, flattened, with the run number."""
+    rows, bounds = [], {}
+    for path in sorted(glob.glob(os.path.join(results, "run_*", "*", "measures_*.json"))):
+        parts = path.split(os.sep)
+        run = int(parts[-3].split("_")[1])
+        dataset = parts[-2]
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        for r in doc.get("results", []):
+            rec = flatten(dataset, f"run_{run}", r)
+            rec["run"] = run
+            rows.append(rec)
+            b = r.get("binning_boundaries")
+            bounds[(run, dataset, r["model"], r["binning"])] = (
+                tuple(round(float(x), 12) for x in b) if b else None)
+    return rows, bounds
+
+
+def attach_shared(results: str, rows) -> None:
+    """Quantisation error and unary measures, computed once (run 1)."""
+    fid = {}
+    for path in glob.glob(os.path.join(results, "run_*", "*", "bin_fidelity.json")):
+        dataset = path.split(os.sep)[-2]
+        with open(path, encoding="utf-8") as fh:
+            for r in json.load(fh).get("results", []):
+                fid.setdefault((dataset, r["binning"]), {
+                    "quant_err_pi": r["pi"]["quantisation_error"],
+                    "quant_err_mu": r["mu"]["quantisation_error"],
+                    "bins_occupied_pi": r["pi"]["bins_occupied"],
+                    "bins_occupied_mu": r["mu"]["bins_occupied"],
+                })
+    unary = {}
+    for path in glob.glob(os.path.join(results, "run_*", "unary", "rows.jsonl")):
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    u = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                unary.setdefault((u["dataset"], u["model"], u["binning"]), u)
+    for rec in rows:
+        if rec["model"] in PER_PREDICATE_MODELS:
+            rec.update(fid.get((rec["dataset"], rec["binning"]), {}))
+        u = unary.get((rec["dataset"], rec["model"], rec["binning"]))
+        if u:
+            for f in ("tmh_w", "tmh_u", "avg_degree_w", "comp_weak", "comp_strong",
+                      "edges_unweighted", "eqc"):
+                if f in u:
+                    rec["unary_" + f] = u[f]
+
+
+def _stats(vals):
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return {}
+    sd = (sum((v - mean(vals)) ** 2 for v in vals) / (len(vals) - 1)) ** 0.5 \
+        if len(vals) > 1 else 0.0
+    return {"median": median(vals), "mean": mean(vals), "sd": sd,
+            "min": min(vals), "max": max(vals), "n": len(vals)}
+
+
+def aggregate(rows, warmup: int):
+    """Per (dataset, model, binning): efficiency statistics over the measured
+    runs, and two aggregated rows (median and mean)."""
+    by_key = defaultdict(list)
+    for r in rows:
+        by_key[(r["dataset"], r["model"], r["binning"])].append(r)
+    eff_rows, med_rows, mean_rows = [], [], []
+    for key in sorted(by_key, key=lambda k: (N_DATASET_ORDER.index(k[0])
+                                             if k[0] in N_DATASET_ORDER else 99,
+                                             MODEL_ORDER.get(k[1], 9),
+                                             binning_key(k[2]))):
+        rs = sorted(by_key[key], key=lambda r: r["run"])
+        measured = [r for r in rs if r["run"] > warmup] or rs
+        base = dict(measured[0])
+        base.pop("run", None)
+        e = {"dataset": key[0], "model": key[1], "binning": key[2],
+             "runs_measured": len(measured)}
+        med, mn = dict(base), dict(base)
+        for f in EFF_FIELDS:
+            st = _stats([r.get(f) for r in measured])
+            for s, v in st.items():
+                e[f"{f}_{s}"] = v
+            if st:
+                med[f] = st["median"]
+                mn[f] = st["mean"]
+        if e.get(f"{RT}_min"):
+            e[f"{RT}_run_spread"] = (e[f"{RT}_max"] - e[f"{RT}_min"]) / e[f"{RT}_min"]
+        eff_rows.append(e)
+        med_rows.append(med)
+        mean_rows.append(mn)
+    return eff_rows, med_rows, mean_rows
+
+
+def consistency(rows, bounds) -> List[str]:
+    """Deterministic measures that differ between runs."""
+    by_key = defaultdict(list)
+    for r in rows:
+        by_key[(r["dataset"], r["model"], r["binning"])].append(r)
+    problems = []
+    for key, rs in sorted(by_key.items()):
+        for f in EXACT_FIELDS:
+            vals = {r["run"]: r.get(f) for r in rs}
+            if len(set(vals.values())) > 1:
+                problems.append(f"{key}: {f} differs between runs: {vals}")
+        for f in FLOAT_FIELDS:
+            vals = {r["run"]: r.get(f) for r in rs if r.get(f) is not None}
+            if vals and max(vals.values()) - min(vals.values()) > 1e-9 * max(1.0, max(vals.values())):
+                problems.append(f"{key}: {f} differs between runs: {vals}")
+        b = {r["run"]: bounds.get((r["run"],) + key) for r in rs}
+        if len(set(b.values())) > 1:
+            problems.append(f"{key}: boundaries differ between runs")
+    return problems
+
+
+# ---------------------------------------------------------------- LaTeX bodies
+
+def _tex_int(v):
+    return "" if v is None else f"{int(round(v)):,}".replace(",", "{,}")
+
+
+def _tex_num(v, fmt):
+    return "" if v is None else fmt.format(v).replace(",", "{,}")
+
+
+def _tex_rt(v):
+    if v is None:
+        return ""
+    return f"{v:.1f}" if v < 10 else _tex_int(v)
+
+
+def _tex_range(vals, f):
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return ""
+    lo, hi = f(min(vals)), f(max(vals))
+    return lo if lo == hi else f"{lo}--{hi}"
+
+
+def latex_tables(rows, datasets_root: Optional[str] = None) -> Dict[str, str]:
+    g = _Grid(rows)
+    D = g.datasets
+    T = {}
+
+    def per_model_table(field, f):
+        lines = []
+        for ds in D:
+            for i, mo in enumerate(N_MODELS):
+                cells = [f(g.det(ds, mo, field))]
+                for m in N_MS:
+                    cells.append(_tex_range([g.b(ds, mo, fam, m, field)
+                                             for fam in N_FAMILIES], f))
+                lines.append(f"{N_LABEL[ds] if i == 0 else ''} & {mo} & " +
+                             " & ".join(cells) + " \\\\")
+            lines.append("\\hline")
+        return "\n".join(lines[:-1])
+
+    T["runtime"] = per_model_table(RT, _tex_rt)
+    T["memory"] = per_model_table(
+        "rss_delta_collect_mb", lambda v: "" if v is None else f"{v / 1024:.1f}")
+
+    def grid_table(field, f):
+        lines = []
+        for ds in D:
+            for i, fam in enumerate(N_FAMILIES):
+                cells = []
+                for mo in N_BINNED:
+                    cells.append(f(g.det(ds, mo, field)))
+                    cells += [f(g.b(ds, mo, fam, m, field)) for m in (5, 10, 25)]
+                lines.append(f"{N_LABEL[ds] if i == 0 else ''} & {N_FAM[fam]} & " +
+                             " & ".join(cells) + " \\\\")
+            lines.append("\\hline")
+        return "\n".join(lines[:-1])
+
+    T["compactness"] = grid_table("classes", _tex_int)
+    T["dispersion"] = grid_table("disp_mean", lambda v: _tex_num(v, "{:.4f}"))
+    T["dispersion_max"] = grid_table("disp_max", lambda v: _tex_num(v, "{:.2f}"))
+    T["summary_edges"] = grid_table(
+        "summary_edges", lambda v: "" if v is None else _tex_num(v / 1000, "{:,.1f}"))
+
+    lines = []
+    for ds in D:
+        for i, fam in enumerate(N_FAMILIES):
+            cells = []
+            for m in (5, 10, 25):
+                cells += [_tex_int(g.first(ds, fam, m, "bins_occupied_mu")),
+                          _tex_num(g.first(ds, fam, m, "quant_err_pi"), "{:.4f}"),
+                          _tex_num(g.first(ds, fam, m, "quant_err_mu"), "{:.4f}")]
+            lines.append(f"{N_LABEL[ds] if i == 0 else ''} & {N_FAM[fam]} & " +
+                         " & ".join(cells) + " \\\\")
+        lines.append("\\hline")
+    T["binning_behaviour"] = "\n".join(lines[:-1])
+
+    lines = []
+    for ds in D:
+        for i, mo in enumerate(N_BINNED):
+            cells = []
+            for get in (lambda f: g.det(ds, mo, f),
+                        lambda f: g.b(ds, mo, "equal_width", 25, f)):
+                cells += [_tex_num(get("unary_tmh_w"), "{:,.1f}"),
+                          _tex_num(get("unary_avg_degree_w"), "{:,.2f}"),
+                          _tex_int(get("unary_comp_weak")),
+                          _tex_int(get("unary_comp_strong"))]
+            lines.append(f"{N_LABEL[ds] if i == 0 else ''} & {mo} & " +
+                         " & ".join(cells) + " \\\\")
+        lines.append("\\hline")
+    T["unary"] = "\n".join(lines[:-1])
+
+    lines = []
+    for ds in D:
+        ts = ""
+        if datasets_root:
+            p = os.path.join(os.path.expanduser(datasets_root), ds, "dataset_stats.json")
+            if os.path.exists(p):
+                with open(p) as fh:
+                    st = json.load(fh)
+                if len(st) == 1 and isinstance(next(iter(st.values())), dict):
+                    st = next(iter(st.values()))
+                ts = _tex_int(st.get("distinct_type_sets"))
+        lines.append(f"{N_LABEL[ds]:<12}& {ts} & "
+                     f"{_tex_int(g.det(ds, 'CC', 'classes'))} & "
+                     f"{_tex_int(g.b(ds, 'CC', 'equal_width', 1, 'classes'))} & "
+                     f"{_tex_int(g.det(ds, 'CC', 'max_size'))} & "
+                     f"{_tex_int(g.b(ds, 'CC', 'equal_width', 1, 'max_size'))} \\\\")
+    T["cc"] = "\n".join(lines)
+    return T
+
+
+# ---------------------------------------------------------------- the command
+
+def cmd_numbers(argv) -> int:
+    ap = argparse.ArgumentParser(
+        prog="tables.py numbers", description=NUMBERS_HELP,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--results", default="~/probabilistic_graphs/results_mu",
+                    help="the folder run_all.py wrote to")
+    ap.add_argument("--warmup", type=int, default=1,
+                    help="runs 1..WARMUP are warm-up runs (default 1)")
+    ap.add_argument("--out", default=None,
+                    help="output folder (default <results>/tables)")
+    ap.add_argument("--datasets-root", default="~/probabilistic_graphs/datasets/out",
+                    help="where dataset_stats.json lives, for the CC table")
+    args = ap.parse_args(argv)
+
+    results = os.path.expanduser(args.results)
+    out = os.path.expanduser(args.out) if args.out else os.path.join(results, "tables")
+    os.makedirs(os.path.join(out, "latex"), exist_ok=True)
+
+    rows, bounds = read_runs(results)
+    if not rows:
+        print(f"[info] no measures under {results}/run_*/")
+        return 1
+    attach_shared(results, rows)
+    runs = sorted({r["run"] for r in rows})
+    measured = [k for k in runs if k > args.warmup]
+    print(f"[numbers] {len(rows)} rows from runs {runs}; warm-up "
+          f"{[k for k in runs if k <= args.warmup]}, measured {measured}")
+
+    write_csv(sorted(rows, key=lambda r: (r["run"],) + row_key(r)),
+              os.path.join(out, "runs_master.csv"))
+
+    problems = consistency(rows, bounds)
+    with open(os.path.join(out, "consistency.txt"), "w", encoding="utf-8") as fh:
+        fh.write(f"runs {runs}\n")
+        if problems:
+            fh.write(f"{len(problems)} deterministic measures differ between runs:\n")
+            fh.write("\n".join(problems) + "\n")
+        else:
+            fh.write("all class counts, edges, boundaries and fidelity measures "
+                     "are identical in every run\n")
+    print(f"[numbers] consistency: "
+          f"{'OK, identical in every run' if not problems else f'{len(problems)} DIFFERENCES, see consistency.txt'}")
+
+    eff, med_rows, mean_rows = aggregate(rows, args.warmup)
+    write_csv(eff, os.path.join(out, "efficiency_runs.csv"))
+    write_csv(med_rows, os.path.join(out, "master_median.csv"))
+    write_csv(mean_rows, os.path.join(out, "master_mean.csv"))
+
+    n_med = compute_numbers(med_rows)
+    n_mean = {(x["section"], x["key"]): x["value"] for x in compute_numbers(mean_rows)}
+
+    spread = [e[f"{RT}_run_spread"] for e in eff if e.get(f"{RT}_run_spread") is not None]
+    extra = []
+    if spread:
+        extra.append({"section": "Threats to validity",
+                      "key": "runtime of one configuration across the measured runs",
+                      "thesis": "repeated runs of the same partition differ by up to 29% "
+                                "(estimated from det and m=1)",
+                      "value": f"median {100 * median(spread):.0f}%, at most "
+                               f"{100 * max(spread):.0f}% over {len(measured)} runs"})
+    per_run = []
+    for k in measured:
+        rk = [r for r in rows if r["run"] == k]
+        fam = [x for x in compute_numbers(rk) if x["key"] == "fastest family"]
+        if fam:
+            per_run.append(f"run {k}: {fam[0]['value']}")
+    if per_run:
+        extra.append({"section": "Results: efficiency", "key": "fastest family, run by run",
+                      "thesis": "(single run)", "value": " | ".join(per_run)})
+
+    doc = []
+    for x in n_med + extra:
+        mv = n_mean.get((x["section"], x["key"]))
+        if mv is not None and mv != x["value"]:
+            x = dict(x, value_median=x["value"], value_mean=mv,
+                     value=f"median: {x['value']}  ||  mean: {mv}")
+        doc.append(x)
+    with open(os.path.join(out, "thesis_numbers.json"), "w", encoding="utf-8") as fh:
+        json.dump({"results": results, "runs": runs, "warmup": args.warmup,
+                   "numbers": doc}, fh, indent=2)
+    with open(os.path.join(out, "thesis_numbers.md"), "w", encoding="utf-8") as fh:
+        fh.write(f"# Numbers reported in the thesis\n\nRuns {runs}, warm-up "
+                 f"{[k for k in runs if k <= args.warmup]}. Runtime and memory "
+                 f"are the median (and, where it differs, the mean) over runs "
+                 f"{measured}.\n\nConsistency: "
+                 f"{'every deterministic measure identical in every run' if not problems else f'{len(problems)} differences, see consistency.txt'}.\n")
+        sections = []
+        for x in doc:
+            if x["section"] not in sections:
+                sections.append(x["section"])
+        for section in sections:
+            fh.write(f"\n## {section}\n\n")
+            for x in doc:
+                if x["section"] == section:
+                    fh.write(f"- **{x['key']}**\n  - thesis now: {x['thesis']}\n"
+                             f"  - new: {x['value']}\n")
+    print(f"[ok] {os.path.join(out, 'thesis_numbers.md')}  ({len(doc)} numbers)")
+
+    for variant, rs in (("median", med_rows), ("mean", mean_rows)):
+        for name, body in latex_tables(rs, args.datasets_root).items():
+            if name in ("runtime", "memory"):
+                path = os.path.join(out, "latex", f"tab_{name}_{variant}.tex")
+            elif variant == "median":
+                path = os.path.join(out, "latex", f"tab_{name}.tex")
+            else:
+                continue
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(f"% generated by tables.py numbers from {results}\n")
+                fh.write(body + "\n")
+    print(f"[ok] {os.path.join(out, 'latex')}/")
+    return 0
+
+
+# =========================================================================== #
 # command line
 # =========================================================================== #
 
 COMMANDS = {
     "build": cmd_build,
+    "numbers": cmd_numbers,
     "dataset-stats": cmd_dataset_stats,
     "collect-stats": cmd_collect_stats,
     "parse-counts": cmd_parse_counts,
