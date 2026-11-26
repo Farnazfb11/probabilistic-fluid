@@ -972,6 +972,11 @@ Layout read
 Runs 1 .. --warmup are warm-up runs: they enter the consistency check but not
 the runtime and memory statistics.
 
+The mean dispersion and the mean representative error are reported over all
+(subject, predicate) cells of the graph, a cell that matches its class mean
+counting as zero. The cell counts come from dataset_stats.json under
+--datasets-root; the command stops if one is missing.
+
 Written to <results>/tables/ (or --out)
 --------------------------------------
 runs_master.csv       one row per run, dataset, model and binning
@@ -1331,11 +1336,18 @@ def compute_numbers(rows) -> list:
             f"({', '.join(rises['5->10']) or '-'})")
 
     # ---------------------------------------------------------- dispersion
+    # mean dispersion is a mean over all cells (per_cell_means); reported in 1e-3
+    K = 1e3
     detd = [g.det(ds, mo, "disp_mean") for ds in D for mo in N_BINNED]
-    add("Results: dispersion", "deterministic mean dispersion", "0.004 to 0.042",
-        _rng(detd, "{:.3f}"))
+    add("Results: dispersion", "deterministic mean dispersion (x 1e-3)", "0.004 to 0.042",
+        _rng([None if v is None else K * v for v in detd], "{:.3f}"))
+    for lab, l in (("deterministic", "deterministic"), ("EW m=25", "equal_width_m25"),
+                   ("CL m=25", "clustering_m25"), ("EF m=25", "equal_frequency_m25")):
+        sh = [g.get(ds, mo, l, "disp_share") for ds in D for mo in N_BINNED]
+        add("Results: dispersion", f"share of cells deviating from the class mean, {lab}",
+            "(not in the thesis yet)", _rng([None if v is None else 100 * v for v in sh], "{:.0f}%"))
     exceed, red, within, nonmono, ratios = 0, [], [], [], []
-    lowest = {m: [0, 0, []] for m in (5, 10, 25)}
+    lowest = {m: [0, 0, [], defaultdict(int)] for m in (5, 10, 25)}
     max_ew = {m: [] for m in (5, 10, 25)}
     max25 = {"equal_frequency": [], "clustering": []}
     for ds in D:
@@ -1360,6 +1372,7 @@ def compute_numbers(rows) -> list:
                     continue
                 lowest[m][1] += 1
                 low = min(v, key=v.get)
+                lowest[m][3][N_FAM[low]] += 1
                 if low == "equal_width":
                     lowest[m][0] += 1
                 else:
@@ -1387,8 +1400,9 @@ def compute_numbers(rows) -> list:
         add("Results: dispersion / Discussion / Conclusion", f"EW the lowest family at m={m}",
             "every dataset and model at m=10 and 25; at m=5 12 of 18 "
             "(exceptions CL on BSBM 100M, EF on DyLDO)",
-            f"{lowest[m][0]} of {lowest[m][1]}"
-            + (f"; exceptions {', '.join(lowest[m][2])}" if lowest[m][2] else ""))
+            f"{lowest[m][0]} of {lowest[m][1]} (lowest: "
+            + ", ".join(f"{k} {lowest[m][3][k]}" for k in ("EW", "EF", "CL") if lowest[m][3][k])
+            + ")" + (f"; exceptions {', '.join(lowest[m][2])}" if lowest[m][2] else ""))
     add("Results: dispersion", "deterministic maximum", "up to 0.83",
         _rng([g.det(ds, mo, "disp_max") for ds in D for mo in N_BINNED], "{:.2f}"))
     add("Results: dispersion / Discussion", "EW maximum at m=5/10/25",
@@ -1397,15 +1411,15 @@ def compute_numbers(rows) -> list:
     add("Results: dispersion / Discussion", "EF and CL maxima at m=25",
         "0.09 to 0.29 and 0.03 to 0.27 (up to 0.29)",
         f"EF {_rng(max25['equal_frequency'], '{:.2f}')}, CL {_rng(max25['clustering'], '{:.2f}')}")
-    add("Results: dispersion / Discussion", "the three models at EW m=25",
+    add("Results: dispersion / Discussion", "the three models at EW m=25 (x 1e-3)",
         "within 0.0003 on every dataset",
-        f"within {max(within):.4f}" if within else "n/a")
+        f"within {K * max(within):.3f}" if within else "n/a")
     sx = []
     for ds in ("watdiv10m", "dbpedia39"):
         v = {mo: g.det(ds, mo, "disp_mean") for mo in N_BINNED}
         if None not in v.values():
-            sx.append(f"{N_LABEL[ds]}: " + ", ".join(f"{mo} {v[mo]:.3f}" for mo in N_BINNED))
-    add("Results: dispersion", "deterministic dispersion on WatDiv and DBpedia",
+            sx.append(f"{N_LABEL[ds]}: " + ", ".join(f"{mo} {K * v[mo]:.3f}" for mo in N_BINNED))
+    add("Results: dispersion", "deterministic dispersion on WatDiv and DBpedia (x 1e-3)",
         "SchemEX 0.020 and 0.015 against 0.029 and 0.019 for AC", "; ".join(sx))
     add("Results: dispersion", "dispersion not monotone in m",
         "7 of 54 series rise from m=5 to m=10 (CL on BSBM 100M and BTC 150M, EF for SchemEX on DBpedia)",
@@ -1529,6 +1543,52 @@ def _stats(vals):
             "min": min(vals), "max": max(vals), "n": len(vals)}
 
 
+def load_cells(datasets_root: Optional[str]) -> Dict[str, int]:
+    """Number of (subject, predicate) cells per dataset, from the
+    dataset_stats.json that `tables.py dataset-stats --json` writes."""
+    out: Dict[str, int] = {}
+    root = os.path.expanduser(datasets_root) if datasets_root else None
+    if not root or not os.path.isdir(root):
+        return out
+    for ds in sorted(os.listdir(root)):
+        st = graph_stats(os.path.join(root, ds))
+        if st and st.get("cells"):
+            out[ds] = int(st["cells"])
+    return out
+
+
+def per_cell_means(rows, cells: Dict[str, int]) -> List[str]:
+    """Report dispersion and representative error as means over all cells.
+
+    measures.py records the mean deviation over the (member, cell) pairs that
+    deviate at all, and how many such pairs there are. Multiplying the two
+    gives the total deviation, and dividing by the number of cells of the
+    graph gives the mean over every cell, a cell that matches its class mean
+    counting as zero. The denominator is the same for every configuration of
+    a dataset, so the binnings are compared on equal terms, and the result is
+    the mean error of the class-mean payload per cell.
+
+    AC, ACC and SchemEX have the (subject, predicate) cells counted by
+    dataset-stats. CC has one cell per subject, of mass one, so its deviation
+    is zero whatever the denominator.
+
+    The mean over the deviating pairs is kept as <field>_dev, and the share of
+    deviating cells as disp_share. Returns the datasets without a cell count.
+    """
+    missing = sorted({r["dataset"] for r in rows if r["dataset"] not in cells})
+    if missing:
+        return missing
+    for r in rows:
+        c = cells[r["dataset"]]
+        for f, n in (("disp_mean", "disp_cells"), ("rep_err_mean", "rep_err_cells")):
+            v, k = r.get(f), r.get(n)
+            r[f + "_dev"] = v
+            r[f] = None if v is None or k is None else v * k / c
+        k = r.get("disp_cells")
+        r["disp_share"] = None if k is None else k / c
+    return []
+
+
 def aggregate(rows, warmup: int):
     """Per (dataset, model, binning): efficiency statistics over the measured
     runs, and two aggregated rows (median and mean)."""
@@ -1643,7 +1703,9 @@ def latex_tables(rows, datasets_root: Optional[str] = None) -> Dict[str, str]:
         return "\n".join(lines[:-1])
 
     T["compactness"] = grid_table("classes", _tex_int)
-    T["dispersion"] = grid_table("disp_mean", lambda v: _tex_num(v, "{:.4f}"))
+    # mean over all cells, in units of 10^-3
+    T["dispersion"] = grid_table(
+        "disp_mean", lambda v: "" if v is None else _tex_num(1e3 * v, "{:.3f}"))
     T["dispersion_max"] = grid_table("disp_max", lambda v: _tex_num(v, "{:.2f}"))
     T["summary_edges"] = grid_table(
         "summary_edges", lambda v: "" if v is None else _tex_num(v / 1000, "{:,.1f}"))
@@ -1721,6 +1783,13 @@ def cmd_numbers(argv) -> int:
         print(f"[info] no measures under {results}/run_*/")
         return 1
     attach_shared(results, rows)
+    cells = load_cells(args.datasets_root)
+    missing = per_cell_means(rows, cells)
+    if missing:
+        print(f"[error] no cell count for {', '.join(missing)}: run "
+              f"`tables.py dataset-stats --json` for these datasets, or pass "
+              f"--datasets-root")
+        return 1
     runs = sorted({r["run"] for r in rows})
     measured = [k for k in runs if k > args.warmup]
     print(f"[numbers] {len(rows)} rows from runs {runs}; warm-up "
